@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Sender {
+  user
+  bot
+  system
+}
+
+enum ChatType {
+  text
+  image
+}
+
+enum ConversationVariant {
+  chat
+  notes_tool
+  youtube_tool
+  diagram_tool
+  image_filter_tool
+}
+
+model User {
+  id            String         @id
+  email         String?        @unique
+  name          String?
+  image         String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  conversations Conversation[]
+
+  @@index([email])
+  @@index([createdAt])
+}
+
+model Conversation {
+  id          String              @id @default(uuid())
+  userId      String
+  title       String?
+  variant     ConversationVariant @default(chat)
+  startedAt   DateTime            @default(now())
+  lastUpdated DateTime            @updatedAt
+  isArchived  Boolean             @default(false)
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chats Chat[]
+
+  @@index([userId])
+  @@index([lastUpdated])
+  @@index([isArchived])
+}
+
+model Chat {
+  id                 String   @id @default(uuid())
+  type               ChatType @default(text)
+  conversationId     String
+  sender             Sender
+  model              String?
+  content            String?
+  imageUrl           String?
+  performanceMetrics Json?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([createdAt])
+  @@index([sender])
+}
