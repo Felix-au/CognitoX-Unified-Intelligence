@@ -5,7 +5,7 @@ import { createConversationSchema } from "@/lib/schema";
 import { z } from "zod";
 
 const deleteConversationSchema = z.object({
-  conversationId: z.string().uuid("Invalid conversation ID format"),
+  conversationId: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid conversation ID format (must be 24-character hex string)"),
 });
 
 // GET: List all non-archived conversations of the logged-in user
