@@ -6,7 +6,6 @@ import { prisma } from "./prisma";
 // Once Firebase configuration is provided, replace this CredentialsProvider with
 // client-side Firebase token validation. The server will verify the JWT ID token
 // using firebase-admin and match/create users in PostgreSQL database.
-// Refer to future_changes.md for detailed steps.
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -22,7 +21,6 @@ export const authOptions: NextAuthOptions = {
         }
 
         // Standard mock authentication for CognitoX out-of-the-box experience
-        // In a real application, verify passwords using bcrypt/argon2.
         const email = credentials.email.toLowerCase();
 
         let user = await prisma.user.findUnique({
@@ -31,9 +29,9 @@ export const authOptions: NextAuthOptions = {
 
         if (!user) {
           // Auto-create user for frictionless sandbox onboarding
+          // Let MongoDB/Prisma auto-generate the BSON ObjectId
           user = await prisma.user.create({
             data: {
-              id: `user_${Math.random().toString(36).substring(2, 11)}`,
               email,
               name: email.split('@')[0],
               image: `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&h=150`
