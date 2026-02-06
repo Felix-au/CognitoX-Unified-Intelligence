@@ -9,7 +9,6 @@ async function main() {
     where: { email: "sandbox@cognitox.ai" },
     update: {},
     create: {
-      id: "user_sandbox123",
       email: "sandbox@cognitox.ai",
       name: "Sandbox User",
       image: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&h=150"
