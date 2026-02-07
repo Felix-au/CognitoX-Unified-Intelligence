@@ -22,7 +22,7 @@ export async function generateDiagramMermaid(
   - Choose the appropriate diagram type: flowchart TD/LR, sequenceDiagram, classDiagram, stateDiagram-v2, erDiagram, gantt, pie, journey, mindmap, etc.
   - If current Mermaid code is provided, MODIFY and REFINE that code to satisfy the user description.
   - If no current Mermaid code is provided (or it is 'None'), CREATE a new diagram from scratch.
-  - Ensure syntax is correct, e.g. using quotes for labels containing special characters.`;
+  - CRITICAL SYNTAX RULE: You MUST wrap ALL node text labels in double quotes. For example, write A["Label Text"] or B["Preprocessing (tokenization, normal)"] instead of A[Label Text] or B[Preprocessing (tokenization, normal)]. Parentheses, punctuation, commas, or special characters inside unquoted labels will break the Mermaid parser, so ALWAYS use double quotes ["..."] or ("...") or {"..."} for every node text label you output. No exceptions!`;
 
   const userPrompt = `User description:
   ${prompt}
