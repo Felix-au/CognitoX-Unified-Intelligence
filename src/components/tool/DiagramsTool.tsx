@@ -117,7 +117,7 @@ export default function DiagramsTool() {
 
         <div className="studio-main">
           {code ? (
-            <div className="canvas-grid">
+            <div className={`canvas-grid ${editMode === "code" ? "has-editor" : ""}`}>
               {/* Left Side: Visual Render */}
               <div className="canvas-viewer">
                 <MermaidChart code={code} />
@@ -243,9 +243,12 @@ export default function DiagramsTool() {
         }
         .canvas-grid {
           display: grid;
+          grid-template-columns: 1fr;
+          height: 100%;
+        }
+        .canvas-grid.has-editor {
           grid-template-columns: 1.2fr 0.8fr;
           gap: 20px;
-          height: 100%;
         }
         .canvas-grid:only-child, .canvas-viewer:only-child {
           grid-template-columns: 1fr;
