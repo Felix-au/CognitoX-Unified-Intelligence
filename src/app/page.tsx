@@ -4,16 +4,45 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/providers/ToastProvider";
-import { Sparkles, Terminal, FileText, Youtube, Image, ShieldAlert } from "lucide-react";
+import { Sparkles, Terminal, FileText, Youtube, Image as ImageIcon, Chrome } from "lucide-react";
+import { auth, googleProvider } from "@/lib/firebase-client";
+import { 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword, 
+  signInWithPopup 
+} from "firebase/auth";
 
 export default function LandingPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [authMode, setAuthMode] = useState<"login" | "signup">("login");
   const router = useRouter();
   const { showToast } = useToast();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleNextAuthSignIn = async (idToken: string) => {
+    const result = await signIn("credentials", {
+      idToken,
+      redirect: false,
+    });
+
+    if (result?.error) {
+      showToast({
+        type: "error",
+        title: "Session Error",
+        message: result.error,
+      });
+    } else {
+      showToast({
+        type: "success",
+        title: "Workspace Initialized",
+        message: "Signed in successfully. Loading cognitive space...",
+      });
+      router.push("/chatbot");
+    }
+  };
+
+  const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
       showToast({
@@ -27,32 +56,47 @@ export default function LandingPage() {
     setLoading(true);
 
     try {
-      const result = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      });
-
-      if (result?.error) {
-        showToast({
-          type: "error",
-          title: "Login Failed",
-          message: result.error,
-        });
+      let userCredential;
+      if (authMode === "login") {
+        userCredential = await signInWithEmailAndPassword(auth, email, password);
       } else {
-        showToast({
-          type: "success",
-          title: "Welcome Back",
-          message: "Signed in successfully. Redirecting to workspace...",
-        });
-        router.push("/chatbot");
+        userCredential = await createUserWithEmailAndPassword(auth, email, password);
       }
+
+      const idToken = await userCredential.user.getIdToken();
+      await handleNextAuthSignIn(idToken);
     } catch (err: any) {
+      let msg = err.message || "Authentication failed.";
+      if (err.code === "auth/user-not-found") msg = "User account not found. Click Sign Up below.";
+      else if (err.code === "auth/wrong-password") msg = "Incorrect password.";
+      else if (err.code === "auth/email-already-in-use") msg = "Email already registered. Try logging in.";
+      else if (err.code === "auth/weak-password") msg = "Password must be at least 6 characters.";
+      
       showToast({
         type: "error",
-        title: "System Error",
-        message: err.message || "An unexpected error occurred.",
+        title: "Auth Error",
+        message: msg,
       });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    try {
+      const userCredential = await signInWithPopup(auth, googleProvider);
+      const idToken = await userCredential.user.getIdToken();
+      await handleNextAuthSignIn(idToken);
+    } catch (err: any) {
+      console.error(err);
+      if (err.code !== "auth/popup-closed-by-user") {
+        showToast({
+          type: "error",
+          title: "Google Auth Failed",
+          message: err.message || "Failed to sign in with Google.",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -105,7 +149,7 @@ export default function LandingPage() {
             </div>
 
             <div className="feature-card glass-card">
-              <Image className="feat-icon text-pink" />
+              <ImageIcon className="feat-icon text-pink" />
               <div>
                 <h3>Premium Image Filters</h3>
                 <p>Enhance scans client-side with Canny edge and Sobel filters.</p>
@@ -114,13 +158,15 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* Right Side: Glassmorphic Authentication Panel */}
+        {/* Right Side: Firebase Authentication Panel */}
         <div className="auth-section">
           <div className="auth-box glass-panel">
-            <h2>Access Workspace</h2>
-            <p className="auth-intro">Sign in to initialize your cognitive sandbox.</p>
+            <h2>{authMode === "login" ? "Welcome Back" : "Create Account"}</h2>
+            <p className="auth-intro">
+              {authMode === "login" ? "Sign in to access your cognitive workspace." : "Register to start your sandboxed workspace."}
+            </p>
 
-            <form onSubmit={handleLogin} className="auth-form">
+            <form onSubmit={handleEmailAuth} className="auth-form">
               <div className="form-group">
                 <label>Email Address</label>
                 <input
@@ -146,15 +192,41 @@ export default function LandingPage() {
               </div>
 
               <button type="submit" disabled={loading} className="btn-primary w-full">
-                {loading ? "Initializing..." : "Enter CognitoX"}
+                {loading ? "Authenticating..." : authMode === "login" ? "Enter CognitoX" : "Register Account"}
               </button>
             </form>
 
-            <div className="sandbox-info">
-              <ShieldAlert className="sandbox-icon" />
-              <span>
-                <strong>Developer Sandbox:</strong> Out-of-the-box mode auto-creates non-existent accounts for testing.
-              </span>
+            <div className="divider-row">
+              <span className="divider-line"></span>
+              <span className="divider-text">or continue with</span>
+              <span className="divider-line"></span>
+            </div>
+
+            <button 
+              onClick={handleGoogleSignIn} 
+              disabled={loading} 
+              className="btn-secondary google-btn w-full"
+            >
+              <Chrome className="google-icon" />
+              <span>Google Provider</span>
+            </button>
+
+            <div className="auth-toggle">
+              {authMode === "login" ? (
+                <p>
+                  Don't have an account?{" "}
+                  <span onClick={() => setAuthMode("signup")} className="toggle-link">
+                    Sign Up
+                  </span>
+                </p>
+              ) : (
+                <p>
+                  Already have an account?{" "}
+                  <span onClick={() => setAuthMode("login")} className="toggle-link">
+                    Log In
+                  </span>
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -300,23 +372,43 @@ export default function LandingPage() {
         .w-full {
           width: 100%;
         }
-        .sandbox-info {
-          margin-top: 20px;
+        .divider-row {
           display: flex;
-          gap: 10px;
-          padding: 12px;
-          background: rgba(245, 158, 11, 0.08);
-          border: 1px solid rgba(245, 158, 11, 0.15);
-          border-radius: 8px;
-          font-size: 0.75rem;
-          color: #f59e0b;
-          line-height: 1.45;
+          align-items: center;
+          gap: 12px;
+          margin: 18px 0;
         }
-        .sandbox-icon {
-          width: 18px;
-          height: 18px;
-          flex-shrink: 0;
-          margin-top: 1px;
+        .divider-line {
+          flex: 1;
+          height: 1px;
+          background: var(--border-color);
+        }
+        .divider-text {
+          font-size: 0.7rem;
+          color: var(--text-muted);
+          text-transform: uppercase;
+        }
+        .google-btn {
+          background: rgba(255, 255, 255, 0.03);
+        }
+        .google-icon {
+          width: 15px;
+          height: 15px;
+          color: var(--text-secondary);
+        }
+        .auth-toggle {
+          margin-top: 20px;
+          text-align: center;
+          font-size: 0.78rem;
+          color: var(--text-secondary);
+        }
+        .toggle-link {
+          color: var(--accent-primary);
+          cursor: pointer;
+          font-weight: 600;
+        }
+        .toggle-link:hover {
+          text-decoration: underline;
         }
       `}</style>
     </main>
