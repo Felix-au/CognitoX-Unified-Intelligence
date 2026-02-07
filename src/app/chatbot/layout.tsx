@@ -7,7 +7,7 @@ import axios from "axios";
 import { useToast } from "@/providers/ToastProvider";
 import { 
   Sparkles, Plus, MessageSquare, LogOut, FileText, 
-  Youtube, Terminal, Image, ChevronRight, Archive, Settings
+  Youtube, Terminal, Image, ChevronRight, Archive, Settings, Trash2
 } from "lucide-react";
 
 interface SidebarConversation {
@@ -77,6 +77,31 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
         type: "error",
         title: "Workspace Error",
         message: "Failed to initialize new session.",
+      });
+    }
+  };
+  
+  const handleDeleteConversation = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this conversation?")) return;
+    try {
+      const res = await axios.delete("/api/conversation", { data: { conversationId: id } });
+      if (res.data?.success) {
+        showToast({
+          type: "success",
+          title: "Session Deleted",
+          message: "Conversation has been successfully deleted.",
+        });
+        if (pathname?.includes(`/c/${id}`)) {
+          router.push("/chatbot");
+        } else {
+          fetchHistory();
+        }
+      }
+    } catch (error) {
+      showToast({
+        type: "error",
+        title: "Delete Error",
+        message: "Failed to delete conversation.",
       });
     }
   };
@@ -186,6 +211,16 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
                 >
                   <MessageSquare className="history-icon" />
                   <span className="history-title">{conv.title}</span>
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteConversation(conv.id);
+                    }}
+                    className="btn-delete-conv"
+                    title="Delete Conversation"
+                  >
+                    <Trash2 className="delete-icon" />
+                  </button>
                   <ChevronRight className="history-arrow" />
                 </li>
               ))}
@@ -369,7 +404,30 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
           color: var(--text-muted);
         }
         .history-list li:hover .history-arrow {
-          opacity: 1;
+          display: none;
+        }
+        .btn-delete-conv {
+          background: none;
+          border: none;
+          color: var(--text-muted);
+          cursor: pointer;
+          padding: 4px;
+          border-radius: 4px;
+          display: none;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s;
+        }
+        .history-list li:hover .btn-delete-conv {
+          display: flex;
+        }
+        .btn-delete-conv:hover {
+          background: rgba(239, 68, 68, 0.15);
+          color: var(--accent-danger);
+        }
+        .delete-icon {
+          width: 14px;
+          height: 14px;
         }
         .sidebar-footer {
           border-top: 1px solid var(--border-color);
