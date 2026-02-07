@@ -12,6 +12,7 @@
 
 # Production build
 /build
+/inspiration
 
 # Debug logs
 npm-debug.log*
