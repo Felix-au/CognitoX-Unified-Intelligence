@@ -2,9 +2,8 @@ import * as jose from "jose";
 
 const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "your-project-id";
 
-// Google JWKS endpoint for secure token system
 const JWKS = jose.createRemoteJWKSet(
-  new URL("https://www.googleapis.com/service_accounts/v1/jwk/securetoken-system@system.gserviceaccount.com")
+  new URL("https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com")
 );
 
 export interface FirebaseUserPayload {
