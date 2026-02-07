@@ -169,7 +169,7 @@ export default function ConversationPage() {
                     </div>
                   ) : (
                     <div className="markdown-content">
-                      {m.content}
+                      {parseMarkdown(m.content)}
                     </div>
                   )}
                   {m.model && <span className="message-model-tag">{m.model}</span>}
@@ -341,6 +341,83 @@ export default function ConversationPage() {
           border-bottom-left-radius: 4px;
           color: var(--text-primary);
         }
+        .markdown-content {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          width: 100%;
+        }
+        .text-section {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+        .md-p {
+          margin: 0;
+        }
+        .md-h1, .md-h2, .md-h3, .md-h4, .md-h5, .md-h6 {
+          margin-top: 14px;
+          margin-bottom: 4px;
+          color: #ffffff;
+          font-weight: 600;
+          font-family: var(--font-display);
+        }
+        .md-h1 { font-size: 1.25rem; }
+        .md-h2 { font-size: 1.15rem; }
+        .md-h3 { font-size: 1.05rem; }
+        .bullet-list {
+          margin: 0;
+          padding-left: 20px;
+          list-style-type: disc;
+        }
+        .bullet-list li {
+          margin-bottom: 4px;
+        }
+        .inline-code {
+          background: rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          padding: 2px 6px;
+          border-radius: 4px;
+          font-family: monospace;
+          font-size: 0.82rem;
+          color: #f472b6;
+        }
+        .markdown-link {
+          color: #818cf8;
+          text-decoration: underline;
+          transition: color 0.2s;
+        }
+        .markdown-link:hover {
+          color: #a5b4fc;
+        }
+        .code-block-wrapper {
+          background: rgba(0, 0, 0, 0.4);
+          border: 1px solid var(--border-color);
+          border-radius: 8px;
+          margin: 10px 0;
+          overflow: hidden;
+          font-family: monospace;
+          font-size: 0.8rem;
+          width: 100%;
+        }
+        .code-block-header {
+          background: rgba(255, 255, 255, 0.03);
+          border-bottom: 1px solid var(--border-color);
+          padding: 6px 12px;
+          display: flex;
+          justify-content: space-between;
+          font-size: 0.7rem;
+          color: var(--text-muted);
+          text-transform: uppercase;
+        }
+        .code-block-content {
+          display: block;
+          padding: 12px;
+          overflow-x: auto;
+          color: #e5e7eb;
+          white-space: pre-wrap;
+          word-break: break-all;
+        }
         .generated-image {
           max-width: 100%;
           max-height: 380px;
@@ -506,4 +583,105 @@ export default function ConversationPage() {
       `}</style>
     </div>
   );
+}
+
+function parseMarkdown(text: string): React.ReactNode[] {
+  if (!text) return [];
+  const parts = text.split(/(```[\s\S]*?```)/g);
+  return parts.map((part, index) => {
+    if (part.startsWith("```") && part.endsWith("```")) {
+      const lines = part.slice(3, -3).trim().split("\n");
+      let language = "text";
+      if (lines.length > 0 && !lines[0].includes(" ") && lines[0].length < 20) {
+        language = lines[0].trim();
+        lines.shift();
+      }
+      const code = lines.join("\n");
+      return (
+        <pre key={index} className="code-block-wrapper">
+          <div className="code-block-header">
+            <span>{language}</span>
+          </div>
+          <code className="code-block-content">{code}</code>
+        </pre>
+      );
+    } else {
+      return (
+        <div key={index} className="text-section">
+          {part.split("\n").map((line, lineIdx) => {
+            const headerMatch = line.match(/^(#{1,6})\s+(.+)$/);
+            if (headerMatch) {
+              const level = headerMatch[1].length;
+              const title = headerMatch[2];
+              const Tag = `h${level}` as any;
+              return <Tag key={lineIdx} className={`md-h${level}`}>{parseInline(title)}</Tag>;
+            }
+
+            const listMatch = line.match(/^([\-*+])\s+(.+)$/);
+            if (listMatch) {
+              return (
+                <ul key={lineIdx} className="bullet-list">
+                  <li>{parseInline(listMatch[2])}</li>
+                </ul>
+              );
+            }
+
+            if (line.trim() === "") return <div key={lineIdx} className="empty-line" />;
+            return <p key={lineIdx} className="md-p">{parseInline(line)}</p>;
+          })}
+        </div>
+      );
+    }
+  });
+}
+
+function parseInline(text: string): React.ReactNode[] {
+  let parts: React.ReactNode[] = [text];
+
+  parts = parts.flatMap((part) => {
+    if (typeof part !== "string") return part;
+    const segments = part.split(/(`[^`]+`)/g);
+    return segments.map((seg, idx) => {
+      if (seg.startsWith("`") && seg.endsWith("`")) {
+        return <code key={idx} className="inline-code">{seg.slice(1, -1)}</code>;
+      }
+      return seg;
+    });
+  });
+
+  parts = parts.flatMap((part) => {
+    if (typeof part !== "string") return part;
+    const segments = part.split(/(\[[^\]]+\]\([^\)]+\))/g);
+    return segments.map((seg, idx) => {
+      const match = seg.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+      if (match) {
+        return <a key={idx} href={match[2]} target="_blank" rel="noopener noreferrer" className="markdown-link">{match[1]}</a>;
+      }
+      return seg;
+    });
+  });
+
+  parts = parts.flatMap((part) => {
+    if (typeof part !== "string") return part;
+    const segments = part.split(/(\*\*[^*]+\*\*)/g);
+    return segments.map((seg, idx) => {
+      if (seg.startsWith("**") && seg.endsWith("**")) {
+        return <strong key={idx}>{seg.slice(2, -2)}</strong>;
+      }
+      return seg;
+    });
+  });
+
+  parts = parts.flatMap((part) => {
+    if (typeof part !== "string") return part;
+    const segments = part.split(/(\*[^*]+\*)/g);
+    return segments.map((seg, idx) => {
+      if (seg.startsWith("*") && seg.endsWith("*")) {
+        return <em key={idx}>{seg.slice(1, -1)}</em>;
+      }
+      return seg;
+    });
+  });
+
+  return parts;
 }
