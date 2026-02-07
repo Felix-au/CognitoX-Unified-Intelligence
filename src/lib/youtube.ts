@@ -21,7 +21,8 @@ export async function fetchYoutubeTranscript(videoId: string): Promise<string> {
     const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
     const response = await fetch(videoUrl, {
       headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept-Language": "en-US,en;q=0.9"
       }
     });
 
@@ -30,16 +31,58 @@ export async function fetchYoutubeTranscript(videoId: string): Promise<string> {
     }
 
     const html = await response.text();
+    let captionTracks: any = null;
 
-    // Look for captionTracks JSON configurations inside the HTML page
-    const captionTracksRegex = /"captionTracks":\s*(\[.*?\])/;
-    const match = html.match(captionTracksRegex);
+    // Method 1: Find the ytInitialPlayerResponse variable using brace matching
+    const startStr = "ytInitialPlayerResponse";
+    const startIdx = html.indexOf(startStr);
+    if (startIdx !== -1) {
+      const braceStart = html.indexOf("{", startIdx);
+      if (braceStart !== -1) {
+        let braceCount = 1;
+        let i = braceStart + 1;
+        while (i < html.length && braceCount > 0) {
+          // Skip string literals to avoid wrong brace counts
+          if (html[i] === '"') {
+            i++;
+            while (i < html.length) {
+              if (html[i] === '"' && html[i-1] !== '\\') {
+                break;
+              }
+              i++;
+            }
+          } else if (html[i] === '{') {
+            braceCount++;
+          } else if (html[i] === '}') {
+            braceCount--;
+          }
+          i++;
+        }
+        const jsonStr = html.substring(braceStart, i);
+        try {
+          const playerResponse = JSON.parse(jsonStr);
+          captionTracks = playerResponse.captions?.playerCaptionsTracklistRenderer?.captionTracks;
+        } catch (e) {
+          console.error("Failed to parse brace-matched ytInitialPlayerResponse JSON:", e);
+        }
+      }
+    }
 
-    if (!match || !match[1]) {
+    // Method 2: Fallback direct regex for captionTracks
+    if (!captionTracks) {
+      const captionTracksRegex = /"captionTracks":\s*(\[.*?\])/;
+      const match = html.match(captionTracksRegex);
+      if (match && match[1]) {
+        try {
+          captionTracks = JSON.parse(match[1]);
+        } catch (e) {}
+      }
+    }
+
+    if (!captionTracks || !Array.isArray(captionTracks) || captionTracks.length === 0) {
       throw new Error("Transcripts are disabled or unavailable for this video.");
     }
 
-    const captionTracks = JSON.parse(match[1]);
     const englishTrack = captionTracks.find((track: any) => 
       track.languageCode === 'en' || track.languageCode?.startsWith('en-')
     ) || captionTracks[0];
