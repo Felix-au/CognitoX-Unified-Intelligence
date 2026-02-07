@@ -1,50 +1,70 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { prisma } from "./prisma";
-
-// TODO (Firebase Auth Migration):
-// Once Firebase configuration is provided, replace this CredentialsProvider with
-// client-side Firebase token validation. The server will verify the JWT ID token
-// using firebase-admin and match/create users in PostgreSQL database.
+import { verifyFirebaseIdToken } from "./firebase-verify";
 
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
-      name: "Credentials",
+      name: "FirebaseToken",
       credentials: {
-        email: { label: "Email", type: "email", placeholder: "user@example.com" },
-        password: { label: "Password", type: "password" }
+        idToken: { label: "ID Token", type: "text" }
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          throw new Error("Missing email or password");
+        const idToken = credentials?.idToken;
+        if (!idToken) {
+          throw new Error("Authentication failed: Missing Firebase ID Token");
         }
 
-        // Standard mock authentication for CognitoX out-of-the-box experience
-        const email = credentials.email.toLowerCase();
+        try {
+          // Cryptographically verify the client-side Firebase ID token using Google public JWKS keys
+          const payload = await verifyFirebaseIdToken(idToken);
+          const { uid, email, name, picture } = payload;
 
-        let user = await prisma.user.findUnique({
-          where: { email }
-        });
+          if (!email) {
+            throw new Error("Authentication failed: Email claim missing from token");
+          }
 
-        if (!user) {
-          // Auto-create user for frictionless sandbox onboarding
-          // Let MongoDB/Prisma auto-generate the BSON ObjectId
-          user = await prisma.user.create({
-            data: {
-              email,
-              name: email.split('@')[0],
-              image: `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&h=150`
-            }
+          // 1. Look up user by verified Firebase UID
+          let user = await prisma.user.findUnique({
+            where: { firebaseUid: uid }
           });
-        }
 
-        return {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          image: user.image
-        };
+          if (!user) {
+            // 2. Fallback: Check if user exists with matching email
+            user = await prisma.user.findUnique({
+              where: { email }
+            });
+
+            if (user) {
+              // Link existing account with Firebase UID
+              user = await prisma.user.update({
+                where: { id: user.id },
+                data: { firebaseUid: uid }
+              });
+            } else {
+              // 3. Create a new user record in MongoDB
+              user = await prisma.user.create({
+                data: {
+                  firebaseUid: uid,
+                  email,
+                  name: name || email.split('@')[0],
+                  image: picture || `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&h=150`
+                }
+              });
+            }
+          }
+
+          return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            image: user.image
+          };
+        } catch (error: any) {
+          console.error("NextAuth Firebase authorize error:", error);
+          throw new Error(error.message || "Invalid authentication credentials");
+        }
       }
     })
   ],
