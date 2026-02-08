@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import ToolsHeading from "./ToolsHeading";
 import MermaidChart from "../MermaidChart";
 import { useToast } from "@/providers/ToastProvider";
@@ -15,6 +16,40 @@ export default function DiagramsTool() {
   const [conversationId, setConversationId] = useState<string | null>(null);
   
   const { showToast } = useToast();
+  const searchParams = useSearchParams();
+  const urlConversationId = searchParams.get("conversationId");
+
+  useEffect(() => {
+    if (urlConversationId) {
+      setConversationId(urlConversationId);
+      const loadSession = async () => {
+        setLoading(true);
+        try {
+          const res = await axios.get(`/api/chat?conversationId=${urlConversationId}`);
+          if (res.data?.success && res.data.data.length > 0) {
+            const messages = res.data.data;
+            const lastBotMsg = [...messages].reverse().find(m => m.sender === "bot");
+            if (lastBotMsg) {
+              setCode(lastBotMsg.content);
+            }
+          }
+        } catch (error) {
+          console.error("Failed to load diagram session:", error);
+          showToast({
+            type: "error",
+            title: "Load Failure",
+            message: "Failed to reload diagram session.",
+          });
+        } finally {
+          setLoading(false);
+        }
+      };
+      loadSession();
+    } else {
+      setConversationId(null);
+      setCode("");
+    }
+  }, [urlConversationId]);
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
