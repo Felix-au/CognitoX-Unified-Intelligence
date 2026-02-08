@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession, signOut } from "next-auth/react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useToast } from "@/providers/ToastProvider";
@@ -21,6 +21,8 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
   const router = useRouter();
   const pathname = usePathname();
   const { showToast } = useToast();
+  const searchParams = useSearchParams();
+  const urlConversationId = searchParams ? searchParams.get("conversationId") : null;
   const [conversations, setConversations] = useState<SidebarConversation[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
 
@@ -203,27 +205,42 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
             <div className="history-empty">No active sessions.</div>
           ) : (
             <ul className="history-list">
-              {conversations.map((conv) => (
-                <li 
-                  key={conv.id}
-                  className={pathname?.includes(`/c/${conv.id}`) ? "active" : ""}
-                  onClick={() => router.push(`/chatbot/c/${conv.id}`)}
-                >
-                  <MessageSquare className="history-icon" />
-                  <span className="history-title">{conv.title}</span>
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteConversation(conv.id);
-                    }}
-                    className="btn-delete-conv"
-                    title="Delete Conversation"
+              {conversations.map((conv) => {
+                const isDiagram = conv.variant === "diagram_tool";
+                const isActive = isDiagram 
+                  ? (pathname?.includes("/t/diagrams-tool") && urlConversationId === conv.id)
+                  : pathname?.includes(`/c/${conv.id}`);
+                
+                const handleRoute = () => {
+                  if (isDiagram) {
+                    router.push(`/chatbot/t/diagrams-tool?conversationId=${conv.id}`);
+                  } else {
+                    router.push(`/chatbot/c/${conv.id}`);
+                  }
+                };
+
+                return (
+                  <li 
+                    key={conv.id}
+                    className={isActive ? "active" : ""}
+                    onClick={handleRoute}
                   >
-                    <Trash2 className="delete-icon" />
-                  </button>
-                  <ChevronRight className="history-arrow" />
-                </li>
-              ))}
+                    <MessageSquare className="history-icon" />
+                    <span className="history-title">{conv.title}</span>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteConversation(conv.id);
+                      }}
+                      className="btn-delete-conv"
+                      title="Delete Conversation"
+                    >
+                      <Trash2 className="delete-icon" />
+                    </button>
+                    <ChevronRight className="history-arrow" />
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>
