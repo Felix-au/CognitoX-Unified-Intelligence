@@ -13,8 +13,8 @@ export function extractYoutubeVideoId(url: string): string {
 }
 
 /**
- * Scrapes subtitles/transcripts directly from YouTube's player configuration
- * without external third-party library dependencies.
+ * Scrapes subtitles/transcripts using YouTube's internal Innertube player API.
+ * This bypasses bot-detection consent walls and works reliably for all videos.
  */
 export async function fetchYoutubeTranscript(videoId: string): Promise<string> {
   try {
@@ -27,57 +27,45 @@ export async function fetchYoutubeTranscript(videoId: string): Promise<string> {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch YouTube page. Status: ${response.status}`);
+      throw new Error(`Failed to fetch watch page. Status: ${response.status}`);
     }
 
     const html = await response.text();
-    let captionTracks: any = null;
+    const apiKeyMatch = html.match(/"INNERTUBE_API_KEY":"([^"]+)"/);
+    if (!apiKeyMatch) {
+      throw new Error("Could not extract INNERTUBE_API_KEY from YouTube.");
+    }
+    const apiKey = apiKeyMatch[1];
 
-    // Method 1: Find the ytInitialPlayerResponse variable using brace matching
-    const startStr = "ytInitialPlayerResponse";
-    const startIdx = html.indexOf(startStr);
-    if (startIdx !== -1) {
-      const braceStart = html.indexOf("{", startIdx);
-      if (braceStart !== -1) {
-        let braceCount = 1;
-        let i = braceStart + 1;
-        while (i < html.length && braceCount > 0) {
-          // Skip string literals to avoid wrong brace counts
-          if (html[i] === '"') {
-            i++;
-            while (i < html.length) {
-              if (html[i] === '"' && html[i-1] !== '\\') {
-                break;
-              }
-              i++;
-            }
-          } else if (html[i] === '{') {
-            braceCount++;
-          } else if (html[i] === '}') {
-            braceCount--;
-          }
-          i++;
+    // Call Innertube player endpoint with ANDROID client context (version 20.10.38)
+    const playerEndpoint = `https://www.youtube.com/youtubei/v1/player?key=${apiKey}`;
+    const playerBody = {
+      context: {
+        client: {
+          clientName: "ANDROID",
+          clientVersion: "20.10.38",
+          hl: "en",
+          gl: "US"
         }
-        const jsonStr = html.substring(braceStart, i);
-        try {
-          const playerResponse = JSON.parse(jsonStr);
-          captionTracks = playerResponse.captions?.playerCaptionsTracklistRenderer?.captionTracks;
-        } catch (e) {
-          console.error("Failed to parse brace-matched ytInitialPlayerResponse JSON:", e);
-        }
-      }
+      },
+      videoId: videoId
+    };
+
+    const playerResponse = await fetch(playerEndpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+      },
+      body: JSON.stringify(playerBody)
+    });
+
+    if (!playerResponse.ok) {
+      throw new Error(`Innertube player API call failed. Status: ${playerResponse.status}`);
     }
 
-    // Method 2: Fallback direct regex for captionTracks
-    if (!captionTracks) {
-      const captionTracksRegex = /"captionTracks":\s*(\[.*?\])/;
-      const match = html.match(captionTracksRegex);
-      if (match && match[1]) {
-        try {
-          captionTracks = JSON.parse(match[1]);
-        } catch (e) {}
-      }
-    }
+    const playerData = await playerResponse.json();
+    const captionTracks = playerData.captions?.playerCaptionsTracklistRenderer?.captionTracks;
 
     if (!captionTracks || !Array.isArray(captionTracks) || captionTracks.length === 0) {
       throw new Error("Transcripts are disabled or unavailable for this video.");
@@ -91,31 +79,29 @@ export async function fetchYoutubeTranscript(videoId: string): Promise<string> {
       throw new Error("No usable transcript track found.");
     }
 
-    // Fetch the XML transcription data from YouTube's baseUrl
-    const xmlResponse = await fetch(englishTrack.baseUrl);
-    if (!xmlResponse.ok) {
-      throw new Error("Failed to fetch transcript XML.");
+    // Fetch the transcript track JSON using fmt=json3 format
+    // Replace any existing fmt param (like fmt=srv3) to avoid getting XML back
+    const urlObj = new URL(englishTrack.baseUrl);
+    urlObj.searchParams.set("fmt", "json3");
+    const trackUrl = urlObj.toString();
+
+    const trackResponse = await fetch(trackUrl, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+      }
+    });
+
+    if (!trackResponse.ok) {
+      throw new Error("Failed to fetch transcript track content.");
     }
 
-    const xmlText = await xmlResponse.text();
-
-    // Parse the XML subtitle segments using a robust regex
-    const textSegmentRegex = /<text[^>]*>([\s\S]*?)<\/text>/g;
+    const trackData = await trackResponse.json();
+    const events = trackData.events || [];
     const segments: string[] = [];
-    let segmentMatch;
-
-    while ((segmentMatch = textSegmentRegex.exec(xmlText)) !== null) {
-      let segmentText = segmentMatch[1]
-        .replace(/&amp;/g, '&')
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>')
-        .replace(/&quot;/g, '"')
-        .replace(/&#39;/g, "'")
-        .replace(/<\/?[^>]+(>|$)/g, "") // remove HTML tags
-        .trim();
-      
-      if (segmentText) {
-        segments.push(segmentText);
+    for (const event of events) {
+      if (event.segs) {
+        const text = event.segs.map((s: any) => s.utf8).join("").trim();
+        if (text) segments.push(text);
       }
     }
 
