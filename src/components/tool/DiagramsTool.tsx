@@ -285,13 +285,8 @@ export default function DiagramsTool() {
           grid-template-columns: 1.2fr 0.8fr;
           gap: 20px;
         }
-        .canvas-grid:only-child, .canvas-viewer:only-child {
-          grid-template-columns: 1fr;
-          width: 100%;
-          height: 100%;
-        }
-        /* Fallback if code editor is closed */
         .canvas-viewer {
+          width: 100%;
           height: 100%;
           overflow: hidden;
         }
