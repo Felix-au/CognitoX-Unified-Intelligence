@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "postinstall": "prisma generate",
-    "test:youtube": "node scripts/test-youtube.js"
+    "test:youtube": "node scripts/test-youtube.js",
+    "test:chunking": "node scripts/test-chunking.js"
   },
   "dependencies": {
     "@prisma/client": "^6.15.0",
