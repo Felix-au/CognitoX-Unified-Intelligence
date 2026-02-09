@@ -113,7 +113,94 @@ export async function fetchYoutubeTranscript(videoId: string): Promise<string> {
 }
 
 /**
- * Summarize YouTube lecture video using OmniKey AI.
+ * Split the transcript text into logical chunks of around maxChunkSize characters,
+ * without breaking words.
+ */
+export function splitTranscriptIntoChunks(transcript: string, maxChunkSize: number = 18000): string[] {
+  const words = transcript.split(/\s+/);
+  const chunks: string[] = [];
+  let currentChunk: string[] = [];
+  let currentLength = 0;
+
+  for (const word of words) {
+    if (currentLength + word.length + 1 > maxChunkSize && currentChunk.length > 0) {
+      chunks.push(currentChunk.join(" "));
+      currentChunk = [word];
+      currentLength = word.length;
+    } else {
+      currentChunk.push(word);
+      currentLength += word.length + 1;
+    }
+  }
+
+  if (currentChunk.length > 0) {
+    chunks.push(currentChunk.join(" "));
+  }
+
+  return chunks;
+}
+
+/**
+ * Summarize a specific section of a YouTube lecture video using OmniKey AI.
+ */
+export async function summarizeYoutubeVideoPart(
+  url: string,
+  videoId: string,
+  partIndex: number,
+  totalParts: number,
+  chunkText: string
+): Promise<string> {
+  const systemInstruction = `You are an educational lecture summarization assistant for CognitoX.
+  Your task is to produce a highly structured, detailed section of an outline for the YouTube video.
+  You are summarizing Part ${partIndex + 1} of ${totalParts} of the video.
+
+  Instructions:
+  1. Produce a highly detailed, structured outline of ONLY the provided transcript section.
+  2. Map out the key sections in this transcript portion using clear headers, bullet points, and summaries.
+  3. Extract core concepts, formulas, rules, and definitions discussed in this part.
+  4. Write notes in an academic, easy-to-study format.
+  5. If this is the LAST part (Part ${totalParts} of ${totalParts}), include a "Key Learnings Cheat Sheet" at the end of your outline summarizing the entire video.
+  6. Provide 5 review questions based on the video content at the very end of the final part.
+
+  Constraints:
+  - Base your response ONLY on facts mentioned in this transcript section.
+  - Do NOT summarize parts of the video outside this transcript.
+  - Respond in clean Markdown format without conversational preambles.`;
+
+  const userPrompt = `Video URL: https://www.youtube.com/watch?v=${videoId}\n\nTranscript section (Part ${partIndex + 1} of ${totalParts}):\n${chunkText}`;
+
+  const result = await generateOmniKeyCompletion(userPrompt, {
+    systemInstruction
+  });
+
+  return result.text;
+}
+
+/**
+ * Answer custom user questions about the YouTube video based on its transcript.
+ */
+export async function answerQuestionOnTranscript(transcript: string, question: string): Promise<string> {
+  const systemInstruction = `You are a helpful educational study assistant for CognitoX.
+  Your task is to answer a user's question about a YouTube video lecture.
+  You will be provided with the user's question and the video's transcript.
+
+  Constraints:
+  - Base your answer ONLY on facts mentioned in the transcript.
+  - If the answer cannot be determined from the transcript, state that the information was not discussed in the video.
+  - Respond in clean Markdown format without conversational preambles.`;
+
+  const userPrompt = `Transcript:\n${transcript}\n\nUser Question:\n${question}`;
+
+  const result = await generateOmniKeyCompletion(userPrompt, {
+    systemInstruction
+  });
+
+  return result.text;
+}
+
+/**
+ * Summarize YouTube lecture video using OmniKey AI. If the transcript is large,
+ * it returns Part 1 and prompt instructions for Part 2.
  */
 export async function summarizeYoutubeVideo(url: string): Promise<string> {
   const videoId = extractYoutubeVideoId(url);
@@ -123,24 +210,13 @@ export async function summarizeYoutubeVideo(url: string): Promise<string> {
     throw new Error("Transcript is empty or could not be parsed.");
   }
 
-  const systemInstruction = `You are an educational lecture summarization assistant for CognitoX.
-  Your tasks:
-  1. Produce a highly structured, comprehensive outline of the YouTube video.
-  2. Map out the key sections using clear headers, bullet points, and summaries.
-  3. Extract core concepts, formulas, rules, and definitions discussed.
-  4. Write notes in an academic, easy-to-study format.
-  5. Include a "Key Learnings Cheat Sheet" section at the end.
-  6. Provide 5 review questions based on the video content for study prep.
+  const chunks = splitTranscriptIntoChunks(transcript);
+  if (chunks.length <= 1) {
+    return summarizeYoutubeVideoPart(url, videoId, 0, 1, transcript);
+  }
 
-  Constraints:
-  - Base your response ONLY on facts mentioned in the transcript.
-  - Respond in clean Markdown format without conversational preambles.`;
-
-  const userPrompt = `Video URL: https://www.youtube.com/watch?v=${videoId}\n\nTranscript:\n${transcript}`;
-
-  const result = await generateOmniKeyCompletion(userPrompt, {
-    systemInstruction
-  });
-
-  return result.text;
+  // Multi-part outline: summarize first part
+  const part1Outline = await summarizeYoutubeVideoPart(url, videoId, 0, chunks.length, chunks[0]);
+  
+  return `${part1Outline}\n\n> [!NOTE]\n> **This video outline is divided into ${chunks.length} parts due to length.**\n> To generate the next section, type or click: **Generate Part 2**`;
 }
