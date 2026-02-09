@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession, signOut } from "next-auth/react";
-import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useToast } from "@/providers/ToastProvider";
@@ -21,10 +21,19 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
   const router = useRouter();
   const pathname = usePathname();
   const { showToast } = useToast();
-  const searchParams = useSearchParams();
-  const urlConversationId = searchParams ? searchParams.get("conversationId") : null;
+  const [urlConversationId, setUrlConversationId] = useState<string | null>(null);
   const [conversations, setConversations] = useState<SidebarConversation[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const currentId = params.get("conversationId");
+      if (currentId !== urlConversationId) {
+        setUrlConversationId(currentId);
+      }
+    }
+  });
 
   useEffect(() => {
     if (status === "unauthenticated") {
