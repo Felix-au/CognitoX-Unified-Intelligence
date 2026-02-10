@@ -25,7 +25,7 @@ export default function ConversationPage() {
   const [loading, setLoading] = useState(true);
   const [inputText, setInputText] = useState("");
   const [sending, setSending] = useState(false);
-  
+
   // File uploads state
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -89,14 +89,14 @@ export default function ConversationPage() {
       const fd = new FormData();
       fd.append("conversationId", id);
       fd.append("content", userPrompt || "Analyze the attached files");
-      
+
       // Pass recent messages for context/history
       const historyContext = messages.slice(-10).map(m => ({
         sender: m.sender,
         content: m.content
       }));
       fd.append("history", JSON.stringify(historyContext));
-      
+
       if (customText === undefined) {
         attachedFiles.forEach(f => {
           fd.append("files", f);
@@ -122,7 +122,7 @@ export default function ConversationPage() {
       if (res.data?.success) {
         // Replace user message with database saved user message and append bot response
         const { userMessage, botMessage } = res.data.data;
-        setMessages((prev) => 
+        setMessages((prev) =>
           prev.filter(m => !m.id.startsWith("temp_")).concat(userMessage, botMessage)
         );
       }
@@ -142,7 +142,7 @@ export default function ConversationPage() {
     if (messages.length === 0) return null;
     const lastMsg = messages[messages.length - 1];
     if (lastMsg.sender !== "bot") return null;
-    
+
     // Check if the content suggests generating the next part, e.g. "Generate Part 2"
     const match = lastMsg.content.match(/generate\s+part\s+(\d+)/i);
     if (match) {
@@ -195,7 +195,7 @@ export default function ConversationPage() {
                 </div>
               </div>
             ))}
-            
+
             {sending && (
               <div className="message-wrapper bot">
                 <div className="message-bubble bot glass-card typing">
@@ -215,9 +215,8 @@ export default function ConversationPage() {
       {nextPart && (
         <div className="next-part-actions z-10">
           <div className="next-part-container glass-panel">
-            <span className="next-part-tip">Next outline section is ready:</span>
-            <button 
-              type="button" 
+            <button
+              type="button"
               onClick={() => handleSend(undefined, `Generate Part ${nextPart}`)}
               className="btn-primary btn-next-part"
               disabled={sending}
@@ -251,15 +250,15 @@ export default function ConversationPage() {
           )}
 
           <div className="input-row">
-            <button 
-              type="button" 
-              onClick={handleAttachClick} 
+            <button
+              type="button"
+              onClick={handleAttachClick}
               className="btn-attach"
               title="Attach PDF, Text, or Images"
             >
               <Paperclip className="attach-icon" />
             </button>
-            <input 
+            <input
               type="file"
               ref={fileInputRef}
               onChange={handleFileChange}
@@ -267,7 +266,7 @@ export default function ConversationPage() {
               accept=".pdf,.txt,.md,.png,.jpg,.jpeg,.webp"
               style={{ display: "none" }}
             />
-            <input 
+            <input
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               placeholder="Ask CognitoX anything, or request 'draw a diagram of...'"
@@ -435,6 +434,38 @@ export default function ConversationPage() {
           font-family: monospace;
           font-size: 0.8rem;
           width: 100%;
+        }
+        .markdown-content :global(.table-wrapper) {
+          width: 100%;
+          overflow-x: auto;
+          margin: 16px 0;
+          border-radius: 12px;
+          border: 1px solid var(--border-color);
+          background: rgba(17, 24, 39, 0.45);
+        }
+        .markdown-content :global(table) {
+          width: 100%;
+          border-collapse: collapse;
+          text-align: left;
+          font-size: 0.8rem;
+          color: var(--text-primary);
+        }
+        .markdown-content :global(th),
+        .markdown-content :global(td) {
+          padding: 12px 16px;
+          border-bottom: 1px solid var(--border-color);
+        }
+        .markdown-content :global(th) {
+          background: rgba(255, 255, 255, 0.03);
+          font-family: var(--font-display);
+          font-weight: 600;
+          color: #ffffff;
+        }
+        .markdown-content :global(tr:last-child td) {
+          border-bottom: none;
+        }
+        .markdown-content :global(tr:hover td) {
+          background: rgba(255, 255, 255, 0.015);
         }
         .code-block-header {
           background: rgba(255, 255, 255, 0.03);
@@ -675,29 +706,109 @@ function parseMarkdown(text: string): React.ReactNode[] {
         </pre>
       );
     } else {
+      const lines = part.split("\n");
+      const renderedElements: React.ReactNode[] = [];
+      let i = 0;
+
+      while (i < lines.length) {
+        const line = lines[i];
+
+        // Check for Markdown table
+        const isTableRow = (l: string) => l.trim().startsWith("|");
+        const isSeparatorRow = (l: string) => /^\|?\s*[:\-]+[:\-\s|]*\|?$/.test(l.trim());
+
+        if (isTableRow(line) && i + 1 < lines.length && isSeparatorRow(lines[i + 1])) {
+          const headerLine = line;
+          const separatorLine = lines[i + 1];
+          const tableRows: string[] = [];
+          
+          i += 2; // skip header and separator
+          
+          while (i < lines.length && isTableRow(lines[i])) {
+            tableRows.push(lines[i]);
+            i++;
+          }
+
+          // Extract headers
+          const headers = headerLine.split("|").map(h => h.trim()).filter((h, idx, arr) => {
+            if (idx === 0 && h === "") return false;
+            if (idx === arr.length - 1 && h === "") return false;
+            return true;
+          });
+
+          // Extract rows data
+          const rowsData = tableRows.map(row => {
+            return row.split("|").map(c => c.trim()).filter((c, idx, arr) => {
+              if (idx === 0 && c === "") return false;
+              if (idx === arr.length - 1 && c === "") return false;
+              return true;
+            });
+          });
+
+          renderedElements.push(
+            <div key={`table-${i}`} className="table-wrapper glass-panel">
+              <table>
+                <thead>
+                  <tr>
+                    {headers.map((h, idx) => (
+                      <th key={idx}>{parseInline(h)}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {rowsData.map((row, rIdx) => (
+                    <tr key={rIdx}>
+                      {row.map((cell, cIdx) => (
+                        <td key={cIdx}>{parseInline(cell)}</td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+          
+          continue;
+        }
+
+        // Header parsing
+        const headerMatch = line.match(/^(#{1,6})\s+(.+)$/);
+        if (headerMatch) {
+          const level = headerMatch[1].length;
+          const title = headerMatch[2];
+          const Tag = `h${level}` as any;
+          renderedElements.push(<Tag key={`h-${i}`} className={`md-h${level}`}>{parseInline(title)}</Tag>);
+          i++;
+          continue;
+        }
+
+        // Bullet list parsing
+        const listMatch = line.match(/^([\-*+])\s+(.+)$/);
+        if (listMatch) {
+          renderedElements.push(
+            <ul key={`ul-${i}`} className="bullet-list">
+              <li>{parseInline(listMatch[2])}</li>
+            </ul>
+          );
+          i++;
+          continue;
+        }
+
+        // Empty line parsing
+        if (line.trim() === "") {
+          renderedElements.push(<div key={`empty-${i}`} className="empty-line" />);
+          i++;
+          continue;
+        }
+
+        // Standard paragraph parsing
+        renderedElements.push(<p key={`p-${i}`} className="md-p">{parseInline(line)}</p>);
+        i++;
+      }
+
       return (
         <div key={index} className="text-section">
-          {part.split("\n").map((line, lineIdx) => {
-            const headerMatch = line.match(/^(#{1,6})\s+(.+)$/);
-            if (headerMatch) {
-              const level = headerMatch[1].length;
-              const title = headerMatch[2];
-              const Tag = `h${level}` as any;
-              return <Tag key={lineIdx} className={`md-h${level}`}>{parseInline(title)}</Tag>;
-            }
-
-            const listMatch = line.match(/^([\-*+])\s+(.+)$/);
-            if (listMatch) {
-              return (
-                <ul key={lineIdx} className="bullet-list">
-                  <li>{parseInline(listMatch[2])}</li>
-                </ul>
-              );
-            }
-
-            if (line.trim() === "") return <div key={lineIdx} className="empty-line" />;
-            return <p key={lineIdx} className="md-p">{parseInline(line)}</p>;
-          })}
+          {renderedElements}
         </div>
       );
     }
