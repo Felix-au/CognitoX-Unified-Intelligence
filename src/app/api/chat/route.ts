@@ -6,6 +6,14 @@ import { parseUploadFile, ParsedFile } from "@/lib/files";
 import { generateOmniKeyCompletion } from "@/lib/omnikey";
 import { generatePollinationsImage } from "@/lib/pollinations";
 import { SUPPORTED_FILE_TYPES, FileType } from "@/types/files";
+import { 
+  summarizeYoutubeVideo,
+  extractYoutubeVideoId,
+  fetchYoutubeTranscript,
+  splitTranscriptIntoChunks,
+  summarizeYoutubeVideoPart,
+  answerQuestionOnTranscript
+} from "@/lib/youtube";
 
 // GET: Retrieve all messages for a given conversation
 export async function GET(request: Request) {
@@ -45,7 +53,8 @@ export async function GET(request: Request) {
     return Response.json({
       success: true,
       message: "Messages retrieved successfully",
-      data: messages
+      data: messages,
+      conversation: conversation
     });
   } catch (error) {
     console.error("GET /api/chat error:", error);
@@ -170,7 +179,88 @@ export async function POST(request: Request) {
 
     let botMessage: any;
 
-    if (classification === "image" && imageDescription) {
+    if (conversation.variant === "youtube_tool") {
+      // YouTube Crawler & Summarizer logic inside main chat
+      let botResponseText = "";
+      try {
+        const isPartRequest = validated.content.trim().match(/^generate\s+part\s+(\d+)$/i);
+        if (isPartRequest) {
+          const requestedPartNum = parseInt(isPartRequest[1], 10);
+
+          // Find the first user message in this conversation which contains the YouTube URL
+          const firstUserMessage = await prisma.chat.findFirst({
+            where: { conversationId: validated.conversationId, sender: 'user' },
+            orderBy: { createdAt: 'asc' }
+          });
+
+          if (!firstUserMessage) {
+            throw new Error("Could not find the original video link in this session.");
+          }
+
+          const url = firstUserMessage.content || "";
+          const videoId = extractYoutubeVideoId(url);
+          const transcript = await fetchYoutubeTranscript(videoId);
+
+          if (!transcript) {
+            throw new Error("Transcript is empty or could not be parsed.");
+          }
+
+          const chunks = splitTranscriptIntoChunks(transcript);
+          const totalParts = chunks.length;
+
+          if (requestedPartNum < 1 || requestedPartNum > totalParts) {
+            throw new Error(`Invalid part number. This video has only ${totalParts} parts.`);
+          }
+
+          const partIndex = requestedPartNum - 1;
+          const partOutline = await summarizeYoutubeVideoPart(url, videoId, partIndex, totalParts, chunks[partIndex]);
+
+          if (requestedPartNum < totalParts) {
+            botResponseText = `${partOutline}\n\n> [!NOTE]\n> **Outline section ${requestedPartNum} of ${totalParts} completed.**\n> To generate the next section, type or click: **Generate Part ${requestedPartNum + 1}**`;
+          } else {
+            botResponseText = `${partOutline}\n\n> [!NOTE]\n> **Outline fully complete!** You have generated all ${totalParts} parts of the lecture outline.`;
+          }
+        } else {
+          // Check if it's a YouTube URL
+          const isUrl = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\//i.test(validated.content.trim());
+          if (isUrl) {
+            botResponseText = await summarizeYoutubeVideo(validated.content);
+          } else {
+            // It's a custom question about the video!
+            const firstUserMessage = await prisma.chat.findFirst({
+              where: { conversationId: validated.conversationId, sender: 'user' },
+              orderBy: { createdAt: 'asc' }
+            });
+
+            if (!firstUserMessage) {
+              throw new Error("No video has been analyzed in this session yet. Please paste a YouTube link first.");
+            }
+
+            const url = firstUserMessage.content || "";
+            const videoId = extractYoutubeVideoId(url);
+            const transcript = await fetchYoutubeTranscript(videoId);
+
+            if (!transcript) {
+              throw new Error("Transcript is empty or could not be parsed.");
+            }
+
+            botResponseText = await answerQuestionOnTranscript(transcript, validated.content);
+          }
+        }
+      } catch (error: any) {
+        botResponseText = `Failed to process YouTube video. Error: ${error.message}`;
+      }
+
+      botMessage = await prisma.chat.create({
+        data: {
+          conversationId: validated.conversationId,
+          type: 'text',
+          sender: 'bot',
+          model: 'omnikey-youtube',
+          content: botResponseText
+        }
+      });
+    } else if (classification === "image" && imageDescription) {
       // Image generation flow via Pollinations.ai
       const imageUrl = await generatePollinationsImage(imageDescription);
 
