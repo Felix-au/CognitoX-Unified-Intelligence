@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, isValidElement, cloneElement } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useToast } from "@/providers/ToastProvider";
 import axios from "axios";
@@ -75,12 +75,14 @@ export default function ConversationPage() {
     setAttachedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleSend = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if ((!inputText.trim() && attachedFiles.length === 0) || sending) return;
+  const handleSend = async (e?: React.FormEvent, customText?: string) => {
+    if (e) e.preventDefault();
+    const userPrompt = customText !== undefined ? customText : inputText.trim();
+    if ((!userPrompt && attachedFiles.length === 0) || sending) return;
 
-    const userPrompt = inputText.trim();
-    setInputText("");
+    if (customText === undefined) {
+      setInputText("");
+    }
     setSending(true);
 
     try {
@@ -95,12 +97,13 @@ export default function ConversationPage() {
       }));
       fd.append("history", JSON.stringify(historyContext));
       
-      attachedFiles.forEach(f => {
-        fd.append("files", f);
-      });
-
-      // Clear uploads on send start
-      setAttachedFiles([]);
+      if (customText === undefined) {
+        attachedFiles.forEach(f => {
+          fd.append("files", f);
+        });
+        // Clear uploads on send start
+        setAttachedFiles([]);
+      }
 
       // Optimistically show user message
       const tempUserMessage: Message = {
@@ -169,7 +172,7 @@ export default function ConversationPage() {
                     </div>
                   ) : (
                     <div className="markdown-content">
-                      {parseMarkdown(m.content)}
+                      {parseMarkdown(m.content, (partNum) => handleSend(undefined, `Generate Part ${partNum}`))}
                     </div>
                   )}
                   {m.model && <span className="message-model-tag">{m.model}</span>}
@@ -567,9 +570,30 @@ export default function ConversationPage() {
           background: rgba(255, 255, 255, 0.1);
           color: #ffffff;
         }
-        .chip-remove-icon {
-          width: 10px;
-          height: 10px;
+        :global(.btn-generate-part) {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary-hover) 100%);
+          color: #ffffff;
+          border: none;
+          border-radius: 6px;
+          padding: 6px 12px;
+          font-family: var(--font-display);
+          font-weight: 600;
+          font-size: 0.72rem;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          box-shadow: 0 4px 10px rgba(99, 102, 241, 0.2);
+          margin: 6px 0;
+          vertical-align: middle;
+        }
+        :global(.btn-generate-part:hover) {
+          transform: translateY(-1px);
+          box-shadow: 0 6px 14px rgba(99, 102, 241, 0.35);
+        }
+        :global(.btn-generate-part:active) {
+          transform: translateY(1px);
         }
 
         @keyframes spin {
@@ -585,7 +609,7 @@ export default function ConversationPage() {
   );
 }
 
-function parseMarkdown(text: string): React.ReactNode[] {
+function parseMarkdown(text: string, onPartClick?: (partNum: number) => void): React.ReactNode[] {
   if (!text) return [];
   const parts = text.split(/(```[\s\S]*?```)/g);
   return parts.map((part, index) => {
@@ -614,20 +638,20 @@ function parseMarkdown(text: string): React.ReactNode[] {
               const level = headerMatch[1].length;
               const title = headerMatch[2];
               const Tag = `h${level}` as any;
-              return <Tag key={lineIdx} className={`md-h${level}`}>{parseInline(title)}</Tag>;
+              return <Tag key={lineIdx} className={`md-h${level}`}>{parseInline(title, onPartClick)}</Tag>;
             }
 
             const listMatch = line.match(/^([\-*+])\s+(.+)$/);
             if (listMatch) {
               return (
                 <ul key={lineIdx} className="bullet-list">
-                  <li>{parseInline(listMatch[2])}</li>
+                  <li>{parseInline(listMatch[2], onPartClick)}</li>
                 </ul>
               );
             }
 
             if (line.trim() === "") return <div key={lineIdx} className="empty-line" />;
-            return <p key={lineIdx} className="md-p">{parseInline(line)}</p>;
+            return <p key={lineIdx} className="md-p">{parseInline(line, onPartClick)}</p>;
           })}
         </div>
       );
@@ -635,8 +659,31 @@ function parseMarkdown(text: string): React.ReactNode[] {
   });
 }
 
-function parseInline(text: string): React.ReactNode[] {
+function parseInline(text: string, onPartClick?: (partNum: number) => void): React.ReactNode[] {
   let parts: React.ReactNode[] = [text];
+
+  // Look for Generate Part X or **Generate Part X** and map them to interactive buttons
+  parts = parts.flatMap((part) => {
+    if (typeof part !== "string") return part;
+    const segments = part.split(/(\*\*Generate Part \d+\*\*|Generate Part \d+)/i);
+    return segments.map((seg, idx) => {
+      const partMatch = seg.match(/\*\*Generate Part (\d+)\*\*|Generate Part (\d+)/i);
+      if (partMatch) {
+        const partNum = parseInt(partMatch[1] || partMatch[2], 10);
+        return (
+          <button
+            key={idx}
+            onClick={() => onPartClick?.(partNum)}
+            className="btn-generate-part"
+            type="button"
+          >
+            Generate Part {partNum}
+          </button>
+        );
+      }
+      return seg;
+    });
+  });
 
   parts = parts.flatMap((part) => {
     if (typeof part !== "string") return part;
@@ -683,5 +730,11 @@ function parseInline(text: string): React.ReactNode[] {
     });
   });
 
-  return parts;
+  // Re-map keys dynamically to ensure absolute uniqueness and prevent React duplication warning
+  return parts.map((part, idx) => {
+    if (isValidElement(part)) {
+      return cloneElement(part, { key: idx });
+    }
+    return part;
+  });
 }
