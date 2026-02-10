@@ -137,6 +137,22 @@ export default function ConversationPage() {
     }
   };
 
+  // Find if the last message is a bot message suggesting to generate the next part
+  const getLastBotPartSuggestion = () => {
+    if (messages.length === 0) return null;
+    const lastMsg = messages[messages.length - 1];
+    if (lastMsg.sender !== "bot") return null;
+    
+    // Check if the content suggests generating the next part, e.g. "Generate Part 2"
+    const match = lastMsg.content.match(/generate\s+part\s+(\d+)/i);
+    if (match) {
+      return parseInt(match[1], 10);
+    }
+    return null;
+  };
+
+  const nextPart = getLastBotPartSuggestion();
+
   return (
     <div className="chat-container">
       <div className="dotted-canvas"></div>
@@ -172,7 +188,7 @@ export default function ConversationPage() {
                     </div>
                   ) : (
                     <div className="markdown-content">
-                      {parseMarkdown(m.content, (partNum) => handleSend(undefined, `Generate Part ${partNum}`))}
+                      {parseMarkdown(m.content)}
                     </div>
                   )}
                   {m.model && <span className="message-model-tag">{m.model}</span>}
@@ -195,6 +211,23 @@ export default function ConversationPage() {
           </div>
         )}
       </div>
+
+      {nextPart && (
+        <div className="next-part-actions z-10">
+          <div className="next-part-container glass-panel">
+            <span className="next-part-tip">Next outline section is ready:</span>
+            <button 
+              type="button" 
+              onClick={() => handleSend(undefined, `Generate Part ${nextPart}`)}
+              className="btn-primary btn-next-part"
+              disabled={sending}
+            >
+              <Sparkles className="action-sparkle" />
+              <span>Generate Part {nextPart}</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Input Tray */}
       <div className="input-tray glass-panel">
@@ -570,31 +603,43 @@ export default function ConversationPage() {
           background: rgba(255, 255, 255, 0.1);
           color: #ffffff;
         }
-        :global(.btn-generate-part) {
+        .next-part-actions {
+          display: flex;
+          justify-content: center;
+          padding: 0 24px;
+          margin-bottom: -4px;
+        }
+        .next-part-container {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 8px 16px;
+          border-radius: 12px;
+          background: rgba(17, 24, 39, 0.65);
+          border: 1px solid var(--border-color);
+          backdrop-filter: blur(8px);
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+        }
+        .next-part-tip {
+          font-size: 0.76rem;
+          color: var(--text-secondary);
+          font-family: var(--font-body);
+        }
+        .btn-next-part {
+          padding: 6px 14px;
+          font-size: 0.74rem;
+          border-radius: 6px;
+          height: auto;
           display: inline-flex;
           align-items: center;
           gap: 6px;
-          background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary-hover) 100%);
+        }
+        .action-sparkle {
+          width: 13px;
+          height: 13px;
           color: #ffffff;
-          border: none;
-          border-radius: 6px;
-          padding: 6px 12px;
-          font-family: var(--font-display);
-          font-weight: 600;
-          font-size: 0.72rem;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          box-shadow: 0 4px 10px rgba(99, 102, 241, 0.2);
-          margin: 6px 0;
-          vertical-align: middle;
         }
-        :global(.btn-generate-part:hover) {
-          transform: translateY(-1px);
-          box-shadow: 0 6px 14px rgba(99, 102, 241, 0.35);
-        }
-        :global(.btn-generate-part:active) {
-          transform: translateY(1px);
-        }
+
 
         @keyframes spin {
           from { transform: rotate(0deg); }
@@ -609,7 +654,7 @@ export default function ConversationPage() {
   );
 }
 
-function parseMarkdown(text: string, onPartClick?: (partNum: number) => void): React.ReactNode[] {
+function parseMarkdown(text: string): React.ReactNode[] {
   if (!text) return [];
   const parts = text.split(/(```[\s\S]*?```)/g);
   return parts.map((part, index) => {
@@ -638,20 +683,20 @@ function parseMarkdown(text: string, onPartClick?: (partNum: number) => void): R
               const level = headerMatch[1].length;
               const title = headerMatch[2];
               const Tag = `h${level}` as any;
-              return <Tag key={lineIdx} className={`md-h${level}`}>{parseInline(title, onPartClick)}</Tag>;
+              return <Tag key={lineIdx} className={`md-h${level}`}>{parseInline(title)}</Tag>;
             }
 
             const listMatch = line.match(/^([\-*+])\s+(.+)$/);
             if (listMatch) {
               return (
                 <ul key={lineIdx} className="bullet-list">
-                  <li>{parseInline(listMatch[2], onPartClick)}</li>
+                  <li>{parseInline(listMatch[2])}</li>
                 </ul>
               );
             }
 
             if (line.trim() === "") return <div key={lineIdx} className="empty-line" />;
-            return <p key={lineIdx} className="md-p">{parseInline(line, onPartClick)}</p>;
+            return <p key={lineIdx} className="md-p">{parseInline(line)}</p>;
           })}
         </div>
       );
@@ -659,31 +704,8 @@ function parseMarkdown(text: string, onPartClick?: (partNum: number) => void): R
   });
 }
 
-function parseInline(text: string, onPartClick?: (partNum: number) => void): React.ReactNode[] {
+function parseInline(text: string): React.ReactNode[] {
   let parts: React.ReactNode[] = [text];
-
-  // Look for Generate Part X or **Generate Part X** and map them to interactive buttons
-  parts = parts.flatMap((part) => {
-    if (typeof part !== "string") return part;
-    const segments = part.split(/(\*\*Generate Part \d+\*\*|Generate Part \d+)/i);
-    return segments.map((seg, idx) => {
-      const partMatch = seg.match(/\*\*Generate Part (\d+)\*\*|Generate Part (\d+)/i);
-      if (partMatch) {
-        const partNum = parseInt(partMatch[1] || partMatch[2], 10);
-        return (
-          <button
-            key={idx}
-            onClick={() => onPartClick?.(partNum)}
-            className="btn-generate-part"
-            type="button"
-          >
-            Generate Part {partNum}
-          </button>
-        );
-      }
-      return seg;
-    });
-  });
 
   parts = parts.flatMap((part) => {
     if (typeof part !== "string") return part;
