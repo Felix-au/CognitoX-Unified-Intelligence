@@ -116,7 +116,7 @@ export async function fetchYoutubeTranscript(videoId: string): Promise<string> {
  * Split the transcript text into logical chunks of around maxChunkSize characters,
  * without breaking words.
  */
-export function splitTranscriptIntoChunks(transcript: string, maxChunkSize: number = 18000): string[] {
+export function splitTranscriptIntoChunks(transcript: string, maxChunkSize: number = 7000): string[] {
   const words = transcript.split(/\s+/);
   const chunks: string[] = [];
   let currentChunk: string[] = [];
