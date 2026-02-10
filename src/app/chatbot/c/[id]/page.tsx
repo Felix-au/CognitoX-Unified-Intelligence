@@ -467,6 +467,32 @@ export default function ConversationPage() {
         .markdown-content :global(tr:hover td) {
           background: rgba(255, 255, 255, 0.015);
         }
+        .markdown-content :global(.code-block-in-cell) {
+          display: block;
+          white-space: pre-wrap;
+          font-family: monospace;
+          font-size: 0.8rem;
+          background: rgba(0, 0, 0, 0.4) !important;
+          border: 1px solid rgba(255, 255, 255, 0.05) !important;
+          padding: 8px 12px !important;
+          border-radius: 6px;
+          margin: 6px 0;
+          color: #e5e7eb !important;
+        }
+        .markdown-content :global(.md-hr) {
+          border: none;
+          border-top: 1px solid var(--border-color);
+          margin: 16px 0;
+          width: 100%;
+        }
+        .markdown-content :global(.ordered-list) {
+          margin: 0;
+          padding-left: 20px;
+          list-style-type: decimal;
+        }
+        .markdown-content :global(.ordered-list li) {
+          margin-bottom: 4px;
+        }
         .code-block-header {
           background: rgba(255, 255, 255, 0.03);
           border-bottom: 1px solid var(--border-color);
@@ -687,7 +713,7 @@ export default function ConversationPage() {
 
 function parseMarkdown(text: string): React.ReactNode[] {
   if (!text) return [];
-  const parts = text.split(/(```[\s\S]*?```)/g);
+  const parts = text.split(/(^```[\s\S]*?^```)/gm);
   return parts.map((part, index) => {
     if (part.startsWith("```") && part.endsWith("```")) {
       const lines = part.slice(3, -3).trim().split("\n");
@@ -782,6 +808,25 @@ function parseMarkdown(text: string): React.ReactNode[] {
           continue;
         }
 
+        // Horizontal Rule parsing
+        if (line.trim() === "---") {
+          renderedElements.push(<hr key={`hr-${i}`} className="md-hr" />);
+          i++;
+          continue;
+        }
+
+        // Numbered/Ordered list parsing
+        const numListMatch = line.match(/^(\d+)\.\s+(.+)$/);
+        if (numListMatch) {
+          renderedElements.push(
+            <ol key={`ol-${i}`} className="ordered-list" start={parseInt(numListMatch[1], 10)}>
+              <li>{parseInline(numListMatch[2])}</li>
+            </ol>
+          );
+          i++;
+          continue;
+        }
+
         // Bullet list parsing
         const listMatch = line.match(/^([\-*+])\s+(.+)$/);
         if (listMatch) {
@@ -818,6 +863,32 @@ function parseMarkdown(text: string): React.ReactNode[] {
 function parseInline(text: string): React.ReactNode[] {
   let parts: React.ReactNode[] = [text];
 
+  // 1. Parse triple backticks (embedded code blocks)
+  parts = parts.flatMap((part) => {
+    if (typeof part !== "string") return part;
+    const segments = part.split(/(\`\`\`[a-zA-Z0-9]*[\s\S]*?\`\`\`)/g);
+    return segments.map((seg, idx) => {
+      if (seg.startsWith("```") && seg.endsWith("```")) {
+        let inner = seg.slice(3, -3);
+        let lang = "code";
+        const match = inner.match(/^([a-zA-Z0-9]+)(?:\r\n|\n|\\n|\s)/);
+        if (match) {
+          lang = match[1];
+          inner = inner.substring(match[0].length);
+        }
+        // Normalize literal \n or escaped newlines to actual newlines
+        const codeText = inner.replace(/\\n/g, "\n").trim();
+        return (
+          <code key={idx} className="inline-code code-block-in-cell">
+            {codeText}
+          </code>
+        );
+      }
+      return seg;
+    });
+  });
+
+  // 2. Parse inline code (single backticks)
   parts = parts.flatMap((part) => {
     if (typeof part !== "string") return part;
     const segments = part.split(/(`[^`]+`)/g);
@@ -829,6 +900,7 @@ function parseInline(text: string): React.ReactNode[] {
     });
   });
 
+  // 3. Parse links
   parts = parts.flatMap((part) => {
     if (typeof part !== "string") return part;
     const segments = part.split(/(\[[^\]]+\]\([^\)]+\))/g);
@@ -841,6 +913,7 @@ function parseInline(text: string): React.ReactNode[] {
     });
   });
 
+  // 4. Parse bold (**text**)
   parts = parts.flatMap((part) => {
     if (typeof part !== "string") return part;
     const segments = part.split(/(\*\*[^*]+\*\*)/g);
@@ -852,6 +925,7 @@ function parseInline(text: string): React.ReactNode[] {
     });
   });
 
+  // 5. Parse italics (*text*)
   parts = parts.flatMap((part) => {
     if (typeof part !== "string") return part;
     const segments = part.split(/(\*[^*]+\*)/g);
@@ -860,6 +934,18 @@ function parseInline(text: string): React.ReactNode[] {
         return <em key={idx}>{seg.slice(1, -1)}</em>;
       }
       return seg;
+    });
+  });
+
+  // 6. Convert literal \n or escaped newlines to <br /> elements
+  parts = parts.flatMap((part) => {
+    if (typeof part !== "string") return part;
+    const segments = part.split(/\\n|\n/g);
+    return segments.flatMap((seg, idx) => {
+      if (idx > 0) {
+        return [<br key={`br-${idx}`} />, seg];
+      }
+      return [seg];
     });
   });
 
