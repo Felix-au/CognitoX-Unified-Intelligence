@@ -7,7 +7,8 @@ import axios from "axios";
 import { useToast } from "@/providers/ToastProvider";
 import { 
   Sparkles, Plus, MessageSquare, LogOut, FileText, 
-  Youtube, Terminal, Image, ChevronRight, Archive, Settings, Trash2
+  Youtube, Terminal, Image, ChevronRight, Archive, Settings, Trash2,
+  Sun, Moon
 } from "lucide-react";
 
 interface SidebarConversation {
@@ -24,6 +25,20 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
   const [urlConversationId, setUrlConversationId] = useState<string | null>(null);
   const [conversations, setConversations] = useState<SidebarConversation[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+
+  const [theme, setTheme] = useState<"light" | "dark">("dark");
+
+  useEffect(() => {
+    const activeTheme = document.documentElement.getAttribute("data-theme") as "light" | "dark" || "dark";
+    setTheme(activeTheme);
+  }, []);
+
+  const toggleTheme = () => {
+    const nextTheme = theme === "light" ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", nextTheme);
+    localStorage.setItem("theme", nextTheme);
+    setTheme(nextTheme);
+  };
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -267,13 +282,23 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
               <span className="user-email">{session?.user?.email}</span>
             </div>
           </div>
-          <button 
-            onClick={() => signOut({ callbackUrl: "/" })}
-            className="btn-logout"
-            title="Sign Out"
-          >
-            <LogOut className="logout-icon" />
-          </button>
+          <div className="footer-actions">
+            <button 
+              type="button"
+              onClick={toggleTheme} 
+              className="btn-footer btn-theme-toggle"
+              title={theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
+            >
+              {theme === "light" ? <Moon className="footer-action-icon" /> : <Sun className="footer-action-icon" />}
+            </button>
+            <button 
+              onClick={() => signOut({ callbackUrl: "/" })}
+              className="btn-footer btn-logout"
+              title="Sign Out"
+            >
+              <LogOut className="footer-action-icon" />
+            </button>
+          </div>
         </div>
       </aside>
 
@@ -485,7 +510,7 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
         .user-name {
           font-size: 0.8rem;
           font-weight: 600;
-          color: #ffffff;
+          color: var(--text-primary);
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -497,7 +522,12 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
           overflow: hidden;
           text-overflow: ellipsis;
         }
-        .btn-logout {
+        .footer-actions {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+        }
+        .btn-footer {
           background: none;
           border: none;
           color: var(--text-muted);
@@ -509,11 +539,15 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
           justify-content: center;
           transition: all 0.2s;
         }
+        .btn-footer:hover {
+          background: rgba(128, 128, 128, 0.15);
+          color: var(--text-primary);
+        }
         .btn-logout:hover {
           background: rgba(239, 68, 68, 0.1);
           color: var(--accent-danger);
         }
-        .logout-icon {
+        .footer-action-icon {
           width: 16px;
           height: 16px;
         }
