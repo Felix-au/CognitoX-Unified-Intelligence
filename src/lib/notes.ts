@@ -2,15 +2,16 @@ import { generateOmniKeyCompletion } from "./omnikey";
 
 export interface NotesOcrOptions {
   files: Array<{ filename: string; mimeType: string; base64Content: string }>;
+  pdfTexts?: Array<{ filename: string; text: string }>;
 }
 
 /**
  * Perform high-fidelity OCR on uploaded notes using OmniKey AI.
  */
 export async function processNotesOcr(options: NotesOcrOptions): Promise<string> {
-  const { files } = options;
+  const { files, pdfTexts = [] } = options;
 
-  if (!files || files.length === 0) {
+  if ((!files || files.length === 0) && (!pdfTexts || pdfTexts.length === 0)) {
     throw new Error("No files uploaded for OCR extraction.");
   }
 
@@ -27,7 +28,11 @@ export async function processNotesOcr(options: NotesOcrOptions): Promise<string>
   - Respond ONLY in clean Markdown format.
   - Do not include conversational preambles or post-scripts (like "Here is your transcription:").`;
 
-  const userPrompt = "Perform OCR extraction and compile structured study notes from these files.";
+  let userPrompt = "Perform OCR extraction and compile structured study notes from these files.";
+  if (pdfTexts.length > 0) {
+    const pdfContext = pdfTexts.map(pt => `--- Document: ${pt.filename} ---\n${pt.text}`).join("\n\n");
+    userPrompt = `${userPrompt}\n\nHere is the text extracted from the uploaded PDF document(s):\n\n${pdfContext}`;
+  }
 
   const result = await generateOmniKeyCompletion(userPrompt, {
     systemInstruction,

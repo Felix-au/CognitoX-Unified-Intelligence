@@ -1,4 +1,5 @@
 import { FileType } from "@/types/files";
+import { PDFParse } from "pdf-parse";
 
 export interface ParsedFile {
   filename: string;
@@ -21,6 +22,18 @@ export function getMimeType(filename: string): string {
   }
 }
 
+export async function parsePdfText(buffer: Buffer): Promise<string> {
+  try {
+    const uint8Array = new Uint8Array(buffer);
+    const pdf = new PDFParse(uint8Array);
+    const result = await pdf.getText();
+    return result.text || "";
+  } catch (error) {
+    console.error("Failed to parse PDF text:", error);
+    return "";
+  }
+}
+
 /**
  * Normalizes file input and extracts text content if it's a document,
  * or formats it as a base64 string if it's an image.
@@ -34,8 +47,10 @@ export async function parseUploadFile(file: File): Promise<ParsedFile> {
 
   let content = '';
 
-  if (ext === 'png' || ext === 'jpg' || ext === 'jpeg' || ext === 'webp' || ext === 'pdf') {
-    // Keep images and PDFs as base64 for multimodal vision/OCR LLM queries
+  if (ext === 'pdf') {
+    content = await parsePdfText(buffer);
+  } else if (ext === 'png' || ext === 'jpg' || ext === 'jpeg' || ext === 'webp') {
+    // Keep images as base64 for multimodal vision/OCR LLM queries
     content = buffer.toString('base64');
   } else {
     // Text and Markdown files

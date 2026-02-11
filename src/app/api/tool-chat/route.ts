@@ -81,18 +81,25 @@ export async function POST(request: Request) {
         parsedFiles.push(parsed);
       }
 
-      const allowedFiles = parsedFiles
-        .filter(pf => ['png', 'jpg', 'jpeg', 'webp', 'pdf'].includes(pf.extension))
+      const imageFiles = parsedFiles
+        .filter(pf => ['png', 'jpg', 'jpeg', 'webp'].includes(pf.extension))
         .map(pf => ({
           filename: pf.filename,
           mimeType: pf.mimeType,
           base64Content: pf.content
         }));
 
-      if (allowedFiles.length === 0) {
+      const pdfTexts = parsedFiles
+        .filter(pf => pf.extension === 'pdf')
+        .map(pf => ({
+          filename: pf.filename,
+          text: pf.content
+        }));
+
+      if (imageFiles.length === 0 && pdfTexts.length === 0) {
         botResponseText = "Please upload at least one image or PDF file containing notes to process OCR.";
       } else {
-        botResponseText = await processNotesOcr({ files: allowedFiles });
+        botResponseText = await processNotesOcr({ files: imageFiles, pdfTexts });
       }
       botModelName = "omnikey-ocr";
 

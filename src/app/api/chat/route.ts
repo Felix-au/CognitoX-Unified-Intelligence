@@ -136,7 +136,7 @@ export async function POST(request: Request) {
     const imagePayloads: Array<{ filename: string; mimeType: string; base64Content: string }> = [];
 
     parsedFiles.forEach((pf) => {
-      if (['png', 'jpg', 'jpeg', 'webp', 'pdf'].includes(pf.extension)) {
+      if (['png', 'jpg', 'jpeg', 'webp'].includes(pf.extension)) {
         imagePayloads.push({
           filename: pf.filename,
           mimeType: pf.mimeType,
