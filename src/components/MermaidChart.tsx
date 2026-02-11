@@ -110,24 +110,34 @@ export default function MermaidChart({ code }: { code: string }) {
 
     const img = new Image();
     const svgXml = new XMLSerializer().serializeToString(svgEl);
-    const blob = new Blob([svgXml], { type: "image/svg+xml;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
+    
+    // Convert to base64 Data URL to prevent canvas tainting SecurityError
+    const base64Svg = window.btoa(unescape(encodeURIComponent(svgXml)));
+    const url = `data:image/svg+xml;base64,${base64Svg}`;
 
     img.onload = () => {
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      const pngUrl = canvas.toDataURL("image/png");
-      const link = document.createElement("a");
-      link.href = pngUrl;
-      link.download = "diagram.png";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-      showToast({
-        type: "success",
-        title: "PNG Exported",
-        message: "Diagram PNG image saved successfully.",
-      });
+      try {
+        const pngUrl = canvas.toDataURL("image/png");
+        const link = document.createElement("a");
+        link.href = pngUrl;
+        link.download = "diagram.png";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showToast({
+          type: "success",
+          title: "PNG Exported",
+          message: "Diagram PNG image saved successfully.",
+        });
+      } catch (err) {
+        console.error("Failed to export PNG:", err);
+        showToast({
+          type: "error",
+          title: "Export Failure",
+          message: "Could not export PNG due to browser security constraints. Try exporting as SVG instead.",
+        });
+      }
     };
     img.src = url;
   };
