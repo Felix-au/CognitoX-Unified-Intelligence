@@ -30,6 +30,35 @@
   /* Layout dimensions */
   --navbar-height: 64px;
   --sidebar-width: 260px;
+
+  /* Theme specific properties */
+  --grid-dot-color: rgba(255, 255, 255, 0.04);
+  --input-bg: rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="light"] {
+  --bg-color: #f8fafc;             /* Slate 50 */
+  --bg-card: rgba(255, 255, 255, 0.75); /* White card */
+  --border-color: rgba(0, 0, 0, 0.09);
+  --border-focus: rgba(99, 102, 241, 0.6);
+  
+  --text-primary: #0f172a;         /* Slate 900 */
+  --text-secondary: #334155;       /* Slate 700 */
+  --text-muted: #64748b;           /* Slate 500 */
+
+  --accent-primary: #4f46e5;       /* Indigo 600 */
+  --accent-primary-hover: #4338ca; /* Indigo 700 */
+  --accent-secondary: #0891b2;     /* Cyan 600 */
+
+  /* Glassmorphism Presets (adjusted for light theme) */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(0, 0, 0, 0.07);
+  --glass-shadow: 0 8px 32px 0 rgba(15, 23, 42, 0.06);
+  --glass-backdrop: blur(16px);
+
+  /* Theme specific properties */
+  --grid-dot-color: rgba(0, 0, 0, 0.05);
+  --input-bg: rgba(255, 255, 255, 0.95);
 }
 
 * {
@@ -46,6 +75,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
   min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Typography */
@@ -80,7 +110,7 @@ a {
 /* Dotted Grid Canvas Background */
 .dotted-canvas {
   background-size: 20px 20px;
-  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-image: radial-gradient(circle, var(--grid-dot-color) 1px, transparent 1px);
   position: absolute;
   top: 0;
   left: 0;
@@ -98,6 +128,7 @@ a {
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-shadow);
   border-radius: 16px;
+  transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .glass-card {
@@ -119,7 +150,7 @@ a {
 /* Input Fields & Buttons Styling */
 .input-field {
   width: 100%;
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--input-bg);
   border: 1px solid var(--border-color);
   color: var(--text-primary);
   border-radius: 8px;
@@ -127,7 +158,7 @@ a {
   font-family: var(--font-body);
   font-size: 0.9rem;
   outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.3s, color 0.3s;
 }
 
 .input-field:focus {
