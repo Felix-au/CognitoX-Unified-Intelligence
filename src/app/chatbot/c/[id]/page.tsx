@@ -306,7 +306,7 @@ export default function ConversationPage() {
           font-family: var(--font-display);
           font-weight: 600;
           font-size: 0.95rem;
-          color: #ffffff;
+          color: var(--text-primary);
         }
         .header-icon {
           width: 16px;
@@ -367,10 +367,11 @@ export default function ConversationPage() {
           position: relative;
         }
         .message-bubble.user {
-          background: rgba(99, 102, 241, 0.15);
-          border-color: rgba(99, 102, 241, 0.3);
+          background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary-hover) 100%);
+          border: none;
           color: #ffffff;
           border-bottom-right-radius: 4px;
+          box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
         }
         .message-bubble.bot {
           border-bottom-left-radius: 4px;
@@ -393,7 +394,7 @@ export default function ConversationPage() {
         .md-h1, .md-h2, .md-h3, .md-h4, .md-h5, .md-h6 {
           margin-top: 14px;
           margin-bottom: 4px;
-          color: #ffffff;
+          color: var(--text-primary);
           font-weight: 600;
           font-family: var(--font-display);
         }
@@ -409,8 +410,8 @@ export default function ConversationPage() {
           margin-bottom: 4px;
         }
         .inline-code {
-          background: rgba(255, 255, 255, 0.08);
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: var(--code-inline-bg);
+          border: 1px solid var(--border-color);
           padding: 2px 6px;
           border-radius: 4px;
           font-family: monospace;
@@ -441,7 +442,7 @@ export default function ConversationPage() {
           margin: 16px 0;
           border-radius: 12px;
           border: 1px solid var(--border-color);
-          background: rgba(17, 24, 39, 0.45);
+          background: var(--table-bg);
         }
         .markdown-content :global(table) {
           width: 100%;
@@ -456,10 +457,10 @@ export default function ConversationPage() {
           border-bottom: 1px solid var(--border-color);
         }
         .markdown-content :global(th) {
-          background: rgba(255, 255, 255, 0.03);
+          background: var(--table-header-bg);
           font-family: var(--font-display);
           font-weight: 600;
-          color: #ffffff;
+          color: var(--text-primary);
         }
         .markdown-content :global(tr:last-child td) {
           border-bottom: none;
@@ -494,7 +495,7 @@ export default function ConversationPage() {
           margin-bottom: 4px;
         }
         .code-block-header {
-          background: rgba(255, 255, 255, 0.03);
+          background: var(--table-header-bg);
           border-bottom: 1px solid var(--border-color);
           padding: 6px 12px;
           display: flex;
@@ -553,7 +554,7 @@ export default function ConversationPage() {
         }
         .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
         .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
-
+ 
         .input-tray {
           padding: 16px 24px;
           border-radius: 0;
@@ -578,8 +579,8 @@ export default function ConversationPage() {
         .chat-input {
           flex: 1;
         }
-        .btn-attach, .btn-send {
-          background: rgba(255, 255, 255, 0.04);
+        .btn-attach {
+          background: var(--input-bg);
           border: 1px solid var(--border-color);
           width: 42px;
           height: 42px;
@@ -593,25 +594,37 @@ export default function ConversationPage() {
           flex-shrink: 0;
         }
         .btn-attach:hover {
-          background: rgba(255, 255, 255, 0.08);
-          color: #ffffff;
+          background: var(--border-color);
+          color: var(--text-primary);
         }
         .btn-send {
           background: var(--accent-primary);
           border: none;
           color: #ffffff;
           box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+          width: 42px;
+          height: 42px;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.2s;
+          color: #ffffff;
+          flex-shrink: 0;
         }
         .btn-send:hover {
           background: var(--accent-primary-hover);
           transform: translateY(-1px);
         }
         .btn-send:disabled {
-          background: rgba(255, 255, 255, 0.02);
+          background: var(--input-bg);
+          opacity: 0.4;
           color: var(--text-muted);
           box-shadow: none;
           cursor: not-allowed;
           transform: none;
+          border: 1px solid var(--border-color);
         }
         .attach-icon, .send-icon {
           width: 18px;
@@ -627,7 +640,7 @@ export default function ConversationPage() {
           display: flex;
           align-items: center;
           gap: 6px;
-          background: rgba(255, 255, 255, 0.04);
+          background: var(--input-bg);
           border: 1px solid var(--border-color);
           border-radius: 6px;
           padding: 4px 8px;
@@ -657,8 +670,8 @@ export default function ConversationPage() {
           margin-left: 2px;
         }
         .chip-remove:hover {
-          background: rgba(255, 255, 255, 0.1);
-          color: #ffffff;
+          background: var(--border-color);
+          color: var(--text-primary);
         }
         .next-part-actions {
           display: flex;
@@ -672,10 +685,10 @@ export default function ConversationPage() {
           gap: 12px;
           padding: 8px 16px;
           border-radius: 12px;
-          background: rgba(17, 24, 39, 0.65);
-          border: 1px solid var(--border-color);
-          backdrop-filter: blur(8px);
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+          background: var(--glass-bg);
+          border: 1px solid var(--glass-border);
+          backdrop-filter: var(--glass-backdrop);
+          box-shadow: var(--glass-shadow);
         }
         .next-part-tip {
           font-size: 0.76rem;

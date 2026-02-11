@@ -158,7 +158,7 @@ export default function NotesTool() {
           justify-content: center;
           padding: 48px 24px;
           text-align: center;
-          border: 2px dashed rgba(255, 255, 255, 0.1);
+          border: 2px dashed var(--border-color);
           cursor: pointer;
         }
         .upload-dropzone:hover {
@@ -195,7 +195,7 @@ export default function NotesTool() {
         .selected-files-list h4 {
           font-size: 0.9rem;
           font-family: var(--font-display);
-          color: #ffffff;
+          color: var(--text-primary);
         }
         .files-grid {
           display: flex;
@@ -209,7 +209,7 @@ export default function NotesTool() {
           align-items: center;
           gap: 8px;
           padding: 8px 12px;
-          background: rgba(255, 255, 255, 0.03);
+          background: var(--input-bg);
           border: 1px solid var(--border-color);
           border-radius: 8px;
         }
@@ -235,7 +235,7 @@ export default function NotesTool() {
           align-items: center;
         }
         .file-chip-remove:hover {
-          color: #ffffff;
+          color: var(--text-primary);
         }
         .remove-icon {
           width: 14px;

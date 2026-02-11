@@ -372,7 +372,7 @@ export default function ImageFilterTool() {
           justify-content: center;
           padding: 24px;
           overflow: auto;
-          background: rgba(17, 24, 39, 0.45);
+          background: var(--canvas-bg);
         }
         .filter-canvas {
           max-width: 100%;
@@ -394,7 +394,7 @@ export default function ImageFilterTool() {
           gap: 10px;
           font-family: var(--font-display);
           font-weight: 600;
-          color: #ffffff;
+          color: var(--text-primary);
           font-size: 1rem;
         }
         .panel-title-icon {
@@ -464,7 +464,7 @@ export default function ImageFilterTool() {
         .empty-filter h3 {
           font-size: 1.2rem;
           font-weight: 600;
-          color: #ffffff;
+          color: var(--text-primary);
           margin-bottom: 8px;
           font-family: var(--font-display);
         }

@@ -182,7 +182,7 @@ export default function ChatbotDashboard() {
         .shortcut-card h3 {
           font-size: 1.05rem;
           font-weight: 600;
-          color: #ffffff;
+          color: var(--text-primary);
         }
         .card-body {
           font-size: 0.82rem;
@@ -201,7 +201,7 @@ export default function ChatbotDashboard() {
           transition: color 0.2s;
         }
         .shortcut-card:hover .card-footer {
-          color: #ffffff;
+          color: var(--text-primary);
         }
         .arrow-icon {
           width: 14px;

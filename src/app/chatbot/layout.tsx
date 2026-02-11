@@ -145,8 +145,8 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: #030712;
-            color: #ffffff;
+            background: var(--bg-color);
+            color: var(--text-primary);
             gap: 16px;
           }
           .loader-icon {
@@ -313,7 +313,7 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
           height: 100vh;
           width: 100vw;
           overflow: hidden;
-          background: #030712;
+          background: var(--bg-color);
         }
         .sidebar {
           width: var(--sidebar-width);
@@ -340,7 +340,7 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
           font-family: var(--font-display);
           font-weight: 700;
           font-size: 1.3rem;
-          color: #ffffff;
+          color: var(--text-primary);
           cursor: pointer;
           transition: transform 0.2s;
         }
@@ -359,12 +359,12 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
           gap: 10px;
           background: rgba(99, 102, 241, 0.1);
           border: 1px dashed rgba(99, 102, 241, 0.35);
-          color: #ffffff;
+          color: var(--accent-primary);
           padding: 12px;
           border-radius: 10px;
           font-family: var(--font-display);
           font-size: 0.88rem;
-          font-weight: 500;
+          font-weight: 600;
           cursor: pointer;
           transition: all 0.2s;
           width: 100%;
@@ -408,13 +408,14 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
           font-size: 0.85rem;
         }
         .nav-list li:hover, .history-list li:hover {
-          background: rgba(255, 255, 255, 0.03);
-          color: #ffffff;
+          background: var(--sidebar-hover-bg);
+          color: var(--text-primary);
         }
         .nav-list li.active, .history-list li.active {
-          background: rgba(99, 102, 241, 0.1);
+          background: var(--sidebar-active-bg);
           border: 1px solid rgba(99, 102, 241, 0.25);
-          color: #ffffff;
+          color: var(--sidebar-active-text);
+          font-weight: 600;
         }
         .nav-icon {
           width: 16px;
@@ -499,7 +500,7 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
           width: 32px;
           height: 32px;
           border-radius: 50%;
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          border: 1px solid var(--border-color);
           flex-shrink: 0;
         }
         .user-meta {

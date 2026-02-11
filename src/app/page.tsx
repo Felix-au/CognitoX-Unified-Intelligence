@@ -300,13 +300,13 @@ export default function LandingPage() {
           display: inline-flex;
           align-items: center;
           gap: 8px;
-          background: rgba(99, 102, 241, 0.15);
-          border: 1px solid rgba(99, 102, 241, 0.3);
+          background: rgba(99, 102, 241, 0.1);
+          border: 1px solid rgba(99, 102, 241, 0.2);
           padding: 6px 12px;
           border-radius: 20px;
           font-family: var(--font-display);
           font-size: 0.85rem;
-          color: #a5b4fc;
+          color: var(--accent-primary);
           width: fit-content;
         }
         .logo-icon {

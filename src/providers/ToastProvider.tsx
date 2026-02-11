@@ -63,11 +63,11 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         .toast-card {
           pointer-events: auto;
           width: 320px;
-          background: rgba(15, 23, 42, 0.85);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+          background: var(--glass-bg);
+          backdrop-filter: var(--glass-backdrop);
+          -webkit-backdrop-filter: var(--glass-backdrop);
+          border: 1px solid var(--glass-border);
+          box-shadow: var(--glass-shadow);
           border-radius: 12px;
           padding: 14px;
           animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -95,18 +95,18 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
           font-family: 'Outfit', sans-serif;
           font-weight: 600;
           font-size: 0.9rem;
-          color: #ffffff;
+          color: var(--text-primary);
         }
         .toast-close {
           background: none;
           border: none;
-          color: var(--text-secondary);
+          color: var(--text-muted);
           font-size: 1.2rem;
           cursor: pointer;
           line-height: 1;
         }
         .toast-close:hover {
-          color: #ffffff;
+          color: var(--text-primary);
         }
         .toast-body {
           font-size: 0.8rem;

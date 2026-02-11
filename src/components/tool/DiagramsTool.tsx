@@ -255,8 +255,8 @@ export default function DiagramsTool() {
           transition: all 0.2s;
         }
         .mode-toggle button.active {
-          background: rgba(255, 255, 255, 0.05);
-          color: #ffffff;
+          background: var(--mode-toggle-active-bg);
+          color: var(--text-primary);
         }
         .action-icon {
           width: 14px;
@@ -302,7 +302,7 @@ export default function DiagramsTool() {
           gap: 8px;
           font-size: 0.8rem;
           font-weight: 600;
-          color: #ffffff;
+          color: var(--text-primary);
           margin-bottom: 12px;
           font-family: var(--font-display);
         }
@@ -314,10 +314,10 @@ export default function DiagramsTool() {
         .code-textarea {
           flex: 1;
           width: 100%;
-          background: rgba(0, 0, 0, 0.4);
+          background: var(--code-editor-bg);
           border: 1px solid var(--border-color);
           border-radius: 8px;
-          color: #e5e7eb;
+          color: var(--code-editor-text);
           font-family: monospace;
           font-size: 0.78rem;
           padding: 12px;
@@ -350,7 +350,7 @@ export default function DiagramsTool() {
         .empty-studio h3 {
           font-size: 1.2rem;
           font-weight: 600;
-          color: #ffffff;
+          color: var(--text-primary);
           margin-bottom: 8px;
           font-family: var(--font-display);
         }

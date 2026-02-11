@@ -13,7 +13,7 @@ export default function ToolsHeading({ firstPart, secondPart }: { firstPart: str
           font-family: var(--font-display);
           font-size: 2rem;
           font-weight: 700;
-          color: #ffffff;
+          color: var(--text-primary);
         }
         .gradient-text {
           background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
