@@ -125,6 +125,8 @@ export default function ConversationPage() {
         setMessages((prev) =>
           prev.filter(m => !m.id.startsWith("temp_")).concat(userMessage, botMessage)
         );
+        // Dispatch event to refresh the sidebar chat history (e.g. for dynamic titles)
+        window.dispatchEvent(new Event("refresh-history"));
       }
     } catch (error: any) {
       showToast({

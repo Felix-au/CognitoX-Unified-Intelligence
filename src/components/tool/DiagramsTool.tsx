@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import ToolsHeading from "./ToolsHeading";
 import MermaidChart from "../MermaidChart";
 import { useToast } from "@/providers/ToastProvider";
@@ -15,6 +15,7 @@ export default function DiagramsTool() {
   const [editMode, setEditMode] = useState<"visual" | "code">("visual");
   const [conversationId, setConversationId] = useState<string | null>(null);
   
+  const router = useRouter();
   const { showToast } = useToast();
   const searchParams = useSearchParams();
   const urlConversationId = searchParams.get("conversationId");
@@ -58,7 +59,9 @@ export default function DiagramsTool() {
 
     try {
       let convId = conversationId;
+      let isNew = false;
       if (!convId) {
+        isNew = true;
         // Create diagram_tool conversation session
         const convRes = await axios.post("/api/conversation", {
           title: `Diagram Studio - ${new Date().toLocaleDateString()}`,
@@ -92,6 +95,13 @@ export default function DiagramsTool() {
         title: "Diagram Staged",
         message: "Mermaid script generated and rendered successfully.",
       });
+
+      if (isNew) {
+        router.push(`/chatbot/t/diagrams-tool?conversationId=${convId}`);
+      }
+      
+      // Dispatch event to refresh the sidebar chat history
+      window.dispatchEvent(new Event("refresh-history"));
     } catch (error: any) {
       showToast({
         type: "error",
@@ -107,6 +117,7 @@ export default function DiagramsTool() {
     setCode("");
     setPrompt("");
     setConversationId(null);
+    router.push("/chatbot/t/diagrams-tool");
     showToast({
       type: "info",
       title: "Workspace Reset",

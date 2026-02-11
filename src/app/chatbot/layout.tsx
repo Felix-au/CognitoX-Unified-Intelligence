@@ -76,6 +76,16 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
     fetchHistory();
   }, [status, pathname]); // Reload history on navigations/saves
 
+  useEffect(() => {
+    const handleRefresh = () => {
+      fetchHistory();
+    };
+    window.addEventListener("refresh-history", handleRefresh);
+    return () => {
+      window.removeEventListener("refresh-history", handleRefresh);
+    };
+  }, [status]);
+
   const handleNewConversation = async (variant: string = "chat") => {
     try {
       const title = variant === "chat" ? "New Chat" : undefined;
@@ -249,6 +259,7 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
                     key={conv.id}
                     className={isActive ? "active" : ""}
                     onClick={handleRoute}
+                    title={conv.title}
                   >
                     <MessageSquare className="history-icon" />
                     <span className="history-title">{conv.title}</span>
