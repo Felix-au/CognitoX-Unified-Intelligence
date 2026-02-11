@@ -141,7 +141,7 @@ export default function ConversationPage() {
   const getLastBotPartSuggestion = () => {
     if (messages.length === 0) return null;
     const lastMsg = messages[messages.length - 1];
-    if (lastMsg.sender !== "bot") return null;
+    if (!lastMsg || lastMsg.sender !== "bot") return null;
 
     // Check if the content suggests generating the next part, e.g. "Generate Part 2"
     const match = lastMsg.content.match(/generate\s+part\s+(\d+)/i);

@@ -290,7 +290,7 @@ export async function POST(request: Request) {
       });
 
     // Save bot message
-    const botMessage = await prisma.chat.create({
+    botMessage = await prisma.chat.create({
       data: {
         conversationId: validated.conversationId,
         type: 'text',
@@ -307,7 +307,7 @@ export async function POST(request: Request) {
         where: { conversationId: validated.conversationId }
       });
       if (messageCount <= 2) {
-        const titleInput = `User: ${validated.content.substring(0, 300)}\nAssistant: ${(botMessage.content || "").substring(0, 300)}`;
+        const titleInput = `User: ${validated.content.substring(0, 300)}\nAssistant: ${(botMessage?.content || "").substring(0, 300)}`;
         const titlePrompt = `Analyze the conversation snippet and generate a concise title (3-5 words maximum, no quotes, no markdown, no punctuation) that summarizes the topic. Snippet:\n${titleInput}\n\nTitle:`;
         const titleRes = await generateOmniKeyCompletion(titlePrompt, {
           systemInstruction: "You are a concise title generator. Output ONLY a clean 3-5 word title."
