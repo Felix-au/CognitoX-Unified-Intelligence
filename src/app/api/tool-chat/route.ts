@@ -89,25 +89,28 @@ export async function POST(request: Request) {
           base64Content: pf.content
         }));
 
-      // Append rendered page screenshots from scanned PDFs
+      const pdfTexts: Array<{ filename: string; text: string }> = [];
+
       parsedFiles.forEach((pf) => {
-        if (pf.extension === 'pdf' && pf.pdfImages && pf.pdfImages.length > 0) {
-          pf.pdfImages.forEach((img) => {
-            imageFiles.push({
-              filename: `${pf.filename} - ${img.filename}`,
-              mimeType: img.mimeType,
-              base64Content: img.base64Content
+        if (pf.extension === 'pdf') {
+          // If the PDF is short (<= 10 pages), prefer visual screenshots to preserve layout (resumes, slides, notes)
+          if (pf.pdfImages && pf.pdfImages.length > 0 && pf.pdfImages.length <= 10) {
+            pf.pdfImages.forEach((img) => {
+              imageFiles.push({
+                filename: `${pf.filename} - ${img.filename}`,
+                mimeType: img.mimeType,
+                base64Content: img.base64Content
+              });
             });
-          });
+          } else {
+            // Otherwise (large document or screenshots unavailable), process as text context
+            pdfTexts.push({
+              filename: pf.filename,
+              text: pf.content
+            });
+          }
         }
       });
-
-      const pdfTexts = parsedFiles
-        .filter(pf => pf.extension === 'pdf' && (!pf.pdfImages || pf.pdfImages.length === 0))
-        .map(pf => ({
-          filename: pf.filename,
-          text: pf.content
-        }));
 
       if (imageFiles.length === 0 && pdfTexts.length === 0) {
         botResponseText = "Please upload at least one image or PDF file containing notes to process OCR.";

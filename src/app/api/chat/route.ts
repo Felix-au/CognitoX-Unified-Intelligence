@@ -143,7 +143,8 @@ export async function POST(request: Request) {
           base64Content: pf.content
         });
       } else if (pf.extension === 'pdf') {
-        if (pf.pdfImages && pf.pdfImages.length > 0) {
+        // If the PDF is short (<= 10 pages), send page screenshots as visual inputs to preserve layout
+        if (pf.pdfImages && pf.pdfImages.length > 0 && pf.pdfImages.length <= 10) {
           pf.pdfImages.forEach((img) => {
             imagePayloads.push({
               filename: `${pf.filename} - ${img.filename}`,
@@ -152,6 +153,7 @@ export async function POST(request: Request) {
             });
           });
         } else {
+          // Otherwise, process as text context for the RAG prompt
           textContextParts.push(`--- File Context: ${pf.filename} ---\n${pf.content}`);
         }
       } else {
