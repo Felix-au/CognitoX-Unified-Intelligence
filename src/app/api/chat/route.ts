@@ -289,15 +289,39 @@ export async function POST(request: Request) {
         files: imagePayloads
       });
 
-      botMessage = await prisma.chat.create({
-        data: {
-          conversationId: validated.conversationId,
-          type: 'text',
-          sender: 'bot',
-          model: 'omnikey-auto',
-          content: aiResponse.text
-        }
+    // Save bot message
+    const botMessage = await prisma.chat.create({
+      data: {
+        conversationId: validated.conversationId,
+        type: 'text',
+        sender: 'bot',
+        model: 'omnikey-auto',
+        content: aiResponse.text
+      }
+    });
+  }
+
+    // Generate dynamic title if it's the first exchange (userMessage + botMessage)
+    try {
+      const messageCount = await prisma.chat.count({
+        where: { conversationId: validated.conversationId }
       });
+      if (messageCount <= 2) {
+        const titleInput = `User: ${validated.content.substring(0, 300)}\nAssistant: ${(botMessage.content || "").substring(0, 300)}`;
+        const titlePrompt = `Analyze the conversation snippet and generate a concise title (3-5 words maximum, no quotes, no markdown, no punctuation) that summarizes the topic. Snippet:\n${titleInput}\n\nTitle:`;
+        const titleRes = await generateOmniKeyCompletion(titlePrompt, {
+          systemInstruction: "You are a concise title generator. Output ONLY a clean 3-5 word title."
+        });
+        const dynamicTitle = titleRes.text.replace(/["'#*`]/g, "").trim();
+        if (dynamicTitle && dynamicTitle.length > 2) {
+          await prisma.conversation.update({
+            where: { id: validated.conversationId },
+            data: { title: dynamicTitle }
+          });
+        }
+      }
+    } catch (titleErr) {
+      console.error("Failed to generate dynamic title:", titleErr);
     }
 
     return Response.json({

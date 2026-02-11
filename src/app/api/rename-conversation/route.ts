@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
 const renameSchema = z.object({
-  conversationId: z.string().uuid(),
+  conversationId: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid conversation ID format"),
   title: z.string().min(1).max(100),
 });
 
