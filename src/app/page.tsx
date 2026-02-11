@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/providers/ToastProvider";
-import { Sparkles, Terminal, FileText, Youtube, Image as ImageIcon, Chrome } from "lucide-react";
+import { Sparkles, Terminal, FileText, Youtube, Image as ImageIcon, Chrome, Sun, Moon } from "lucide-react";
 import { auth, googleProvider } from "@/lib/firebase-client";
 import { 
   signInWithEmailAndPassword, 
@@ -19,6 +19,20 @@ export default function LandingPage() {
   const [authMode, setAuthMode] = useState<"login" | "signup">("login");
   const router = useRouter();
   const { showToast } = useToast();
+
+  const [theme, setTheme] = useState<"light" | "dark">("dark");
+
+  useEffect(() => {
+    const activeTheme = document.documentElement.getAttribute("data-theme") as "light" | "dark" || "dark";
+    setTheme(activeTheme);
+  }, []);
+
+  const toggleTheme = () => {
+    const nextTheme = theme === "light" ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", nextTheme);
+    localStorage.setItem("theme", nextTheme);
+    setTheme(nextTheme);
+  };
 
   const handleNextAuthSignIn = async (idToken: string) => {
     const result = await signIn("credentials", {
@@ -105,6 +119,15 @@ export default function LandingPage() {
   return (
     <main className="landing-container">
       <div className="dotted-canvas"></div>
+
+      <button 
+        type="button" 
+        onClick={toggleTheme} 
+        className="theme-toggle-btn glass-panel"
+        title={theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
+      >
+        {theme === "light" ? <Moon className="theme-toggle-icon" /> : <Sun className="theme-toggle-icon" />}
+      </button>
 
       <div className="landing-grid">
         {/* Left Side: Branding & Features */}
@@ -203,12 +226,20 @@ export default function LandingPage() {
             </div>
 
             <button 
+              type="button"
               onClick={handleGoogleSignIn} 
               disabled={loading} 
-              className="btn-secondary google-btn w-full"
+              className="google-signin-btn w-full"
             >
-              <Chrome className="google-icon" />
-              <span>Google Provider</span>
+              <div className="google-icon-wrapper">
+                <svg className="google-icon-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+                  <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                  <path fill="#4285F4" d="M46.5 24c0-1.55-.15-3.24-.47-4.77H24v9.03h12.75c-.55 2.89-2.2 5.33-4.66 7l7.25 5.62C43.59 36.65 46.5 30.87 46.5 24z"/>
+                  <path fill="#FBBC05" d="M10.54 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.98-6.19z"/>
+                  <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.25-5.62c-2.05 1.37-4.67 2.18-8.64 2.18-6.26 0-11.57-4.22-13.46-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                </svg>
+              </div>
+              <span className="google-btn-text">Continue with Google</span>
             </button>
 
             <div className="auth-toggle">
@@ -240,9 +271,10 @@ export default function LandingPage() {
           align-items: center;
           justify-content: center;
           position: relative;
-          background: #030712;
+          background: var(--bg-color);
           overflow: hidden;
           padding: 24px;
+          transition: background-color 0.3s ease;
         }
         .landing-grid {
           display: grid;
@@ -388,13 +420,71 @@ export default function LandingPage() {
           color: var(--text-muted);
           text-transform: uppercase;
         }
-        .google-btn {
-          background: rgba(255, 255, 255, 0.03);
+        .google-signin-btn {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+          background: #ffffff;
+          border: 1px solid #747775;
+          color: #1f1f1f;
+          border-radius: 8px;
+          height: 44px;
+          cursor: pointer;
+          font-family: var(--font-display);
+          font-weight: 500;
+          font-size: 0.92rem;
+          transition: background-color 0.21s, border-color 0.21s;
+          padding: 0 16px;
         }
-        .google-icon {
-          width: 15px;
-          height: 15px;
-          color: var(--text-secondary);
+        .google-signin-btn:hover {
+          background-color: #f8fafd;
+          border-color: #6c6f6d;
+        }
+        .google-signin-btn:disabled {
+          background-color: #f2f2f2;
+          border-color: #e3e3e3;
+          color: #9c9c9c;
+          cursor: not-allowed;
+        }
+        .google-icon-wrapper {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 18px;
+          height: 18px;
+        }
+        .google-icon-svg {
+          width: 18px;
+          height: 18px;
+        }
+        .google-btn-text {
+          flex-grow: 0;
+        }
+        .theme-toggle-btn {
+          position: absolute;
+          top: 24px;
+          right: 24px;
+          width: 44px;
+          height: 44px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          border: 1px solid var(--border-color);
+          background: var(--glass-bg);
+          color: var(--text-primary);
+          transition: transform 0.2s, background-color 0.2s;
+          z-index: 50;
+        }
+        .theme-toggle-btn:hover {
+          transform: scale(1.05);
+          background: rgba(255, 255, 255, 0.08);
+        }
+        .theme-toggle-icon {
+          width: 20px;
+          height: 20px;
         }
         .auth-toggle {
           margin-top: 20px;
