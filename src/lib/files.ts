@@ -5,6 +5,7 @@ export interface ParsedFile {
   extension: FileType;
   content: string; // Text content or base64 for images
   mimeType: string;
+  pdfImages?: Array<{ base64Content: string; mimeType: string; filename: string }>;
 }
 
 export function getMimeType(filename: string): string {
@@ -21,16 +22,37 @@ export function getMimeType(filename: string): string {
   }
 }
 
-export async function parsePdfText(buffer: Buffer): Promise<string> {
+export async function parsePdfTextOrImages(buffer: Buffer): Promise<{ text: string; images: Array<{ base64Content: string; mimeType: string; filename: string }> }> {
   try {
     const { PDFParse } = await import("pdf-parse");
     const uint8Array = new Uint8Array(buffer);
     const pdf = new PDFParse(uint8Array);
-    const result = await pdf.getText();
-    return result.text || "";
+    
+    // 1. Try to extract digital text
+    const textData = await pdf.getText();
+    const extractedText = textData.text ? textData.text.trim() : "";
+    
+    // If it's a digital PDF containing actual text, return it directly
+    if (extractedText.length > 50) {
+      return { text: extractedText, images: [] };
+    }
+    
+    // 2. Scanned/image-only PDF fallback: render each page as a screenshot
+    console.log("PDF text is empty or too short. Falling back to visual page rendering...");
+    const screenshotData = await pdf.getScreenshot({ imageDataUrl: true });
+    const images = (screenshotData.pages || []).map((page: any, idx: number) => {
+      const base64 = page.dataUrl.split(",").pop() || "";
+      return {
+        base64Content: base64,
+        mimeType: "image/png",
+        filename: `page_${idx + 1}.png`
+      };
+    });
+    
+    return { text: "", images };
   } catch (error) {
-    console.error("Failed to parse PDF text:", error);
-    return "";
+    console.error("Failed to parse PDF text or render screenshots:", error);
+    return { text: "", images: [] };
   }
 }
 
@@ -46,9 +68,14 @@ export async function parseUploadFile(file: File): Promise<ParsedFile> {
   const buffer = Buffer.from(await file.arrayBuffer());
 
   let content = '';
+  let pdfImages: Array<{ base64Content: string; mimeType: string; filename: string }> | undefined;
 
   if (ext === 'pdf') {
-    content = await parsePdfText(buffer);
+    const parsed = await parsePdfTextOrImages(buffer);
+    content = parsed.text;
+    if (parsed.images.length > 0) {
+      pdfImages = parsed.images;
+    }
   } else if (ext === 'png' || ext === 'jpg' || ext === 'jpeg' || ext === 'webp') {
     // Keep images as base64 for multimodal vision/OCR LLM queries
     content = buffer.toString('base64');
@@ -61,6 +88,7 @@ export async function parseUploadFile(file: File): Promise<ParsedFile> {
     filename,
     extension: ext,
     content,
-    mimeType
+    mimeType,
+    pdfImages
   };
 }

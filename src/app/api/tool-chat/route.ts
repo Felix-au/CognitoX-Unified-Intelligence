@@ -89,8 +89,21 @@ export async function POST(request: Request) {
           base64Content: pf.content
         }));
 
+      // Append rendered page screenshots from scanned PDFs
+      parsedFiles.forEach((pf) => {
+        if (pf.extension === 'pdf' && pf.pdfImages && pf.pdfImages.length > 0) {
+          pf.pdfImages.forEach((img) => {
+            imageFiles.push({
+              filename: `${pf.filename} - ${img.filename}`,
+              mimeType: img.mimeType,
+              base64Content: img.base64Content
+            });
+          });
+        }
+      });
+
       const pdfTexts = parsedFiles
-        .filter(pf => pf.extension === 'pdf')
+        .filter(pf => pf.extension === 'pdf' && (!pf.pdfImages || pf.pdfImages.length === 0))
         .map(pf => ({
           filename: pf.filename,
           text: pf.content

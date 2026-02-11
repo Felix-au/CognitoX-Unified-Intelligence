@@ -142,6 +142,18 @@ export async function POST(request: Request) {
           mimeType: pf.mimeType,
           base64Content: pf.content
         });
+      } else if (pf.extension === 'pdf') {
+        if (pf.pdfImages && pf.pdfImages.length > 0) {
+          pf.pdfImages.forEach((img) => {
+            imagePayloads.push({
+              filename: `${pf.filename} - ${img.filename}`,
+              mimeType: img.mimeType,
+              base64Content: img.base64Content
+            });
+          });
+        } else {
+          textContextParts.push(`--- File Context: ${pf.filename} ---\n${pf.content}`);
+        }
       } else {
         textContextParts.push(`--- File Context: ${pf.filename} ---\n${pf.content}`);
       }
