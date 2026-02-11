@@ -21,7 +21,10 @@ export async function GET(request: Request) {
     const conversations = await prisma.conversation.findMany({
       where: {
         userId: userId,
-        isArchived: false
+        isArchived: false,
+        variant: {
+          not: "image_filter_tool"
+        }
       },
       select: {
         id: true,

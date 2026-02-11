@@ -62,7 +62,8 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
     try {
       const res = await axios.get("/api/conversation");
       if (res.data?.success) {
-        setConversations(res.data.data);
+        const filtered = res.data.data.filter((c: any) => c.variant !== "image_filter_tool");
+        setConversations(filtered);
       }
     } catch (error) {
       console.error("Failed to load history:", error);
