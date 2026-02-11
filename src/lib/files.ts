@@ -34,23 +34,9 @@ export async function parseUploadFile(file: File): Promise<ParsedFile> {
 
   let content = '';
 
-  if (ext === 'png' || ext === 'jpg' || ext === 'jpeg' || ext === 'webp') {
-    // Images are kept as base64 for vision LLM queries
+  if (ext === 'png' || ext === 'jpg' || ext === 'jpeg' || ext === 'webp' || ext === 'pdf') {
+    // Keep images and PDFs as base64 for multimodal vision/OCR LLM queries
     content = buffer.toString('base64');
-  } else if (ext === 'pdf') {
-    // PDF text extraction (basic text decoder fallback if pdf-parse isn't fully loaded,
-    // or decodes printable ASCII characters in a robust custom parser)
-    try {
-      const text = buffer.toString('utf-8', 0, 50000); // Read raw strings
-      // Clean up PDF markers to get human readable strings
-      const cleaned = text
-        .replace(/[\x00-\x08\x0b-\x0c\x0e-\x1f\x7f-\xff]/g, '') // remove non-printable characters
-        .replace(/\s+/g, ' ')
-        .trim();
-      content = `[PDF Content - Extracted Text]\n${cleaned.slice(0, 10000)}`;
-    } catch {
-      content = '[PDF text extraction failed]';
-    }
   } else {
     // Text and Markdown files
     content = buffer.toString('utf-8');

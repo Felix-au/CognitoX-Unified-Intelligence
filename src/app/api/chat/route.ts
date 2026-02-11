@@ -131,12 +131,12 @@ export async function POST(request: Request) {
       parsedFiles.push(parsed);
     }
 
-    // Separate text files (RAG context) and image files (multimodal vision)
+    // Separate text files (RAG context) and image/pdf files (multimodal inlineData)
     const textContextParts: string[] = [];
     const imagePayloads: Array<{ filename: string; mimeType: string; base64Content: string }> = [];
 
     parsedFiles.forEach((pf) => {
-      if (pf.extension === 'png' || pf.extension === 'jpg' || pf.extension === 'jpeg' || pf.extension === 'webp') {
+      if (['png', 'jpg', 'jpeg', 'webp', 'pdf'].includes(pf.extension)) {
         imagePayloads.push({
           filename: pf.filename,
           mimeType: pf.mimeType,
