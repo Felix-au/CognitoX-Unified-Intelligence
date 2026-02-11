@@ -21,6 +21,27 @@ export default function MermaidChart({ code }: { code: string }) {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
+  const [currentTheme, setCurrentTheme] = useState("dark");
+
+  useEffect(() => {
+    // Set initial theme
+    const initialTheme = document.documentElement.getAttribute("data-theme") || "dark";
+    setCurrentTheme(initialTheme);
+
+    // Watch for theme changes
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === "data-theme") {
+          const val = document.documentElement.getAttribute("data-theme") || "dark";
+          setCurrentTheme(val);
+        }
+      });
+    });
+
+    observer.observe(document.documentElement, { attributes: true });
+    return () => observer.disconnect();
+  }, []);
+
   useEffect(() => {
     if (!code) return;
     
@@ -32,6 +53,20 @@ export default function MermaidChart({ code }: { code: string }) {
 
     const renderChart = async () => {
       try {
+        const isLightTheme = currentTheme === "light";
+        mermaid.initialize({
+          startOnLoad: false,
+          theme: isLightTheme ? "default" : "dark",
+          securityLevel: "loose",
+          fontFamily: "var(--font-body)",
+          themeVariables: isLightTheme ? {
+            background: "#ffffff",
+            primaryColor: "#e0e7ff",
+            primaryTextColor: "#1e1b4b",
+            lineColor: "#6366f1",
+          } : undefined
+        });
+
         const id = `mermaid-${Math.random().toString(36).substring(2, 9)}`;
         const { svg: renderedSvg } = await mermaid.render(id, code);
         setSvg(renderedSvg);
@@ -47,7 +82,7 @@ export default function MermaidChart({ code }: { code: string }) {
 
     const timer = setTimeout(renderChart, 100);
     return () => clearTimeout(timer);
-  }, [code]);
+  }, [code, currentTheme]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (e.button !== 0) return; // Left click only
@@ -146,7 +181,7 @@ export default function MermaidChart({ code }: { code: string }) {
           padding: 24px;
           overflow: hidden;
           position: relative;
-          background: rgba(17, 24, 39, 0.45);
+          background: var(--bg-card);
           user-select: none;
         }
         .chart-loader {
@@ -186,14 +221,14 @@ export default function MermaidChart({ code }: { code: string }) {
           gap: 8px;
           padding: 6px 12px;
           z-index: 10;
-          background: rgba(17, 24, 39, 0.7);
+          background: var(--glass-bg);
           border: 1px solid var(--border-color);
           border-radius: 8px;
         }
         .zoom-controls button {
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          color: #ffffff;
+          background: rgba(128, 128, 128, 0.1);
+          border: 1px solid var(--border-color);
+          color: var(--text-primary);
           cursor: pointer;
           font-size: 0.8rem;
           padding: 4px 10px;
@@ -202,7 +237,7 @@ export default function MermaidChart({ code }: { code: string }) {
           transition: background 0.2s;
         }
         .zoom-controls button:hover {
-          background: rgba(255, 255, 255, 0.15);
+          background: rgba(128, 128, 128, 0.25);
         }
         .scale-display {
           font-size: 0.75rem;
