@@ -1,5 +1,4 @@
 import { FileType } from "@/types/files";
-import { PDFParse } from "pdf-parse";
 
 export interface ParsedFile {
   filename: string;
@@ -24,6 +23,7 @@ export function getMimeType(filename: string): string {
 
 export async function parsePdfText(buffer: Buffer): Promise<string> {
   try {
+    const { PDFParse } = await import("pdf-parse");
     const uint8Array = new Uint8Array(buffer);
     const pdf = new PDFParse(uint8Array);
     const result = await pdf.getText();
