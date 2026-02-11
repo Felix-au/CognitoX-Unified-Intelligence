@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import mermaid from "mermaid";
+import { Download, Copy, FileCode, Image as ImageIcon } from "lucide-react";
+import { useToast } from "@/providers/ToastProvider";
 
 mermaid.initialize({
   startOnLoad: false,
@@ -22,6 +24,10 @@ export default function MermaidChart({ code }: { code: string }) {
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
   const [currentTheme, setCurrentTheme] = useState("dark");
+  
+  // Export Dropdown State
+  const [exportOpen, setExportOpen] = useState(false);
+  const { showToast } = useToast();
 
   useEffect(() => {
     // Set initial theme
@@ -41,6 +47,90 @@ export default function MermaidChart({ code }: { code: string }) {
     observer.observe(document.documentElement, { attributes: true });
     return () => observer.disconnect();
   }, []);
+
+  // Close export dropdown when clicking outside
+  useEffect(() => {
+    if (!exportOpen) return;
+    const handleClose = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest(".export-container")) {
+        setExportOpen(false);
+      }
+    };
+    window.addEventListener("click", handleClose);
+    return () => window.removeEventListener("click", handleClose);
+  }, [exportOpen]);
+
+  const copyCode = () => {
+    navigator.clipboard.writeText(code);
+    showToast({
+      type: "success",
+      title: "Code Copied",
+      message: "Mermaid script copied to clipboard.",
+    });
+  };
+
+  const exportSvg = () => {
+    if (!svg) return;
+    const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "diagram.svg";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    showToast({
+      type: "success",
+      title: "SVG Exported",
+      message: "Diagram vector SVG saved successfully.",
+    });
+  };
+
+  const exportPng = () => {
+    if (!svg) return;
+    const svgEl = containerRef.current?.querySelector("svg");
+    if (!svgEl) return;
+
+    // Get clean client dimensions
+    const width = svgEl.clientWidth || svgEl.getBoundingClientRect().width || 800;
+    const height = svgEl.clientHeight || svgEl.getBoundingClientRect().height || 600;
+
+    const canvas = document.createElement("canvas");
+    const scaleFactor = 2; // high resolution scale
+    canvas.width = width * scaleFactor;
+    canvas.height = height * scaleFactor;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    // Apply background matching theme
+    ctx.fillStyle = currentTheme === "light" ? "#ffffff" : "#030712";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const img = new Image();
+    const svgXml = new XMLSerializer().serializeToString(svgEl);
+    const blob = new Blob([svgXml], { type: "image/svg+xml;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+
+    img.onload = () => {
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const pngUrl = canvas.toDataURL("image/png");
+      const link = document.createElement("a");
+      link.href = pngUrl;
+      link.download = "diagram.png";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      showToast({
+        type: "success",
+        title: "PNG Exported",
+        message: "Diagram PNG image saved successfully.",
+      });
+    };
+    img.src = url;
+  };
 
   useEffect(() => {
     if (!code) return;
@@ -149,6 +239,37 @@ export default function MermaidChart({ code }: { code: string }) {
               <button type="button" onClick={zoomOut} title="Zoom Out">-</button>
               <button type="button" onClick={resetZoom} title="Reset Zoom">Reset</button>
               <span className="scale-display">{Math.round(scale * 100)}%</span>
+              
+              <div className="divider"></div>
+              
+              <div className="export-container">
+                <button 
+                  type="button" 
+                  onClick={() => setExportOpen(!exportOpen)} 
+                  className="btn-export"
+                  title="Export Diagram Options"
+                >
+                  <Download className="icon-sm" />
+                  <span>Export</span>
+                </button>
+                
+                {exportOpen && (
+                  <div className="export-menu glass-card">
+                    <button type="button" onClick={() => { copyCode(); setExportOpen(false); }}>
+                      <Copy className="menu-icon" />
+                      <span>Copy Code</span>
+                    </button>
+                    <button type="button" onClick={() => { exportSvg(); setExportOpen(false); }}>
+                      <FileCode className="menu-icon" />
+                      <span>Export SVG</span>
+                    </button>
+                    <button type="button" onClick={() => { exportPng(); setExportOpen(false); }}>
+                      <ImageIcon className="menu-icon" />
+                      <span>Export PNG</span>
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
             
             <div 
@@ -244,6 +365,78 @@ export default function MermaidChart({ code }: { code: string }) {
           color: var(--text-secondary);
           font-family: monospace;
           margin-left: 4px;
+        }
+        .divider {
+          width: 1px;
+          height: 16px;
+          background: var(--border-color);
+          margin: 0 8px;
+        }
+        .export-container {
+          position: relative;
+          display: inline-block;
+        }
+        .btn-export {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          background: rgba(128, 128, 128, 0.1);
+          border: 1px solid var(--border-color);
+          color: var(--text-primary);
+          cursor: pointer;
+          font-size: 0.8rem;
+          padding: 4px 10px;
+          border-radius: 4px;
+          font-family: var(--font-display);
+          transition: background 0.2s;
+        }
+        .btn-export:hover {
+          background: rgba(128, 128, 128, 0.25);
+        }
+        .icon-sm {
+          width: 13px;
+          height: 13px;
+        }
+        .export-menu {
+          position: absolute;
+          top: 100%;
+          right: 0;
+          margin-top: 8px;
+          background: var(--glass-bg);
+          border: 1px solid var(--border-color);
+          border-radius: 8px;
+          padding: 6px;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          min-width: 140px;
+          box-shadow: var(--glass-shadow);
+          backdrop-filter: var(--glass-backdrop);
+          z-index: 50;
+        }
+        .export-menu button {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          background: none;
+          border: none;
+          color: var(--text-secondary);
+          padding: 6px 12px;
+          width: 100%;
+          text-align: left;
+          cursor: pointer;
+          border-radius: 4px;
+          font-size: 0.78rem;
+          font-family: var(--font-display);
+          transition: all 0.2s;
+        }
+        .export-menu button:hover {
+          background: var(--sidebar-hover-bg);
+          color: var(--text-primary);
+        }
+        .menu-icon {
+          width: 14px;
+          height: 14px;
         }
         .mermaid-rendered-svg-wrapper {
           display: flex;
