@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, isValidElement, cloneElement } from "react
 import { useParams, useRouter } from "next/navigation";
 import { useToast } from "@/providers/ToastProvider";
 import axios from "axios";
-import { Send, Paperclip, Sparkles, X, File, Image as ImageIcon, FileText } from "lucide-react";
+import { Send, Paperclip, Sparkles, X, File, Image as ImageIcon, FileText, Copy, Check } from "lucide-react";
 
 interface Message {
   id: string;
@@ -195,6 +195,11 @@ export default function ConversationPage() {
                   )}
                   {m.model && <span className="message-model-tag">{m.model}</span>}
                 </div>
+                {m.sender === "bot" && m.type !== "image" && (
+                  <div className="message-actions-tray">
+                    <CopyButton text={m.content} />
+                  </div>
+                )}
               </div>
             ))}
 
@@ -367,6 +372,53 @@ export default function ConversationPage() {
           line-height: 1.6;
           font-size: 0.9rem;
           position: relative;
+        }
+        .message-actions-tray {
+          display: flex;
+          align-items: center;
+          margin-left: 14px;
+          align-self: flex-end;
+          margin-bottom: 8px;
+          flex-shrink: 0;
+        }
+        :global(.btn-copy-msg) {
+          background: var(--btn-secondary-bg);
+          border: 1px solid var(--border-color);
+          width: 34px;
+          height: 34px;
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+          color: var(--text-secondary);
+          backdrop-filter: blur(8px);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        :global(.btn-copy-msg:hover) {
+          background: var(--btn-secondary-hover-bg);
+          border-color: var(--accent-primary);
+          color: var(--accent-primary);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(99, 102, 241, 0.18);
+        }
+        :global(.btn-copy-msg:active) {
+          transform: translateY(0) scale(0.95);
+        }
+        :global(.btn-copy-msg.copied-success) {
+          background: rgba(16, 185, 129, 0.08);
+          border-color: rgba(16, 185, 129, 0.45);
+          color: #10b981;
+          box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+        }
+        :global(.copy-icon-svg) {
+          width: 15px;
+          height: 15px;
+          transition: transform 0.2s ease;
+        }
+        :global(.btn-copy-msg:hover .copy-icon-svg) {
+          transform: scale(1.05);
         }
         .message-bubble.user {
           background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary-hover) 100%);
@@ -971,4 +1023,46 @@ function parseInline(text: string): React.ReactNode[] {
     }
     return part;
   });
+}
+
+interface CopyButtonProps {
+  text: string;
+}
+
+function CopyButton({ text }: CopyButtonProps) {
+  const [copied, setCopied] = useState(false);
+  const { showToast } = useToast();
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      showToast({
+        type: "success",
+        title: "Copied",
+        message: "Message copied to clipboard.",
+      });
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      showToast({
+        type: "error",
+        title: "Copy Failed",
+        message: "Failed to copy message.",
+      });
+    }
+  };
+
+  return (
+    <button
+      onClick={handleCopy}
+      className={`btn-copy-msg ${copied ? "copied-success" : ""}`}
+      title="Copy message to clipboard"
+    >
+      {copied ? (
+        <Check className="copy-icon-svg" />
+      ) : (
+        <Copy className="copy-icon-svg" />
+      )}
+    </button>
+  );
 }
