@@ -237,12 +237,9 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
       {/* Sidebar */}
       <aside className="sidebar glass-panel">
         <div className="sidebar-header">
-          <div className="logo-area" onClick={() => router.push("/chatbot")}>
-            <img src="/logo.png" alt="CognitoX Logo" className="logo-sparkle" />
-          </div>
           <button onClick={() => handleNewConversation("chat")} className="btn-new-chat">
             <Plus className="btn-icon" />
-            <span>New Chat</span>
+            <span>New AI Chat</span>
           </button>
         </div>
 
@@ -399,42 +396,25 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
         .sidebar-header {
           display: flex;
           align-items: center;
-          justify-content: space-between;
-          gap: 12px;
-          margin-bottom: 24px;
-        }
-        .logo-area {
-          display: flex;
-          align-items: center;
-          cursor: pointer;
-          transition: transform 0.2s;
-          flex-shrink: 0;
-        }
-        .logo-area:hover {
-          transform: scale(1.02);
-        }
-        .logo-sparkle {
-          height: 32px;
-          width: auto;
-          max-width: 90px;
-          object-fit: contain;
+          margin-bottom: 20px;
         }
         .btn-new-chat {
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 6px;
+          gap: 10px;
           background: rgba(99, 102, 241, 0.1);
           border: 1px dashed rgba(99, 102, 241, 0.35);
           color: var(--accent-primary);
-          padding: 8px 12px;
-          border-radius: 8px;
+          padding: 12px;
+          border-radius: 10px;
           font-family: var(--font-display);
-          font-size: 0.82rem;
+          font-size: 0.88rem;
           font-weight: 600;
           cursor: pointer;
           transition: all 0.2s;
-          flex: 1;
+          width: 100%;
+          margin-bottom: 24px;
         }
         .btn-new-chat:hover {
           background: rgba(99, 102, 241, 0.15);
