@@ -23,10 +23,11 @@ export function getMimeType(filename: string): string {
 }
 
 export async function parsePdfTextOrImages(buffer: Buffer): Promise<{ text: string; images: Array<{ base64Content: string; mimeType: string; filename: string }> }> {
+  let pdf: any = null;
   try {
     const { PDFParse } = await import("pdf-parse");
     const uint8Array = new Uint8Array(buffer);
-    const pdf = new PDFParse(uint8Array);
+    pdf = new PDFParse({ data: uint8Array });
     
     // 1. Extract digital text
     let extractedText = "";
@@ -58,6 +59,14 @@ export async function parsePdfTextOrImages(buffer: Buffer): Promise<{ text: stri
   } catch (error) {
     console.error("Failed to parse PDF text or render screenshots:", error);
     return { text: "", images: [] };
+  } finally {
+    if (pdf) {
+      try {
+        await pdf.destroy();
+      } catch (destroyErr) {
+        console.warn("Failed to destroy PDFParse instance:", destroyErr);
+      }
+    }
   }
 }
 
