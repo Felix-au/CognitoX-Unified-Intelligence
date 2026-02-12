@@ -169,9 +169,6 @@ export default function LandingPage() {
             </h1>
           </div>
 
-          <p className="hero-subtitle">
-            An advanced agentic workspace that synthesizes documents, transcribes videos, generates diagrams, and filters visuals through a seamless AI pipeline.
-          </p>
 
           <div className="features-grid">
             <div className="feature-card glass-card">
@@ -343,7 +340,7 @@ export default function LandingPage() {
           }
         }
         .hero-title {
-          font-size: 2.8rem;
+          font-size: 2rem;
           line-height: 1.15;
           font-family: var(--font-display);
           font-weight: 700;
