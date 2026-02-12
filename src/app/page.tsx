@@ -9,7 +9,8 @@ import { auth, googleProvider } from "@/lib/firebase-client";
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
-  signInWithPopup 
+  signInWithPopup,
+  sendEmailVerification
 } from "firebase/auth";
 
 export default function LandingPage() {
@@ -74,12 +75,39 @@ export default function LandingPage() {
       let userCredential;
       if (authMode === "login") {
         userCredential = await signInWithEmailAndPassword(auth, email, password);
+        
+        // Enforce email verification on login
+        if (!userCredential.user.emailVerified) {
+          // Attempt to send a verification link in case they missed the previous one
+          await sendEmailVerification(userCredential.user);
+          await auth.signOut();
+          showToast({
+            type: "error",
+            title: "Email Not Verified",
+            message: "Your email address is not verified. A verification link has been sent to your inbox. Please verify it and try again.",
+          });
+          return;
+        }
+
+        const idToken = await userCredential.user.getIdToken();
+        await handleNextAuthSignIn(idToken);
       } else {
         userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        
+        // Send email verification link
+        await sendEmailVerification(userCredential.user);
+        
+        // Sign out of Firebase immediately so NextAuth does not automatically sign them in
+        await auth.signOut();
+        
+        showToast({
+          type: "success",
+          title: "Verification Link Sent",
+          message: "Registration successful! A verification email has been sent to your inbox. Please verify your email before logging in.",
+        });
+        
+        setAuthMode("login");
       }
-
-      const idToken = await userCredential.user.getIdToken();
-      await handleNextAuthSignIn(idToken);
     } catch (err: any) {
       let msg = err.message || "Authentication failed.";
       if (err.code === "auth/user-not-found") msg = "User account not found. Click Sign Up below.";

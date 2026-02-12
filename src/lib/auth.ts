@@ -19,10 +19,14 @@ export const authOptions: NextAuthOptions = {
         try {
           // Cryptographically verify the client-side Firebase ID token using Google public JWKS keys
           const payload = await verifyFirebaseIdToken(idToken);
-          const { uid, email, name, picture } = payload;
+          const { uid, email, name, picture, email_verified } = payload;
 
           if (!email) {
             throw new Error("Authentication failed: Email claim missing from token");
+          }
+
+          if (!email_verified) {
+            throw new Error("Authentication failed: Email address has not been verified");
           }
 
           // 1. Look up user by verified Firebase UID
