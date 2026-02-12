@@ -162,7 +162,7 @@ export default function LandingPage() {
         {/* Left Side: Branding & Features */}
         <div className="branding-section">
           <div className="logo-badge">
-            <Sparkles className="logo-icon animate-pulse" />
+            <img src="/logo.png" alt="CognitoX Logo" className="logo-icon" />
             <span>CognitoX Workspace</span>
           </div>
 
@@ -338,9 +338,10 @@ export default function LandingPage() {
           color: var(--accent-primary);
           width: fit-content;
         }
-        .logo-icon {
-          width: 14px;
-          height: 14px;
+         .logo-icon {
+          width: 18px;
+          height: 18px;
+          object-fit: contain;
         }
         .hero-title {
           font-size: 2.8rem;
