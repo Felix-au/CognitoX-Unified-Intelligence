@@ -2,6 +2,19 @@ import NotesTool from "@/components/tool/NotesTool";
 import YoutubeVideoTool from "@/components/tool/YoutubeVideoTool";
 import DiagramsTool from "@/components/tool/DiagramsTool";
 import ImageFilterTool from "@/components/tool/ImageFilterTool";
+import { Metadata } from "next";
+
+export async function generateMetadata({ params }: { params: Promise<{ tool: string }> }): Promise<Metadata> {
+  const tool = (await params).tool;
+  let title = "Cognitive Tool | CognitoX";
+  
+  if (tool === "notes-tool") title = "Notes OCR Workspace | CognitoX";
+  else if (tool === "youtube-video-tool") title = "YouTube Media Analyzer | CognitoX";
+  else if (tool === "diagrams-tool") title = "Diagrams Design Studio | CognitoX";
+  else if (tool === "image-filter-tool") title = "Interactive Image Filter | CognitoX";
+
+  return { title };
+}
 
 export default async function ToolPage({ params }: { params: Promise<{ tool: string }> }) {
   const tool = (await params).tool;

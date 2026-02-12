@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Sparkles, FileText, Youtube, Terminal, Image, ArrowRight } from "lucide-react";
@@ -10,6 +11,10 @@ export default function ChatbotDashboard() {
   const { data: session } = useSession();
   const router = useRouter();
   const { showToast } = useToast();
+
+  useEffect(() => {
+    document.title = "Dashboard | CognitoX";
+  }, []);
 
   const handleQuickLaunch = async (variant: string, promptText?: string) => {
     try {

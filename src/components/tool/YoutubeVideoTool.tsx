@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/providers/ToastProvider";
 import ToolsHeading from "./ToolsHeading";
@@ -12,6 +12,10 @@ export default function YoutubeVideoTool() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { showToast } = useToast();
+
+  useEffect(() => {
+    document.title = "YouTube Media Analyzer | CognitoX";
+  }, []);
 
   const validateUrl = (url: string): boolean => {
     if (!url.trim()) {

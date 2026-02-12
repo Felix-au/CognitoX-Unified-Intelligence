@@ -25,6 +25,7 @@ export default function LandingPage() {
   useEffect(() => {
     const activeTheme = document.documentElement.getAttribute("data-theme") as "light" | "dark" || "dark";
     setTheme(activeTheme);
+    document.title = "CognitoX: Unified Intelligence Workspace";
   }, []);
 
   const toggleTheme = () => {

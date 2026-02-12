@@ -36,6 +36,9 @@ export default function ConversationPage() {
       const res = await axios.get(`/api/chat?conversationId=${id}`);
       if (res.data?.success) {
         setMessages(res.data.data);
+        if (res.data.conversation?.title) {
+          document.title = `${res.data.conversation.title} | CognitoX`;
+        }
       }
     } catch (error) {
       showToast({
@@ -51,6 +54,7 @@ export default function ConversationPage() {
 
   useEffect(() => {
     if (id) {
+      document.title = "Chat Session | CognitoX";
       fetchMessages();
     }
   }, [id]);

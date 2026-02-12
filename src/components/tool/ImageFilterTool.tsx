@@ -11,6 +11,11 @@ export default function ImageFilterTool() {
   const [file, setFile] = useState<File | null>(null);
   const [processing, setProcessing] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
+
+  useEffect(() => {
+    document.title = "Interactive Image Filter | CognitoX";
+  }, []);
+  
   
   // Sliders state
   const [brightness, setBrightness] = useState(100);

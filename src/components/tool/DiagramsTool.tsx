@@ -27,11 +27,16 @@ export default function DiagramsTool() {
         setLoading(true);
         try {
           const res = await axios.get(`/api/chat?conversationId=${urlConversationId}`);
-          if (res.data?.success && res.data.data.length > 0) {
-            const messages = res.data.data;
-            const lastBotMsg = [...messages].reverse().find(m => m.sender === "bot");
-            if (lastBotMsg) {
-              setCode(lastBotMsg.content);
+          if (res.data?.success) {
+            if (res.data.conversation?.title) {
+              document.title = `${res.data.conversation.title} | CognitoX`;
+            }
+            if (res.data.data.length > 0) {
+              const messages = res.data.data;
+              const lastBotMsg = [...messages].reverse().find(m => m.sender === "bot");
+              if (lastBotMsg) {
+                setCode(lastBotMsg.content);
+              }
             }
           }
         } catch (error) {
@@ -48,6 +53,7 @@ export default function DiagramsTool() {
       loadSession();
     } else {
       setConversationId(null);
+      document.title = "Diagrams Design Studio | CognitoX";
       setCode("");
     }
   }, [urlConversationId]);
