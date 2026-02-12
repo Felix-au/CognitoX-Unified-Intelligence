@@ -232,6 +232,11 @@ export default function MermaidChart({ code }: { code: string }) {
     >
       {loading && (
         <div className="chart-loader">
+          <div className="cognitive-spinner">
+            <div className="spinner-outer"></div>
+            <div className="spinner-inner"></div>
+            <div className="spinner-center"></div>
+          </div>
           <span>Compiling diagram canvas...</span>
         </div>
       )}
@@ -316,10 +321,60 @@ export default function MermaidChart({ code }: { code: string }) {
           user-select: none;
         }
         .chart-loader {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          background: rgba(3, 7, 18, 0.4);
+          backdrop-filter: blur(4px);
           color: var(--text-secondary);
           font-size: 0.82rem;
           font-family: var(--font-display);
+          gap: 16px;
           z-index: 5;
+        }
+        .chart-loader .cognitive-spinner {
+          position: relative;
+          width: 38px;
+          height: 38px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .chart-loader .spinner-outer {
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          border: 1.8px solid transparent;
+          border-top-color: var(--accent-primary);
+          border-bottom-color: var(--accent-secondary);
+          border-radius: 50%;
+          animation: spin-clockwise 1.2s cubic-bezier(0.5, 0.1, 0.4, 0.9) infinite;
+        }
+        .chart-loader .spinner-inner {
+          position: absolute;
+          width: 70%;
+          height: 70%;
+          border: 1.8px solid transparent;
+          border-left-color: var(--accent-primary);
+          border-right-color: var(--accent-secondary);
+          border-radius: 50%;
+          animation: spin-counter 0.9s cubic-bezier(0.5, 0.1, 0.4, 0.9) infinite;
+          opacity: 0.8;
+        }
+        .chart-loader .spinner-center {
+          width: 8px;
+          height: 8px;
+          background: var(--accent-primary);
+          border-radius: 50%;
+          box-shadow: 0 0 8px var(--accent-primary);
+          animation: pulse-glow 1.5s ease-in-out infinite;
+        }
+        .chart-loader span {
+          animation: text-pulse 1.8s ease-in-out infinite;
+          letter-spacing: 0.04em;
         }
         .chart-error {
           display: flex;
@@ -459,6 +514,22 @@ export default function MermaidChart({ code }: { code: string }) {
           max-height: none !important;
           width: auto !important;
           height: auto !important;
+        }
+        @keyframes spin-clockwise {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        @keyframes spin-counter {
+          0% { transform: rotate(360deg); }
+          100% { transform: rotate(0deg); }
+        }
+        @keyframes pulse-glow {
+          0%, 100% { transform: scale(0.9); opacity: 0.6; box-shadow: 0 0 4px var(--accent-primary); }
+          50% { transform: scale(1.15); opacity: 1; box-shadow: 0 0 12px var(--accent-primary); }
+        }
+        @keyframes text-pulse {
+          0%, 100% { opacity: 0.5; }
+          50% { opacity: 1; }
         }
       `}</style>
     </div>

@@ -171,8 +171,12 @@ export default function ConversationPage() {
       <div className="messages-area">
         {loading ? (
           <div className="chat-loader">
-            <Sparkles className="loader-spin" />
-            <span>Loading messages...</span>
+            <div className="cognitive-spinner">
+              <div className="spinner-outer"></div>
+              <div className="spinner-inner"></div>
+              <div className="spinner-center"></div>
+            </div>
+            <span className="shimmer-text">Loading messages...</span>
           </div>
         ) : messages.length === 0 ? (
           <div className="chat-empty">
@@ -327,7 +331,59 @@ export default function ConversationPage() {
           position: relative;
           z-index: 10;
         }
-        .chat-loader, .chat-empty {
+        .chat-loader {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          height: 100%;
+          gap: 20px;
+        }
+        .cognitive-spinner {
+          position: relative;
+          width: 50px;
+          height: 50px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .spinner-outer {
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          border: 2px solid transparent;
+          border-top-color: var(--accent-primary);
+          border-bottom-color: var(--accent-secondary);
+          border-radius: 50%;
+          animation: spin-clockwise 1.2s cubic-bezier(0.5, 0.1, 0.4, 0.9) infinite;
+        }
+        .spinner-inner {
+          position: absolute;
+          width: 70%;
+          height: 70%;
+          border: 2px solid transparent;
+          border-left-color: var(--accent-primary);
+          border-right-color: var(--accent-secondary);
+          border-radius: 50%;
+          animation: spin-counter 0.9s cubic-bezier(0.5, 0.1, 0.4, 0.9) infinite;
+          opacity: 0.8;
+        }
+        .spinner-center {
+          width: 10px;
+          height: 10px;
+          background: var(--accent-primary);
+          border-radius: 50%;
+          box-shadow: 0 0 10px var(--accent-primary);
+          animation: pulse-glow 1.5s ease-in-out infinite;
+        }
+        .shimmer-text {
+          font-family: var(--font-display);
+          font-size: 0.9rem;
+          color: var(--text-secondary);
+          letter-spacing: 0.05em;
+          animation: text-pulse 1.8s ease-in-out infinite;
+        }
+        .chat-empty {
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -342,11 +398,22 @@ export default function ConversationPage() {
           text-align: center;
           line-height: 1.5;
         }
-        .loader-spin {
-          width: 24px;
-          height: 24px;
-          color: var(--accent-primary);
-          animation: spin 2s linear infinite;
+
+        @keyframes spin-clockwise {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        @keyframes spin-counter {
+          0% { transform: rotate(360deg); }
+          100% { transform: rotate(0deg); }
+        }
+        @keyframes pulse-glow {
+          0%, 100% { transform: scale(0.9); opacity: 0.6; box-shadow: 0 0 4px var(--accent-primary); }
+          50% { transform: scale(1.15); opacity: 1; box-shadow: 0 0 14px var(--accent-primary); }
+        }
+        @keyframes text-pulse {
+          0%, 100% { opacity: 0.5; }
+          50% { opacity: 1; }
         }
         .messages-list {
           display: flex;
