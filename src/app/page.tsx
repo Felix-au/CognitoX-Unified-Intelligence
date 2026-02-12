@@ -161,14 +161,13 @@ export default function LandingPage() {
       <div className="landing-grid">
         {/* Left Side: Branding & Features */}
         <div className="branding-section">
-          <div className="logo-badge">
+          <div className="landing-brand-header">
             <img src="/logo.png" alt="CognitoX Logo" className="logo-icon" />
+            <h1 className="hero-title">
+              Unified Intelligence across <br />
+              <span className="gradient-text">Web, Media, Notes &amp; Visuals</span>
+            </h1>
           </div>
-
-          <h1 className="hero-title">
-            Unified Intelligence across <br />
-            <span className="gradient-text">Web, Media, Notes &amp; Visuals</span>
-          </h1>
 
           <p className="hero-subtitle">
             An advanced agentic workspace that synthesizes documents, transcribes videos, generates diagrams, and filters visuals through a seamless AI pipeline.
@@ -324,16 +323,24 @@ export default function LandingPage() {
           flex-direction: column;
           gap: 20px;
         }
-        .logo-badge {
-          display: inline-flex;
+        .landing-brand-header {
+          display: flex;
           align-items: center;
-          width: fit-content;
+          gap: 24px;
           margin-bottom: 8px;
         }
         .logo-icon {
-          height: 48px;
+          height: 80px;
           width: auto;
           object-fit: contain;
+          flex-shrink: 0;
+        }
+        @media (max-width: 640px) {
+          .landing-brand-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 16px;
+          }
         }
         .hero-title {
           font-size: 2.8rem;
