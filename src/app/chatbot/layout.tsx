@@ -239,7 +239,6 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
         <div className="sidebar-header">
           <div className="logo-area" onClick={() => router.push("/chatbot")}>
             <img src="/logo.png" alt="CognitoX Logo" className="logo-sparkle" />
-            <span>CognitoX</span>
           </div>
         </div>
 
@@ -418,8 +417,9 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
           transform: scale(1.02);
         }
         .logo-sparkle {
-          width: 24px;
-          height: 24px;
+          height: 36px;
+          width: auto;
+          max-width: 100%;
           object-fit: contain;
         }
         .btn-new-chat {

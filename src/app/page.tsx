@@ -163,7 +163,6 @@ export default function LandingPage() {
         <div className="branding-section">
           <div className="logo-badge">
             <img src="/logo.png" alt="CognitoX Logo" className="logo-icon" />
-            <span>CognitoX Workspace</span>
           </div>
 
           <h1 className="hero-title">
@@ -328,19 +327,12 @@ export default function LandingPage() {
         .logo-badge {
           display: inline-flex;
           align-items: center;
-          gap: 8px;
-          background: rgba(99, 102, 241, 0.1);
-          border: 1px solid rgba(99, 102, 241, 0.2);
-          padding: 6px 12px;
-          border-radius: 20px;
-          font-family: var(--font-display);
-          font-size: 0.85rem;
-          color: var(--accent-primary);
           width: fit-content;
+          margin-bottom: 8px;
         }
-         .logo-icon {
-          width: 18px;
-          height: 18px;
+        .logo-icon {
+          height: 48px;
+          width: auto;
           object-fit: contain;
         }
         .hero-title {
