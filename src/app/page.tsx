@@ -330,7 +330,7 @@ export default function LandingPage() {
           margin-bottom: 8px;
         }
         .logo-icon {
-          height: 80px;
+          height: 120px;
           width: auto;
           object-fit: contain;
           flex-shrink: 0;
