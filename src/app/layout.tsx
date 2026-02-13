@@ -2,6 +2,7 @@ import "./globals.css";
 import NextAuthProvider from "@/providers/NextAuthProvider";
 import { ToastProvider } from "@/providers/ToastProvider";
 import { Outfit, Plus_Jakarta_Sans } from "next/font/google";
+import StyledJsxRegistry from "./registry";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -63,13 +64,19 @@ export default function RootLayout({
           (function() {
             var theme = localStorage.getItem('theme') || 'dark';
             document.documentElement.setAttribute('data-theme', theme);
+            document.documentElement.classList.add('no-transitions');
           })();
+          window.addEventListener('load', function() {
+            document.documentElement.classList.remove('no-transitions');
+          });
         ` }} />
       </head>
       <body className={`${outfit.variable} ${plusJakartaSans.variable}`}>
         <NextAuthProvider>
           <ToastProvider>
-            {children}
+            <StyledJsxRegistry>
+              {children}
+            </StyledJsxRegistry>
           </ToastProvider>
         </NextAuthProvider>
       </body>

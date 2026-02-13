@@ -288,3 +288,9 @@ a {
 .glow-effect:hover::after {
   opacity: 1;
 }
+
+/* Disable transitions on initial load to prevent FOUC / transition flash */
+.no-transitions,
+.no-transitions * {
+  transition: none !important;
+}
