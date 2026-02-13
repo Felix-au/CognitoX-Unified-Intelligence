@@ -1,6 +1,19 @@
 import "./globals.css";
 import NextAuthProvider from "@/providers/NextAuthProvider";
 import { ToastProvider } from "@/providers/ToastProvider";
+import { Outfit, Plus_Jakarta_Sans } from "next/font/google";
+
+const outfit = Outfit({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-display",
+});
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-body",
+});
 
 export const metadata = {
   title: "CognitoX: Unified Intelligence Workspace",
@@ -53,7 +66,7 @@ export default function RootLayout({
           })();
         ` }} />
       </head>
-      <body>
+      <body className={`${outfit.variable} ${plusJakartaSans.variable}`}>
         <NextAuthProvider>
           <ToastProvider>
             {children}
