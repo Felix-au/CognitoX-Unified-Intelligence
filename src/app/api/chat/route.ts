@@ -292,9 +292,9 @@ export async function POST(request: Request) {
       // Standard text response flow via OmniKey AI
       let searchContext = "";
       if (
-        conversation.variant !== "youtube_tool" &&
-        conversation.variant !== "image_filter_tool" &&
-        conversation.variant !== "diagram_tool"
+        (conversation.variant as string) !== "youtube_tool" &&
+        (conversation.variant as string) !== "image_filter_tool" &&
+        (conversation.variant as string) !== "diagram_tool"
       ) {
         const isFirstMessage = (await prisma.chat.count({
           where: { conversationId: validated.conversationId }
