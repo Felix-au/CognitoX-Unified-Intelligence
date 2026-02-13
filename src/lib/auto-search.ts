@@ -1,5 +1,10 @@
 import { generateOmniKeyCompletion } from "./omnikey";
 
+/**
+ * Fetches the lead summary of a Wikipedia page using the REST API.
+ * @param title The exact title of the Wikipedia page.
+ * @returns A promise resolving to the summary text, or null if it fails.
+ */
 async function fetchWikipediaSummary(title: string): Promise<string | null> {
   try {
     const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title.replace(/\s+/g, "_"))}`;
@@ -13,6 +18,11 @@ async function fetchWikipediaSummary(title: string): Promise<string | null> {
   }
 }
 
+/**
+ * Searches Wikipedia for the given query and retrieves summaries for the top 2 matching pages.
+ * @param query The search query term.
+ * @returns A formatted markdown string containing the Wikipedia references.
+ */
 export async function searchWikipedia(query: string): Promise<string> {
   try {
     const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*`;
@@ -39,6 +49,11 @@ export async function searchWikipedia(query: string): Promise<string> {
   }
 }
 
+/**
+ * Queries the arXiv API for matching preprints and parses the top 2 results.
+ * @param query The search query term.
+ * @returns A formatted markdown string containing the arXiv paper abstracts and links.
+ */
 export async function searchArxiv(query: string): Promise<string> {
   try {
     const url = `https://export.arxiv.org/api/query?search_query=all:${encodeURIComponent(query)}&max_results=2`;
@@ -70,6 +85,12 @@ export async function searchArxiv(query: string): Promise<string> {
   }
 }
 
+/**
+ * Extracts 1-2 search terms semantically from the user's prompt and note context.
+ * @param content The user message content.
+ * @param documentContext Optional attached note/file context.
+ * @returns A promise resolving to an array of keywords.
+ */
 export async function extractSearchKeywords(content: string, documentContext?: string): Promise<string[]> {
   try {
     const prompt = `Analyze the user prompt and any attached document text. 
@@ -99,6 +120,12 @@ export async function extractSearchKeywords(content: string, documentContext?: s
   return words.length > 0 ? [words.join(" ")] : [];
 }
 
+/**
+ * Performs parallel academic and encyclopedic search and aggregates context.
+ * @param content The user message.
+ * @param documentContext Optional note context.
+ * @returns A promise resolving to a formatted markdown reference block.
+ */
 export async function performWorkspaceResearch(content: string, documentContext?: string): Promise<string> {
   const keywords = await extractSearchKeywords(content, documentContext);
   const validKeywords = keywords.filter(k => k && k.trim().length > 1);
