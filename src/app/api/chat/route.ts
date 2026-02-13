@@ -290,9 +290,36 @@ export async function POST(request: Request) {
       });
     } else {
       // Standard text response flow via OmniKey AI
+      let searchContext = "";
+      if (
+        conversation.variant !== "youtube_tool" &&
+        conversation.variant !== "image_filter_tool" &&
+        conversation.variant !== "diagram_tool"
+      ) {
+        const isFirstMessage = (await prisma.chat.count({
+          where: { conversationId: validated.conversationId }
+        })) <= 1;
+
+        if (isFirstMessage || files.length > 0) {
+          try {
+            const { performWorkspaceResearch } = await import("@/lib/auto-search");
+            searchContext = await performWorkspaceResearch(validated.content, documentsContext);
+          } catch (err) {
+            console.error("Workspace research failed:", err);
+          }
+        }
+      }
+
       let promptWithContext = validated.content;
-      if (documentsContext) {
-        promptWithContext = `Relevant Document Context:\n${documentsContext}\n\nUser Query: ${validated.content}\n\nUse the document context above to answer the query accurately.`;
+      if (documentsContext || searchContext) {
+        const contexts: string[] = [];
+        if (documentsContext) {
+          contexts.push(`--- Document Context ---\n${documentsContext}`);
+        }
+        if (searchContext) {
+          contexts.push(`--- External Research Context (Wikipedia/arXiv) ---\n${searchContext}`);
+        }
+        promptWithContext = `${contexts.join("\n\n")}\n\nUser Query: ${validated.content}\n\nUse the provided document and external contexts above to answer the query accurately. Reference sources explicitly (e.g. 'According to Wikipedia...' or 'As noted in arXiv paper...') if you use them to answer.`;
       }
 
       const systemPrompt = "You are the CognitoX AI assistant, a premium cognitive workspace. Provide detailed, well-structured markdown answers. Utilize any provided document contexts or visual images attached to answer queries accurately.";
