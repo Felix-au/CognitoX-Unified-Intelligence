@@ -253,7 +253,6 @@ export default function ConversationPage() {
                 <div className="message-bubble bot glass-card typing">
                   {isResearching ? (
                     <div className="research-status">
-                      <Loader2 className="research-icon animate-spin" />
                       <span className="research-text animate-dots">{getResearchText()}</span>
                     </div>
                   ) : (

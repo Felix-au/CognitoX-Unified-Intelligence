@@ -243,16 +243,19 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
   }
 
   if (status === "unauthenticated") return null;
+  const currentActiveId = pathname?.includes("/chatbot/c/") ? pathname.split("/").pop() : (pathname?.includes("/t/diagrams-tool") ? urlConversationId : null);
+  const activeConv = conversations.find(c => c.id === currentActiveId);
+  const isChatActive = pathname === "/chatbot" || (pathname?.includes("/chatbot/c/") && activeConv?.variant === "chat");
 
   return (
     <div className="layout-root">
       {/* Sidebar */}
       <aside className="sidebar glass-panel">
         <div className="sidebar-header">
-          <button onClick={() => handleNewConversation("chat")} className="btn-new-chat">
-            <Plus className="btn-icon" />
-            <span>New Chat</span>
-          </button>
+          <div className="brand-logo">
+            <Sparkles className="brand-icon" />
+            <span>CognitoX</span>
+          </div>
         </div>
 
         {/* Sidebar Nav section: Specialized Tools */}
@@ -260,24 +263,31 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
           <h3 className="section-title">Cognitive Tools</h3>
           <ul className="nav-list">
             <li
-              className={pathname?.includes("notes-tool") ? "active" : ""}
+              className={isChatActive ? "active" : ""}
+              onClick={() => handleNewConversation("chat")}
+            >
+              <Plus className="nav-icon text-indigo" />
+              <span>New AI Chat</span>
+            </li>
+            <li
+              className={pathname?.includes("notes-tool") || (pathname?.includes("/chatbot/c/") && activeConv?.variant === "notes_tool") ? "active" : ""}
               onClick={() => router.push("/chatbot/t/notes-tool")}
             >
-              <FileText className="nav-icon text-indigo" />
+              <FileText className="nav-icon text-cyan" />
               <span>Smart Notes OCR</span>
             </li>
             <li
-              className={pathname?.includes("youtube-video-tool") ? "active" : ""}
+              className={pathname?.includes("youtube-video-tool") || (pathname?.includes("/chatbot/c/") && activeConv?.variant === "youtube_tool") ? "active" : ""}
               onClick={() => router.push("/chatbot/t/youtube-video-tool")}
             >
-              <Youtube className="nav-icon text-cyan" />
+              <Youtube className="nav-icon text-green" />
               <span>YouTube Video</span>
             </li>
             <li
-              className={pathname?.includes("diagrams-tool") ? "active" : ""}
+              className={pathname?.includes("diagrams-tool") || (pathname?.includes("/chatbot/c/") && activeConv?.variant === "diagram_tool") ? "active" : ""}
               onClick={() => router.push("/chatbot/t/diagrams-tool")}
             >
-              <Terminal className="nav-icon text-green" />
+              <Terminal className="nav-icon text-pink" />
               <span>Diagram Studio</span>
             </li>
           </ul>
@@ -417,6 +427,22 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
           display: flex;
           align-items: center;
           margin-bottom: 20px;
+        }
+        .brand-logo {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          font-family: var(--font-display);
+          font-weight: 700;
+          font-size: 1.15rem;
+          color: var(--text-primary);
+          padding: 8px 12px;
+          margin-bottom: 8px;
+        }
+        .brand-icon {
+          width: 20px;
+          height: 20px;
+          color: var(--accent-primary);
         }
         .btn-new-chat {
           display: flex;

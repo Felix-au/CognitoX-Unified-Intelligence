@@ -182,7 +182,6 @@ export default function NotesTool() {
             </button>
             {extracting && (
               <div className="notes-extracting-status glass-panel">
-                <Loader2 className="status-icon animate-spin" />
                 <span className="status-text animate-dots">{getResearchText()}</span>
               </div>
             )}

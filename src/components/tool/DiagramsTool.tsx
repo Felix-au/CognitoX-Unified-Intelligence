@@ -212,7 +212,6 @@ export default function DiagramsTool() {
         <div className="studio-main">
           {loading ? (
             <div className="studio-loading-status glass-panel">
-              <Loader2 className="status-icon animate-spin" />
               <span className="status-text animate-dots">{getResearchText()}</span>
             </div>
           ) : code ? (
