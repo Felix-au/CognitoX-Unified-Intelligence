@@ -25,6 +25,7 @@ export default function ConversationPage() {
   const [loading, setLoading] = useState(true);
   const [inputText, setInputText] = useState("");
   const [sending, setSending] = useState(false);
+  const [isResearching, setIsResearching] = useState(false);
 
   // File uploads state
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
@@ -87,12 +88,20 @@ export default function ConversationPage() {
     if (customText === undefined) {
       setInputText("");
     }
+
+    const isFirstMessage = messages.length === 0;
+    const hasFiles = attachedFiles.length > 0;
+    const webSearchEnabled = localStorage.getItem("webSearchEnabled") !== "false";
+    const researching = (isFirstMessage || hasFiles) && webSearchEnabled;
+    setIsResearching(researching);
+
     setSending(true);
 
     try {
       const fd = new FormData();
       fd.append("conversationId", id);
       fd.append("content", userPrompt || "Analyze the attached files");
+      fd.append("webSearchEnabled", String(webSearchEnabled));
 
       // Pass recent messages for context/history
       const historyContext = messages.slice(-10).map(m => ({
@@ -140,6 +149,7 @@ export default function ConversationPage() {
       });
     } finally {
       setSending(false);
+      setIsResearching(false);
     }
   };
 
@@ -214,11 +224,18 @@ export default function ConversationPage() {
             {sending && (
               <div className="message-wrapper bot">
                 <div className="message-bubble bot glass-card typing">
-                  <div className="typing-dots">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                  </div>
+                  {isResearching ? (
+                    <div className="research-status">
+                      <Sparkles className="research-icon animate-pulse" />
+                      <span className="research-text">Searching Wikipedia &amp; arXiv references...</span>
+                    </div>
+                  ) : (
+                    <div className="typing-dots">
+                      <span></span>
+                      <span></span>
+                      <span></span>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -835,6 +852,24 @@ export default function ConversationPage() {
           color: #ffffff;
         }
 
+
+        .research-status {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 2px 4px;
+        }
+        .research-icon {
+          width: 15px;
+          height: 15px;
+          color: var(--accent-primary);
+        }
+        .research-text {
+          font-family: var(--font-display);
+          font-size: 0.85rem;
+          color: var(--text-secondary);
+          letter-spacing: 0.02em;
+        }
 
         @keyframes spin {
           from { transform: rotate(0deg); }
