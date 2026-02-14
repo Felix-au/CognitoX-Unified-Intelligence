@@ -24,5 +24,5 @@ export const sendToolMessageSchema = z.object({
 
 export const createConversationSchema = z.object({
   title: z.string().min(1, "Title cannot be empty").max(100).optional(),
-  variant: z.enum(["chat", "notes_tool", "youtube_tool", "diagram_tool", "image_filter_tool"]),
+  variant: z.enum(["chat", "notes_tool", "youtube_tool", "diagram_tool"]),
 });

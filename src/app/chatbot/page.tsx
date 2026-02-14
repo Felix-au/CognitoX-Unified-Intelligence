@@ -30,7 +30,6 @@ export default function ChatbotDashboard() {
           let routeName = "notes-tool";
           if (variant === "youtube_tool") routeName = "youtube-video-tool";
           else if (variant === "diagram_tool") routeName = "diagrams-tool";
-          else if (variant === "image_filter_tool") routeName = "image-filter-tool";
           
           router.push(`/chatbot/t/${routeName}`);
         }
@@ -98,18 +97,6 @@ export default function ChatbotDashboard() {
             </div>
           </div>
 
-          {/* Image Filter */}
-          <div className="shortcut-card glass-card" onClick={() => handleQuickLaunch("image_filter_tool")}>
-            <div className="card-header">
-              <Image className="card-icon text-pink" />
-              <h3>Image Filter Canvas</h3>
-            </div>
-            <p className="card-body">Apply real-time filters (Contrast, Brightness, Blur, Sobel edges) to image documents in the browser.</p>
-            <div className="card-footer">
-              <span>Open canvas</span>
-              <ArrowRight className="arrow-icon" />
-            </div>
-          </div>
         </div>
       </div>
 

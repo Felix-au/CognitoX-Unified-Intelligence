@@ -6,7 +6,7 @@ import ToolsHeading from "./ToolsHeading";
 import MermaidChart from "../MermaidChart";
 import { useToast } from "@/providers/ToastProvider";
 import axios from "axios";
-import { Sparkles, Play, Code, MessageSquare, Edit2, RotateCcw } from "lucide-react";
+import { Sparkles, Play, Code, MessageSquare, Edit2, RotateCcw, Loader2 } from "lucide-react";
 
 export default function DiagramsTool() {
   const [prompt, setPrompt] = useState("");
@@ -14,6 +14,8 @@ export default function DiagramsTool() {
   const [loading, setLoading] = useState(false);
   const [editMode, setEditMode] = useState<"visual" | "code">("visual");
   const [conversationId, setConversationId] = useState<string | null>(null);
+  const [researchStep, setResearchStep] = useState(0);
+  const [webSearchActive, setWebSearchActive] = useState(false);
   
   const router = useRouter();
   const { showToast } = useToast();
@@ -58,6 +60,44 @@ export default function DiagramsTool() {
     }
   }, [urlConversationId]);
 
+  useEffect(() => {
+    if (loading) {
+      setResearchStep(0);
+      const webSearchEnabled = localStorage.getItem("webSearchEnabled") !== "false";
+      setWebSearchActive(webSearchEnabled);
+      const timers = [
+        setTimeout(() => setResearchStep(1), 1500),
+        setTimeout(() => setResearchStep(2), 3500),
+        setTimeout(() => setResearchStep(3), 5500),
+        setTimeout(() => setResearchStep(4), 7500),
+      ];
+      return () => {
+        timers.forEach(clearTimeout);
+      };
+    }
+  }, [loading]);
+
+  const getResearchText = () => {
+    if (webSearchActive) {
+      switch (researchStep) {
+        case 0: return "Firing up web crawlers";
+        case 1: return "Searching Wikipedia";
+        case 2: return "Searching arXiv";
+        case 3: return "Compiling research";
+        case 4: return "Generating diagram";
+        default: return "Analyzing";
+      }
+    } else {
+      switch (researchStep) {
+        case 0: return "Analyzing prompt";
+        case 1: return "Structuring layout nodes";
+        case 2: return "Compiling Mermaid script";
+        case 3: return "Rendering diagram";
+        default: return "Analyzing";
+      }
+    }
+  };
+
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!prompt.trim() || loading) return;
@@ -83,10 +123,12 @@ export default function DiagramsTool() {
       }
 
       // Call tool chat API
+      const webSearchEnabled = localStorage.getItem("webSearchEnabled") !== "false";
       const chatRes = await axios.post("/api/tool-chat", {
         conversationId: convId,
         content: prompt.trim(),
-        history: [] // session history can be loaded later
+        history: [], // session history can be loaded later
+        webSearchEnabled
       });
 
       if (!chatRes.data?.success) {
@@ -168,7 +210,12 @@ export default function DiagramsTool() {
         </header>
 
         <div className="studio-main">
-          {code ? (
+          {loading ? (
+            <div className="studio-loading-status glass-panel">
+              <Loader2 className="status-icon animate-spin" />
+              <span className="status-text animate-dots">{getResearchText()}</span>
+            </div>
+          ) : code ? (
             <div className={`canvas-grid ${editMode === "code" ? "has-editor" : ""}`}>
               {/* Left Side: Visual Render */}
               <div className="canvas-viewer">
@@ -390,6 +437,47 @@ export default function DiagramsTool() {
         }
         .studio-submit-btn {
           flex-shrink: 0;
+        }
+        .studio-loading-status {
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 16px;
+          padding: 48px;
+          text-align: center;
+        }
+        .status-icon {
+          width: 32px;
+          height: 32px;
+          color: var(--accent-primary);
+        }
+        .status-text {
+          font-family: var(--font-display);
+          font-size: 0.95rem;
+          color: var(--text-secondary);
+          letter-spacing: 0.02em;
+        }
+        .animate-dots::after {
+          content: '';
+          display: inline-block;
+          width: 12px;
+          text-align: left;
+          animation: dots-cycle 1.5s steps(4, end) infinite;
+        }
+        @keyframes dots-cycle {
+          0%, 100% { content: ''; }
+          25% { content: '.'; }
+          50% { content: '..'; }
+          75% { content: '...'; }
+        }
+        .animate-spin {
+          animation: spin-clockwise 1.2s linear infinite;
+        }
+        @keyframes spin-clockwise {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
         }
       `}</style>
     </div>

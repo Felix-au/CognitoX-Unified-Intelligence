@@ -214,13 +214,21 @@ export async function POST(request: Request) {
       });
 
       const currentCode = lastBotMessage?.content || "";
-      botResponseText = await generateDiagramMermaid(validated.content, { currentCode });
-      botModelName = "omnikey-diagram";
+      
+      let diagramPrompt = validated.content;
+      if (webSearchEnabled) {
+        try {
+          const searchContext = await performWorkspaceResearch(validated.content, "");
+          if (searchContext) {
+            diagramPrompt = `--- External Research Context (Wikipedia/arXiv) ---\n${searchContext}\n\nUser Prompt: ${validated.content}\n\nGenerate the diagram based on the user prompt and incorporate information from the external research context above.`;
+          }
+        } catch (err) {
+          console.error("Diagram workspace research failed:", err);
+        }
+      }
 
-    } else if (conversation.variant === "image_filter_tool") {
-      // 4. Image Filter Tool (fallback message handler)
-      botResponseText = "Your image filters have been applied. Click 'Send to Chat' to ask questions about your processed image.";
-      botModelName = "client-canvas";
+      botResponseText = await generateDiagramMermaid(diagramPrompt, { currentCode });
+      botModelName = "omnikey-diagram";
     }
 
     // Save bot message

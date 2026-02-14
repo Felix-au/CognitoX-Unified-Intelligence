@@ -891,6 +891,9 @@ export default function ConversationPage() {
           height: 15px;
           color: var(--accent-primary);
         }
+        .animate-spin {
+          animation: spin 1.2s linear infinite;
+        }
         .research-text {
           font-family: var(--font-display);
           font-size: 0.85rem;

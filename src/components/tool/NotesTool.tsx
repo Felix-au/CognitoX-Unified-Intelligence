@@ -317,6 +317,13 @@ export default function NotesTool() {
           height: 16px;
           color: var(--accent-primary);
         }
+        .animate-spin {
+          animation: spin-clockwise 1.2s linear infinite;
+        }
+        @keyframes spin-clockwise {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
         .status-text {
           font-family: var(--font-display);
           font-size: 0.85rem;

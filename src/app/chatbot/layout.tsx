@@ -117,7 +117,6 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
           let routeName = "notes-tool";
           if (variant === "youtube_tool") routeName = "youtube-video-tool";
           else if (variant === "diagram_tool") routeName = "diagrams-tool";
-          else if (variant === "image_filter_tool") routeName = "image-filter-tool";
 
           router.push(`/chatbot/t/${routeName}`);
         }
@@ -280,13 +279,6 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
             >
               <Terminal className="nav-icon text-green" />
               <span>Diagram Studio</span>
-            </li>
-            <li
-              className={pathname?.includes("image-filter-tool") ? "active" : ""}
-              onClick={() => router.push("/chatbot/t/image-filter-tool")}
-            >
-              <Image className="nav-icon text-pink" />
-              <span>Image Filter Canvas</span>
             </li>
           </ul>
         </div>
