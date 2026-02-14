@@ -5,17 +5,45 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@/providers/ToastProvider";
 import ToolsHeading from "./ToolsHeading";
 import axios from "axios";
-import { FileText, Upload, X } from "lucide-react";
+import { FileText, Upload, X, Sparkles } from "lucide-react";
 
 export default function NotesTool() {
   const [files, setFiles] = useState<File[]>([]);
   const [extracting, setExtracting] = useState(false);
+  const [isResearching, setIsResearching] = useState(false);
+  const [researchStep, setResearchStep] = useState(0);
   const router = useRouter();
   const { showToast } = useToast();
 
   useEffect(() => {
     document.title = "Notes OCR Workspace | CognitoX";
   }, []);
+
+  useEffect(() => {
+    if (isResearching) {
+      setResearchStep(0);
+      const timers = [
+        setTimeout(() => setResearchStep(1), 2000),
+        setTimeout(() => setResearchStep(2), 5000),
+        setTimeout(() => setResearchStep(3), 8000),
+        setTimeout(() => setResearchStep(4), 10000),
+      ];
+      return () => {
+        timers.forEach(clearTimeout);
+      };
+    }
+  }, [isResearching]);
+
+  const getResearchText = () => {
+    switch (researchStep) {
+      case 0: return "Firing up web crawlers...";
+      case 1: return "Searching Wikipedia...";
+      case 2: return "Searching arXiv...";
+      case 3: return "Compiling research...";
+      case 4: return "Compiling study notes...";
+      default: return "Analyzing...";
+    }
+  };
 
   const handleFileDrop = (e: React.DragEvent) => {
     e.preventDefault();
@@ -38,6 +66,9 @@ export default function NotesTool() {
 
   const handleExtract = async () => {
     if (!files.length || extracting) return;
+
+    const webSearchEnabled = localStorage.getItem("webSearchEnabled") !== "false";
+    setIsResearching(webSearchEnabled);
     setExtracting(true);
 
     try {
@@ -57,6 +88,7 @@ export default function NotesTool() {
       fd.append("conversationId", convId);
       fd.append("content", "Perform high-fidelity OCR on these uploaded files and compile clean, structured markdown notes.");
       fd.append("history", JSON.stringify([]));
+      fd.append("webSearchEnabled", String(webSearchEnabled));
       files.forEach((f) => fd.append("files", f));
 
       const chatRes = await axios.post("/api/tool-chat", fd, {
@@ -82,6 +114,7 @@ export default function NotesTool() {
       });
     } finally {
       setExtracting(false);
+      setIsResearching(false);
     }
   };
 
@@ -133,6 +166,12 @@ export default function NotesTool() {
             >
               {extracting ? "Extracting..." : "Compile Notes"}
             </button>
+            {extracting && (
+              <div className="notes-extracting-status glass-panel">
+                <Sparkles className="status-icon animate-pulse" />
+                <span className="status-text">{getResearchText()}</span>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -247,6 +286,28 @@ export default function NotesTool() {
         }
         .start-extract-btn {
           width: 100%;
+        }
+        .notes-extracting-status {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          padding: 14px;
+          margin-top: 12px;
+          border: 1px solid var(--border-color);
+          border-radius: 8px;
+          background: var(--glass-bg);
+        }
+        .status-icon {
+          width: 16px;
+          height: 16px;
+          color: var(--accent-primary);
+        }
+        .status-text {
+          font-family: var(--font-display);
+          font-size: 0.85rem;
+          color: var(--text-secondary);
+          letter-spacing: 0.02em;
         }
       `}</style>
     </section>
