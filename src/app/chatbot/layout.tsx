@@ -27,10 +27,16 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
   const [loadingHistory, setLoadingHistory] = useState(false);
 
   const [theme, setTheme] = useState<"light" | "dark">("dark");
+  const [webSearchEnabled, setWebSearchEnabled] = useState<boolean>(true);
 
   useEffect(() => {
     const activeTheme = document.documentElement.getAttribute("data-theme") as "light" | "dark" || "dark";
     setTheme(activeTheme);
+
+    const saved = localStorage.getItem("webSearchEnabled");
+    if (saved !== null) {
+      setWebSearchEnabled(saved === "true");
+    }
   }, []);
 
   const toggleTheme = () => {
@@ -38,6 +44,13 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
     document.documentElement.setAttribute("data-theme", nextTheme);
     localStorage.setItem("theme", nextTheme);
     setTheme(nextTheme);
+  };
+
+  const toggleWebSearch = () => {
+    const newVal = !webSearchEnabled;
+    localStorage.setItem("webSearchEnabled", String(newVal));
+    setWebSearchEnabled(newVal);
+    window.dispatchEvent(new CustomEvent("web-search-toggled", { detail: newVal }));
   };
 
   useEffect(() => {
@@ -334,6 +347,21 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
           )}
         </div>
 
+        {/* Settings/Preferences section */}
+        <div className="preferences-section">
+          <div className="pref-row">
+            <span className="pref-label">Web References</span>
+            <button 
+              type="button"
+              onClick={toggleWebSearch}
+              className={`toggle-switch ${webSearchEnabled ? 'active' : ''}`}
+              title={webSearchEnabled ? "Disable Auto-Enhance with Web References" : "Enable Auto-Enhance with Web References"}
+            >
+              <span className="toggle-slider"></span>
+            </button>
+          </div>
+        </div>
+
         {/* User profile footer */}
         <div className="sidebar-footer">
           <div className="user-profile">
@@ -614,6 +642,54 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
         .footer-action-icon {
           width: 16px;
           height: 16px;
+        }
+        .preferences-section {
+          padding: 12px 4px 6px 4px;
+          border-top: 1px solid var(--border-color);
+          margin-top: auto;
+          margin-bottom: 8px;
+        }
+        .pref-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 4px 8px;
+        }
+        .pref-label {
+          font-size: 0.76rem;
+          color: var(--text-secondary);
+          font-family: var(--font-display);
+          font-weight: 500;
+        }
+        .toggle-switch {
+          position: relative;
+          width: 34px;
+          height: 18px;
+          background: rgba(128, 128, 128, 0.15);
+          border: 1px solid var(--border-color);
+          border-radius: 20px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          outline: none;
+          padding: 0;
+        }
+        .toggle-switch.active {
+          background: var(--accent-primary);
+          border-color: var(--accent-primary);
+        }
+        .toggle-slider {
+          position: absolute;
+          width: 12px;
+          height: 12px;
+          border-radius: 50%;
+          background: #ffffff;
+          top: 2px;
+          left: 2px;
+          transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+        }
+        .toggle-switch.active .toggle-slider {
+          transform: translateX(16px);
         }
         .workspace-main {
           flex: 1;
