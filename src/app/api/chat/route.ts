@@ -78,11 +78,17 @@ export async function POST(request: Request) {
     let sessionHistory: any[] = [];
     let files: File[] = [];
 
+    let webSearchEnabled = true;
+
     if (contentType.includes("multipart/form-data")) {
       const formData = await request.formData();
       conversationId = formData.get("conversationId") as string;
       content = formData.get("content") as string;
       const historyRaw = formData.get("history") as string;
+      const webSearchEnabledRaw = formData.get("webSearchEnabled") as string;
+      if (webSearchEnabledRaw !== null) {
+        webSearchEnabled = webSearchEnabledRaw !== "false";
+      }
       
       if (historyRaw) {
         try {
@@ -98,6 +104,9 @@ export async function POST(request: Request) {
       conversationId = body.conversationId;
       content = body.content;
       sessionHistory = body.history || [];
+      if (body.webSearchEnabled !== undefined) {
+        webSearchEnabled = body.webSearchEnabled !== false;
+      }
     }
 
     const validated = sendMessageSchema.parse({ conversationId, content });
@@ -300,7 +309,7 @@ export async function POST(request: Request) {
           where: { conversationId: validated.conversationId }
         })) <= 1;
 
-        if (isFirstMessage || files.length > 0) {
+        if ((isFirstMessage || files.length > 0) && webSearchEnabled) {
           try {
             const { performWorkspaceResearch } = await import("@/lib/auto-search");
             searchContext = await performWorkspaceResearch(validated.content, documentsContext);
