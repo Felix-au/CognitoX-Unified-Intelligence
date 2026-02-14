@@ -26,6 +26,33 @@ export default function ConversationPage() {
   const [inputText, setInputText] = useState("");
   const [sending, setSending] = useState(false);
   const [isResearching, setIsResearching] = useState(false);
+  const [researchStep, setResearchStep] = useState(0);
+
+  useEffect(() => {
+    if (isResearching) {
+      setResearchStep(0);
+      const timers = [
+        setTimeout(() => setResearchStep(1), 2000),
+        setTimeout(() => setResearchStep(2), 5000),
+        setTimeout(() => setResearchStep(3), 8000),
+        setTimeout(() => setResearchStep(4), 10000),
+      ];
+      return () => {
+        timers.forEach(clearTimeout);
+      };
+    }
+  }, [isResearching]);
+
+  const getResearchText = () => {
+    switch (researchStep) {
+      case 0: return "Firing up web crawlers...";
+      case 1: return "Searching Wikipedia...";
+      case 2: return "Searching arXiv...";
+      case 3: return "Compiling research...";
+      case 4: return "Synthesizing response...";
+      default: return "Analyzing...";
+    }
+  };
 
   // File uploads state
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
@@ -227,7 +254,7 @@ export default function ConversationPage() {
                   {isResearching ? (
                     <div className="research-status">
                       <Sparkles className="research-icon animate-pulse" />
-                      <span className="research-text">Searching Wikipedia &amp; arXiv references...</span>
+                      <span className="research-text">{getResearchText()}</span>
                     </div>
                   ) : (
                     <div className="typing-dots">
