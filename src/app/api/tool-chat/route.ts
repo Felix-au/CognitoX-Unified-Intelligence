@@ -14,6 +14,7 @@ import {
   answerQuestionOnTranscript
 } from "@/lib/youtube";
 import { generateDiagramMermaid } from "@/lib/diagram";
+import { performWorkspaceResearch } from "@/lib/auto-search";
 
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
@@ -30,6 +31,7 @@ export async function POST(request: Request) {
     let sessionHistory: any[] = [];
     let files: File[] = [];
 
+    let webSearchEnabled = false;
     if (contentType.includes("multipart/form-data")) {
       const formData = await request.formData();
       conversationId = formData.get("conversationId") as string;
@@ -39,11 +41,13 @@ export async function POST(request: Request) {
         try { sessionHistory = JSON.parse(historyRaw); } catch { sessionHistory = []; }
       }
       files = formData.getAll("files") as File[];
+      webSearchEnabled = formData.get("webSearchEnabled") === "true";
     } else {
       const body = await request.json();
       conversationId = body.conversationId;
       content = body.content;
       sessionHistory = body.history || [];
+      webSearchEnabled = body.webSearchEnabled === true || body.webSearchEnabled === "true";
     }
 
     const validated = sendToolMessageSchema.parse({ conversationId, content, history: sessionHistory });
@@ -116,6 +120,16 @@ export async function POST(request: Request) {
         botResponseText = "Please upload at least one image or PDF file containing notes to process OCR.";
       } else {
         botResponseText = await processNotesOcr({ files: imageFiles, pdfTexts });
+        if (webSearchEnabled) {
+          try {
+            const searchContext = await performWorkspaceResearch("", botResponseText);
+            if (searchContext) {
+              botResponseText += "\n\n---\n\n## External Research References\n\n" + searchContext;
+            }
+          } catch (err) {
+            console.error("Notes workspace research failed:", err);
+          }
+        }
       }
       botModelName = "omnikey-ocr";
 

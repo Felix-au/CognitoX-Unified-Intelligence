@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, isValidElement, cloneElement } from "react
 import { useParams, useRouter } from "next/navigation";
 import { useToast } from "@/providers/ToastProvider";
 import axios from "axios";
-import { Send, Paperclip, Sparkles, X, File, Image as ImageIcon, FileText, Copy, Check } from "lucide-react";
+import { Send, Paperclip, Sparkles, X, File, Image as ImageIcon, FileText, Copy, Check, Loader2 } from "lucide-react";
 
 interface Message {
   id: string;
@@ -32,10 +32,10 @@ export default function ConversationPage() {
     if (isResearching) {
       setResearchStep(0);
       const timers = [
-        setTimeout(() => setResearchStep(1), 2000),
-        setTimeout(() => setResearchStep(2), 5000),
-        setTimeout(() => setResearchStep(3), 8000),
-        setTimeout(() => setResearchStep(4), 10000),
+        setTimeout(() => setResearchStep(1), 1500),
+        setTimeout(() => setResearchStep(2), 3500),
+        setTimeout(() => setResearchStep(3), 5500),
+        setTimeout(() => setResearchStep(4), 7500),
       ];
       return () => {
         timers.forEach(clearTimeout);
@@ -45,12 +45,12 @@ export default function ConversationPage() {
 
   const getResearchText = () => {
     switch (researchStep) {
-      case 0: return "Firing up web crawlers...";
-      case 1: return "Searching Wikipedia...";
-      case 2: return "Searching arXiv...";
-      case 3: return "Compiling research...";
-      case 4: return "Synthesizing response...";
-      default: return "Analyzing...";
+      case 0: return "Firing up web crawlers";
+      case 1: return "Searching Wikipedia";
+      case 2: return "Searching arXiv";
+      case 3: return "Compiling research";
+      case 4: return "Synthesizing response";
+      default: return "Analyzing";
     }
   };
 
@@ -253,8 +253,8 @@ export default function ConversationPage() {
                 <div className="message-bubble bot glass-card typing">
                   {isResearching ? (
                     <div className="research-status">
-                      <Sparkles className="research-icon animate-pulse" />
-                      <span className="research-text">{getResearchText()}</span>
+                      <Loader2 className="research-icon animate-spin" />
+                      <span className="research-text animate-dots">{getResearchText()}</span>
                     </div>
                   ) : (
                     <div className="typing-dots">
@@ -896,6 +896,19 @@ export default function ConversationPage() {
           font-size: 0.85rem;
           color: var(--text-secondary);
           letter-spacing: 0.02em;
+        }
+        .animate-dots::after {
+          content: '';
+          display: inline-block;
+          width: 12px;
+          text-align: left;
+          animation: dots-cycle 1.5s steps(4, end) infinite;
+        }
+        @keyframes dots-cycle {
+          0%, 100% { content: ''; }
+          25% { content: '.'; }
+          50% { content: '..'; }
+          75% { content: '...'; }
         }
 
         @keyframes spin {

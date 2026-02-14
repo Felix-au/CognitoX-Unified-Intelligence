@@ -5,13 +5,14 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@/providers/ToastProvider";
 import ToolsHeading from "./ToolsHeading";
 import axios from "axios";
-import { FileText, Upload, X, Sparkles } from "lucide-react";
+import { FileText, Upload, X, Sparkles, Loader2 } from "lucide-react";
 
 export default function NotesTool() {
   const [files, setFiles] = useState<File[]>([]);
   const [extracting, setExtracting] = useState(false);
   const [isResearching, setIsResearching] = useState(false);
   const [researchStep, setResearchStep] = useState(0);
+  const [webSearchActive, setWebSearchActive] = useState(false);
   const router = useRouter();
   const { showToast } = useToast();
 
@@ -20,28 +21,41 @@ export default function NotesTool() {
   }, []);
 
   useEffect(() => {
-    if (isResearching) {
+    if (extracting) {
       setResearchStep(0);
+      const webSearchEnabled = localStorage.getItem("webSearchEnabled") !== "false";
+      setWebSearchActive(webSearchEnabled);
       const timers = [
-        setTimeout(() => setResearchStep(1), 2000),
-        setTimeout(() => setResearchStep(2), 5000),
-        setTimeout(() => setResearchStep(3), 8000),
-        setTimeout(() => setResearchStep(4), 10000),
+        setTimeout(() => setResearchStep(1), 1500),
+        setTimeout(() => setResearchStep(2), 3500),
+        setTimeout(() => setResearchStep(3), 5500),
+        setTimeout(() => setResearchStep(4), 7500),
       ];
       return () => {
         timers.forEach(clearTimeout);
       };
     }
-  }, [isResearching]);
+  }, [extracting]);
 
   const getResearchText = () => {
-    switch (researchStep) {
-      case 0: return "Firing up web crawlers...";
-      case 1: return "Searching Wikipedia...";
-      case 2: return "Searching arXiv...";
-      case 3: return "Compiling research...";
-      case 4: return "Compiling study notes...";
-      default: return "Analyzing...";
+    if (webSearchActive) {
+      switch (researchStep) {
+        case 0: return "Firing up web crawlers";
+        case 1: return "Searching Wikipedia";
+        case 2: return "Searching arXiv";
+        case 3: return "Compiling research";
+        case 4: return "Compiling study notes";
+        default: return "Analyzing";
+      }
+    } else {
+      switch (researchStep) {
+        case 0: return "Uploading notes";
+        case 1: return "Parsing document layout";
+        case 2: return "Performing high-fidelity OCR";
+        case 3: return "Analyzing text content";
+        case 4: return "Compiling study notes";
+        default: return "Analyzing";
+      }
     }
   };
 
@@ -168,8 +182,8 @@ export default function NotesTool() {
             </button>
             {extracting && (
               <div className="notes-extracting-status glass-panel">
-                <Sparkles className="status-icon animate-pulse" />
-                <span className="status-text">{getResearchText()}</span>
+                <Loader2 className="status-icon animate-spin" />
+                <span className="status-text animate-dots">{getResearchText()}</span>
               </div>
             )}
           </div>
@@ -308,6 +322,19 @@ export default function NotesTool() {
           font-size: 0.85rem;
           color: var(--text-secondary);
           letter-spacing: 0.02em;
+        }
+        .animate-dots::after {
+          content: '';
+          display: inline-block;
+          width: 12px;
+          text-align: left;
+          animation: dots-cycle 1.5s steps(4, end) infinite;
+        }
+        @keyframes dots-cycle {
+          0%, 100% { content: ''; }
+          25% { content: '.'; }
+          50% { content: '..'; }
+          75% { content: '...'; }
         }
       `}</style>
     </section>
