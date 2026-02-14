@@ -5,8 +5,8 @@ import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useToast } from "@/providers/ToastProvider";
-import { 
-  Sparkles, Plus, MessageSquare, LogOut, FileText, 
+import {
+  Sparkles, Plus, MessageSquare, LogOut, FileText,
   Youtube, Terminal, Image, ChevronRight, Archive, Settings, Trash2,
   Sun, Moon
 } from "lucide-react";
@@ -118,7 +118,7 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
           if (variant === "youtube_tool") routeName = "youtube-video-tool";
           else if (variant === "diagram_tool") routeName = "diagrams-tool";
           else if (variant === "image_filter_tool") routeName = "image-filter-tool";
-          
+
           router.push(`/chatbot/t/${routeName}`);
         }
       }
@@ -130,7 +130,7 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
       });
     }
   };
-  
+
   const handleDeleteConversation = async (id: string) => {
     if (!confirm("Are you sure you want to delete this conversation?")) return;
     try {
@@ -252,7 +252,7 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
         <div className="sidebar-header">
           <button onClick={() => handleNewConversation("chat")} className="btn-new-chat">
             <Plus className="btn-icon" />
-            <span>New AI Chat</span>
+            <span>New Chat</span>
           </button>
         </div>
 
@@ -260,28 +260,28 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
         <div className="nav-section">
           <h3 className="section-title">Cognitive Tools</h3>
           <ul className="nav-list">
-            <li 
+            <li
               className={pathname?.includes("notes-tool") ? "active" : ""}
               onClick={() => router.push("/chatbot/t/notes-tool")}
             >
               <FileText className="nav-icon text-indigo" />
               <span>Smart Notes OCR</span>
             </li>
-            <li 
+            <li
               className={pathname?.includes("youtube-video-tool") ? "active" : ""}
               onClick={() => router.push("/chatbot/t/youtube-video-tool")}
             >
               <Youtube className="nav-icon text-cyan" />
               <span>YouTube Video</span>
             </li>
-            <li 
+            <li
               className={pathname?.includes("diagrams-tool") ? "active" : ""}
               onClick={() => router.push("/chatbot/t/diagrams-tool")}
             >
               <Terminal className="nav-icon text-green" />
               <span>Diagram Studio</span>
             </li>
-            <li 
+            <li
               className={pathname?.includes("image-filter-tool") ? "active" : ""}
               onClick={() => router.push("/chatbot/t/image-filter-tool")}
             >
@@ -296,7 +296,7 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
           <div className="history-header">
             <h3 className="section-title">Conversations</h3>
           </div>
-          
+
           {loadingHistory ? (
             <div className="history-loader">
               <div className="history-spinner"></div>
@@ -308,10 +308,10 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
             <ul className="history-list">
               {conversations.map((conv) => {
                 const isDiagram = conv.variant === "diagram_tool";
-                const isActive = isDiagram 
+                const isActive = isDiagram
                   ? (pathname?.includes("/t/diagrams-tool") && urlConversationId === conv.id)
                   : pathname?.includes(`/c/${conv.id}`);
-                
+
                 const handleRoute = () => {
                   if (isDiagram) {
                     router.push(`/chatbot/t/diagrams-tool?conversationId=${conv.id}`);
@@ -321,7 +321,7 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
                 };
 
                 return (
-                  <li 
+                  <li
                     key={conv.id}
                     className={isActive ? "active" : ""}
                     onClick={handleRoute}
@@ -329,7 +329,7 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
                   >
                     <MessageSquare className="history-icon" />
                     <span className="history-title">{conv.title}</span>
-                    <button 
+                    <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleDeleteConversation(conv.id);
@@ -351,7 +351,7 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
         <div className="preferences-section">
           <div className="pref-row">
             <span className="pref-label">Web References</span>
-            <button 
+            <button
               type="button"
               onClick={toggleWebSearch}
               className={`toggle-switch ${webSearchEnabled ? 'active' : ''}`}
@@ -365,9 +365,9 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
         {/* User profile footer */}
         <div className="sidebar-footer">
           <div className="user-profile">
-            <img 
-              src={session?.user?.image || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&h=80"} 
-              alt={session?.user?.name || "User"} 
+            <img
+              src={session?.user?.image || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&h=80"}
+              alt={session?.user?.name || "User"}
               className="user-avatar"
             />
             <div className="user-meta">
@@ -376,15 +376,15 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
             </div>
           </div>
           <div className="footer-actions">
-            <button 
+            <button
               type="button"
-              onClick={toggleTheme} 
+              onClick={toggleTheme}
               className="btn-footer btn-theme-toggle"
               title={theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
             >
               {theme === "light" ? <Moon className="footer-action-icon" /> : <Sun className="footer-action-icon" />}
             </button>
-            <button 
+            <button
               onClick={() => signOut({ callbackUrl: "/" })}
               className="btn-footer btn-logout"
               title="Sign Out"
