@@ -290,6 +290,13 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
               <Terminal className="nav-icon text-pink" />
               <span>Diagram Studio</span>
             </li>
+            <li
+              className={pathname?.includes("image-filter-tool") || (pathname?.includes("/chatbot/c/") && activeConv?.variant === "image_filter_tool") ? "active" : ""}
+              onClick={() => router.push("/chatbot/t/image-filter-tool")}
+            >
+              <Image className="nav-icon text-purple" />
+              <span>Image Filter Studio</span>
+            </li>
           </ul>
         </div>
 
@@ -518,6 +525,7 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
         .text-cyan { color: #22d3ee; }
         .text-green { color: #34d399; }
         .text-pink { color: #f472b6; }
+        .text-purple { color: #c084fc; }
         .history-section {
           flex: 1;
           overflow-y: auto;
