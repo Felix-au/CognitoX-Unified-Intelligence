@@ -8,9 +8,42 @@ import { Upload, ImageIcon, Trash2, Download, Copy, RotateCcw } from "lucide-rea
 export default function ImageFilterTool() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState("");
+  const [originalImage, setOriginalImage] = useState<HTMLImageElement | null>(null);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { showToast } = useToast();
+
+  useEffect(() => {
+    if (!imageFile) {
+      setOriginalImage(null);
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(imageFile);
+    const img = new Image();
+    img.src = objectUrl;
+    img.onload = () => {
+      setOriginalImage(img);
+      drawOriginalImage(img);
+    };
+
+    return () => {
+      URL.revokeObjectURL(objectUrl);
+    };
+  }, [imageFile]);
+
+  const drawOriginalImage = (img: HTMLImageElement) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0);
+  };
 
   const handleFileDrop = (e: React.DragEvent) => {
     e.preventDefault();
