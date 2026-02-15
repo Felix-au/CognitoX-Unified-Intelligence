@@ -45,6 +45,20 @@ export default function ImageFilterTool() {
     ctx.drawImage(img, 0, 0);
   };
 
+  const handleReset = () => {
+    setImageFile(null);
+    setFileName("");
+    setOriginalImage(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+    showToast({
+      type: "info",
+      title: "Workspace Reset",
+      message: "Canvas cleared and workspace reset.",
+    });
+  };
+
   const handleFileDrop = (e: React.DragEvent) => {
     e.preventDefault();
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
@@ -102,6 +116,11 @@ export default function ImageFilterTool() {
             <div className="canvas-column">
               <div className="canvas-wrapper">
                 <canvas ref={canvasRef} className="image-canvas" />
+              </div>
+              <div className="canvas-actions">
+                <button onClick={handleReset} className="btn-secondary btn-icon-only" title="Clear Image">
+                  <Trash2 className="action-icon" />
+                </button>
               </div>
             </div>
             
@@ -189,6 +208,7 @@ export default function ImageFilterTool() {
           border-radius: 8px;
           overflow: hidden;
           padding: 16px;
+          gap: 12px;
         }
         .canvas-wrapper {
           max-width: 100%;
@@ -203,6 +223,21 @@ export default function ImageFilterTool() {
           max-height: 100%;
           object-fit: contain;
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        }
+        .canvas-actions {
+          display: flex;
+          justify-content: center;
+          width: 100%;
+        }
+        .btn-icon-only {
+          padding: 8px 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .action-icon {
+          width: 16px;
+          height: 16px;
         }
         .controls-column {
           display: flex;
