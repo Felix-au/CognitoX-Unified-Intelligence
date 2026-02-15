@@ -21,7 +21,7 @@ CognitoX is designed to run locally in a single directory as a Next.js 15 App Ro
 
 - **Framework:** Next.js 15 (App Router, React 19)
 - **Styling:** Vanilla CSS Custom design system (Glassmorphism, Dark mode, dynamic Framer Motion animations)
-- **Database ORM:** Prisma Client connecting to PostgreSQL
+- **Database ORM:** Prisma Client connecting to MongoDB
 - **Inference Engines:**
   - **Text, OCR & Agents:** OmniKey AI Unified API Gateway (`auto:generateContent`)
   - **Image Generation:** Pollinations.ai API Gateway
@@ -33,7 +33,7 @@ CognitoX is designed to run locally in a single directory as a Next.js 15 App Ro
 
 ### Prerequisites
 - Node.js (v18 or higher)
-- PostgreSQL database
+- MongoDB database (local or cloud instance)
 
 ### Installation
 1. Install dependencies:
