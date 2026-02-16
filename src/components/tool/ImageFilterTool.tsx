@@ -13,6 +13,7 @@ export default function ImageFilterTool() {
   // Day 2 Filter States
   const [brightness, setBrightness] = useState(0);
   const [contrast, setContrast] = useState(0);
+  const [grayscale, setGrayscale] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -39,7 +40,7 @@ export default function ImageFilterTool() {
   useEffect(() => {
     if (!originalImage) return;
     applyFilters();
-  }, [originalImage, brightness, contrast]);
+  }, [originalImage, brightness, contrast, grayscale]);
 
   const drawOriginalImage = (img: HTMLImageElement) => {
     const canvas = canvasRef.current;
@@ -66,6 +67,19 @@ export default function ImageFilterTool() {
 
     const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const data = imgData.data;
+
+    // Apply Grayscale Conversion
+    if (grayscale) {
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+        data[i] = gray;
+        data[i + 1] = gray;
+        data[i + 2] = gray;
+      }
+    }
 
     // Apply Brightness Adjustment
     if (brightness !== 0) {
@@ -95,6 +109,7 @@ export default function ImageFilterTool() {
     setOriginalImage(null);
     setBrightness(0);
     setContrast(0);
+    setGrayscale(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -202,6 +217,17 @@ export default function ImageFilterTool() {
                   onChange={(e) => setContrast(parseInt(e.target.value))}
                   className="filter-slider"
                 />
+              </div>
+
+              <div className="control-group-row">
+                <span className="control-label-text">Grayscale</span>
+                <button
+                  type="button"
+                  onClick={() => setGrayscale(!grayscale)}
+                  className={`toggle-switch ${grayscale ? "active" : ""}`}
+                >
+                  <span className="toggle-slider"></span>
+                </button>
               </div>
             </div>
           </div>
@@ -335,6 +361,17 @@ export default function ImageFilterTool() {
           flex-direction: column;
           gap: 8px;
         }
+        .control-group-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 4px 0;
+        }
+        .control-label-text {
+          font-size: 0.8rem;
+          color: var(--text-secondary);
+          font-weight: 500;
+        }
         .control-label {
           display: flex;
           justify-content: space-between;
@@ -353,6 +390,36 @@ export default function ImageFilterTool() {
           border-radius: 5px;
           outline: none;
           cursor: pointer;
+        }
+        .toggle-switch {
+          position: relative;
+          width: 34px;
+          height: 18px;
+          background: rgba(128, 128, 128, 0.15);
+          border: 1px solid var(--border-color);
+          border-radius: 20px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          outline: none;
+          padding: 0;
+        }
+        .toggle-switch.active {
+          background: var(--accent-primary);
+          border-color: var(--accent-primary);
+        }
+        .toggle-slider {
+          position: absolute;
+          width: 12px;
+          height: 12px;
+          border-radius: 50%;
+          background: #ffffff;
+          top: 2px;
+          left: 2px;
+          transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+        }
+        .toggle-switch.active .toggle-slider {
+          transform: translateX(16px);
         }
       `}</style>
     </section>
