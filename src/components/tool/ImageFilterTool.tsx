@@ -152,6 +152,36 @@ export default function ImageFilterTool() {
     }
   };
 
+  const handleCopy = async () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    try {
+      canvas.toBlob(async (blob) => {
+        if (!blob) {
+          throw new Error("Blob conversion failed");
+        }
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            [blob.type]: blob
+          })
+        ]);
+        showToast({
+          type: "success",
+          title: "Copied Success",
+          message: "Filtered image copied to clipboard.",
+        });
+      }, "image/png");
+    } catch (err) {
+      console.error(err);
+      showToast({
+        type: "error",
+        title: "Copy Failed",
+        message: "Could not copy image to clipboard due to browser restrictions.",
+      });
+    }
+  };
+
   const handleReset = () => {
     setImageFile(null);
     setFileName("");
@@ -234,6 +264,10 @@ export default function ImageFilterTool() {
                 <button onClick={handleDownload} className="btn-primary btn-action" title="Download Image">
                   <Download className="action-icon" />
                   <span>Download PNG</span>
+                </button>
+                <button onClick={handleCopy} className="btn-secondary btn-action" title="Copy to Clipboard">
+                  <Copy className="action-icon" />
+                  <span>Copy Image</span>
                 </button>
                 <button onClick={handleReset} className="btn-icon-only btn-danger" title="Clear Image">
                   <Trash2 className="action-icon" />
