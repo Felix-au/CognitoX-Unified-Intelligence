@@ -12,6 +12,7 @@ export default function ImageFilterTool() {
   
   // Day 2 Filter States
   const [brightness, setBrightness] = useState(0);
+  const [contrast, setContrast] = useState(0);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -38,7 +39,7 @@ export default function ImageFilterTool() {
   useEffect(() => {
     if (!originalImage) return;
     applyFilters();
-  }, [originalImage, brightness]);
+  }, [originalImage, brightness, contrast]);
 
   const drawOriginalImage = (img: HTMLImageElement) => {
     const canvas = canvasRef.current;
@@ -75,6 +76,16 @@ export default function ImageFilterTool() {
       }
     }
 
+    // Apply Contrast Adjustment
+    if (contrast !== 0) {
+      const factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
+      for (let i = 0; i < data.length; i += 4) {
+        data[i] = Math.max(0, Math.min(255, factor * (data[i] - 128) + 128));     // R
+        data[i + 1] = Math.max(0, Math.min(255, factor * (data[i + 1] - 128) + 128)); // G
+        data[i + 2] = Math.max(0, Math.min(255, factor * (data[i + 2] - 128) + 128)); // B
+      }
+    }
+
     ctx.putImageData(imgData, 0, 0);
   };
 
@@ -83,6 +94,7 @@ export default function ImageFilterTool() {
     setFileName("");
     setOriginalImage(null);
     setBrightness(0);
+    setContrast(0);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -173,6 +185,21 @@ export default function ImageFilterTool() {
                   max="100" 
                   value={brightness}
                   onChange={(e) => setBrightness(parseInt(e.target.value))}
+                  className="filter-slider"
+                />
+              </div>
+
+              <div className="control-group">
+                <div className="control-label">
+                  <span>Contrast</span>
+                  <span className="control-value">{contrast > 0 ? `+${contrast}` : contrast}</span>
+                </div>
+                <input 
+                  type="range" 
+                  min="-100" 
+                  max="100" 
+                  value={contrast}
+                  onChange={(e) => setContrast(parseInt(e.target.value))}
                   className="filter-slider"
                 />
               </div>
