@@ -16,6 +16,7 @@ export default function ImageFilterTool() {
   const [grayscale, setGrayscale] = useState(false);
   const [binarize, setBinarize] = useState(false);
   const [threshold, setThreshold] = useState(128);
+  const [blur, setBlur] = useState(0);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -42,7 +43,7 @@ export default function ImageFilterTool() {
   useEffect(() => {
     if (!originalImage) return;
     applyFilters();
-  }, [originalImage, brightness, contrast, grayscale, binarize, threshold]);
+  }, [originalImage, brightness, contrast, grayscale, binarize, threshold, blur]);
 
   const drawOriginalImage = (img: HTMLImageElement) => {
     const canvas = canvasRef.current;
@@ -62,10 +63,19 @@ export default function ImageFilterTool() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Reset dimensions and draw
+    // Reset dimensions
     canvas.width = originalImage.naturalWidth;
     canvas.height = originalImage.naturalHeight;
+    
+    // Apply hardware-accelerated Blur if active
+    if (blur > 0) {
+      ctx.filter = `blur(${blur}px)`;
+    } else {
+      ctx.filter = "none";
+    }
+
     ctx.drawImage(originalImage, 0, 0);
+    ctx.filter = "none"; // Reset filter for future drawing operations
 
     const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const data = imgData.data;
@@ -105,7 +115,6 @@ export default function ImageFilterTool() {
     // Apply Binarization (Thresholding)
     if (binarize) {
       for (let i = 0; i < data.length; i += 4) {
-        // Since it's already grayscaled, R=G=B=Gray
         const val = data[i] > threshold ? 255 : 0;
         data[i] = val;
         data[i + 1] = val;
@@ -125,6 +134,7 @@ export default function ImageFilterTool() {
     setGrayscale(false);
     setBinarize(false);
     setThreshold(128);
+    setBlur(0);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -230,6 +240,21 @@ export default function ImageFilterTool() {
                   max="100" 
                   value={contrast}
                   onChange={(e) => setContrast(parseInt(e.target.value))}
+                  className="filter-slider"
+                />
+              </div>
+
+              <div className="control-group">
+                <div className="control-label">
+                  <span>Blur</span>
+                  <span className="control-value">{blur}px</span>
+                </div>
+                <input 
+                  type="range" 
+                  min="0" 
+                  max="10" 
+                  value={blur}
+                  onChange={(e) => setBlur(parseInt(e.target.value))}
                   className="filter-slider"
                 />
               </div>
