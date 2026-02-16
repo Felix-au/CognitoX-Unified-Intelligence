@@ -10,6 +10,9 @@ export default function ImageFilterTool() {
   const [fileName, setFileName] = useState("");
   const [originalImage, setOriginalImage] = useState<HTMLImageElement | null>(null);
   
+  // Day 2 Filter States
+  const [brightness, setBrightness] = useState(0);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { showToast } = useToast();
@@ -25,13 +28,17 @@ export default function ImageFilterTool() {
     img.src = objectUrl;
     img.onload = () => {
       setOriginalImage(img);
-      drawOriginalImage(img);
     };
 
     return () => {
       URL.revokeObjectURL(objectUrl);
     };
   }, [imageFile]);
+
+  useEffect(() => {
+    if (!originalImage) return;
+    applyFilters();
+  }, [originalImage, brightness]);
 
   const drawOriginalImage = (img: HTMLImageElement) => {
     const canvas = canvasRef.current;
@@ -45,10 +52,37 @@ export default function ImageFilterTool() {
     ctx.drawImage(img, 0, 0);
   };
 
+  const applyFilters = () => {
+    const canvas = canvasRef.current;
+    if (!canvas || !originalImage) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    // Reset dimensions and draw
+    canvas.width = originalImage.naturalWidth;
+    canvas.height = originalImage.naturalHeight;
+    ctx.drawImage(originalImage, 0, 0);
+
+    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imgData.data;
+
+    // Apply Brightness Adjustment
+    if (brightness !== 0) {
+      for (let i = 0; i < data.length; i += 4) {
+        data[i] = Math.max(0, Math.min(255, data[i] + brightness));     // R
+        data[i + 1] = Math.max(0, Math.min(255, data[i + 1] + brightness)); // G
+        data[i + 2] = Math.max(0, Math.min(255, data[i + 2] + brightness)); // B
+      }
+    }
+
+    ctx.putImageData(imgData, 0, 0);
+  };
+
   const handleReset = () => {
     setImageFile(null);
     setFileName("");
     setOriginalImage(null);
+    setBrightness(0);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -127,7 +161,21 @@ export default function ImageFilterTool() {
             <div className="controls-column">
               <h4>Filter Controls</h4>
               <p className="file-info">{fileName}</p>
-              <div className="controls-placeholder">Controls will go here</div>
+              
+              <div className="control-group">
+                <div className="control-label">
+                  <span>Brightness</span>
+                  <span className="control-value">{brightness > 0 ? `+${brightness}` : brightness}</span>
+                </div>
+                <input 
+                  type="range" 
+                  min="-100" 
+                  max="100" 
+                  value={brightness}
+                  onChange={(e) => setBrightness(parseInt(e.target.value))}
+                  className="filter-slider"
+                />
+              </div>
             </div>
           </div>
         )}
@@ -242,7 +290,7 @@ export default function ImageFilterTool() {
         .controls-column {
           display: flex;
           flex-direction: column;
-          gap: 16px;
+          gap: 20px;
         }
         .controls-column h4 {
           font-size: 1rem;
@@ -252,14 +300,32 @@ export default function ImageFilterTool() {
         .file-info {
           font-size: 0.75rem;
           color: var(--text-muted);
+          margin-top: -12px;
+          margin-bottom: 8px;
         }
-        .controls-placeholder {
-          font-size: 0.85rem;
-          color: var(--text-muted);
-          padding: 24px;
-          border: 1px dashed var(--border-color);
-          border-radius: 8px;
-          text-align: center;
+        .control-group {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+        .control-label {
+          display: flex;
+          justify-content: space-between;
+          font-size: 0.8rem;
+          color: var(--text-secondary);
+          font-weight: 500;
+        }
+        .control-value {
+          font-family: monospace;
+          color: var(--accent-primary);
+        }
+        .filter-slider {
+          width: 100%;
+          height: 5px;
+          background: rgba(128, 128, 128, 0.2);
+          border-radius: 5px;
+          outline: none;
+          cursor: pointer;
         }
       `}</style>
     </section>
