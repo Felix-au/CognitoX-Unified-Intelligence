@@ -125,6 +125,33 @@ export default function ImageFilterTool() {
     ctx.putImageData(imgData, 0, 0);
   };
 
+  const handleDownload = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    try {
+      const url = canvas.toDataURL("image/png");
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `filtered-${fileName.split('.')[0] || "scan"}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast({
+        type: "success",
+        title: "Export Success",
+        message: "Filtered scan saved as PNG successfully.",
+      });
+    } catch (err) {
+      console.error(err);
+      showToast({
+        type: "error",
+        title: "Export Failed",
+        message: "Failed to download image.",
+      });
+    }
+  };
+
   const handleReset = () => {
     setImageFile(null);
     setFileName("");
@@ -204,7 +231,11 @@ export default function ImageFilterTool() {
                 <canvas ref={canvasRef} className="image-canvas" />
               </div>
               <div className="canvas-actions">
-                <button onClick={handleReset} className="btn-secondary btn-icon-only" title="Clear Image">
+                <button onClick={handleDownload} className="btn-primary btn-action" title="Download Image">
+                  <Download className="action-icon" />
+                  <span>Download PNG</span>
+                </button>
+                <button onClick={handleReset} className="btn-icon-only btn-danger" title="Clear Image">
                   <Trash2 className="action-icon" />
                 </button>
               </div>
@@ -406,7 +437,16 @@ export default function ImageFilterTool() {
         .canvas-actions {
           display: flex;
           justify-content: center;
+          align-items: center;
+          gap: 12px;
           width: 100%;
+        }
+        .btn-action {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 20px;
+          border-radius: 8px;
         }
         .btn-icon-only {
           padding: 10px;
@@ -414,12 +454,14 @@ export default function ImageFilterTool() {
           align-items: center;
           justify-content: center;
           border-radius: 8px;
+        }
+        .btn-danger {
           background: rgba(239, 68, 68, 0.1);
           color: #ef4444;
           border: 1px solid rgba(239, 68, 68, 0.2);
           transition: all 0.2s;
         }
-        .btn-icon-only:hover {
+        .btn-danger:hover {
           background: rgba(239, 68, 68, 0.2);
           transform: translateY(-1px);
         }
