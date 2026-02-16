@@ -14,6 +14,8 @@ export default function ImageFilterTool() {
   const [brightness, setBrightness] = useState(0);
   const [contrast, setContrast] = useState(0);
   const [grayscale, setGrayscale] = useState(false);
+  const [binarize, setBinarize] = useState(false);
+  const [threshold, setThreshold] = useState(128);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -40,7 +42,7 @@ export default function ImageFilterTool() {
   useEffect(() => {
     if (!originalImage) return;
     applyFilters();
-  }, [originalImage, brightness, contrast, grayscale]);
+  }, [originalImage, brightness, contrast, grayscale, binarize, threshold]);
 
   const drawOriginalImage = (img: HTMLImageElement) => {
     const canvas = canvasRef.current;
@@ -69,7 +71,7 @@ export default function ImageFilterTool() {
     const data = imgData.data;
 
     // Apply Grayscale Conversion
-    if (grayscale) {
+    if (grayscale || binarize) {
       for (let i = 0; i < data.length; i += 4) {
         const r = data[i];
         const g = data[i + 1];
@@ -100,6 +102,17 @@ export default function ImageFilterTool() {
       }
     }
 
+    // Apply Binarization (Thresholding)
+    if (binarize) {
+      for (let i = 0; i < data.length; i += 4) {
+        // Since it's already grayscaled, R=G=B=Gray
+        const val = data[i] > threshold ? 255 : 0;
+        data[i] = val;
+        data[i + 1] = val;
+        data[i + 2] = val;
+      }
+    }
+
     ctx.putImageData(imgData, 0, 0);
   };
 
@@ -110,6 +123,8 @@ export default function ImageFilterTool() {
     setBrightness(0);
     setContrast(0);
     setGrayscale(false);
+    setBinarize(false);
+    setThreshold(128);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -229,6 +244,34 @@ export default function ImageFilterTool() {
                   <span className="toggle-slider"></span>
                 </button>
               </div>
+
+              <div className="control-group-row">
+                <span className="control-label-text">Binarization</span>
+                <button
+                  type="button"
+                  onClick={() => setBinarize(!binarize)}
+                  className={`toggle-switch ${binarize ? "active" : ""}`}
+                >
+                  <span className="toggle-slider"></span>
+                </button>
+              </div>
+
+              {binarize && (
+                <div className="control-group sub-control animate-fade-in">
+                  <div className="control-label">
+                    <span>Threshold Value</span>
+                    <span className="control-value">{threshold}</span>
+                  </div>
+                  <input 
+                    type="range" 
+                    min="0" 
+                    max="255" 
+                    value={threshold}
+                    onChange={(e) => setThreshold(parseInt(e.target.value))}
+                    className="filter-slider"
+                  />
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -361,6 +404,10 @@ export default function ImageFilterTool() {
           flex-direction: column;
           gap: 8px;
         }
+        .sub-control {
+          padding-left: 12px;
+          border-left: 2px solid var(--border-color);
+        }
         .control-group-row {
           display: flex;
           align-items: center;
@@ -420,6 +467,13 @@ export default function ImageFilterTool() {
         }
         .toggle-switch.active .toggle-slider {
           transform: translateX(16px);
+        }
+        .animate-fade-in {
+          animation: fadeIn 0.2s ease-out forwards;
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(-4px); }
+          to { opacity: 1; transform: translateY(0); }
         }
       `}</style>
     </section>
