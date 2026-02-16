@@ -214,89 +214,93 @@ export default function ImageFilterTool() {
               <h4>Filter Controls</h4>
               <p className="file-info">{fileName}</p>
               
-              <div className="control-group">
-                <div className="control-label">
-                  <span>Brightness</span>
-                  <span className="control-value">{brightness > 0 ? `+${brightness}` : brightness}</span>
-                </div>
-                <input 
-                  type="range" 
-                  min="-100" 
-                  max="100" 
-                  value={brightness}
-                  onChange={(e) => setBrightness(parseInt(e.target.value))}
-                  className="filter-slider"
-                />
-              </div>
-
-              <div className="control-group">
-                <div className="control-label">
-                  <span>Contrast</span>
-                  <span className="control-value">{contrast > 0 ? `+${contrast}` : contrast}</span>
-                </div>
-                <input 
-                  type="range" 
-                  min="-100" 
-                  max="100" 
-                  value={contrast}
-                  onChange={(e) => setContrast(parseInt(e.target.value))}
-                  className="filter-slider"
-                />
-              </div>
-
-              <div className="control-group">
-                <div className="control-label">
-                  <span>Blur</span>
-                  <span className="control-value">{blur}px</span>
-                </div>
-                <input 
-                  type="range" 
-                  min="0" 
-                  max="10" 
-                  value={blur}
-                  onChange={(e) => setBlur(parseInt(e.target.value))}
-                  className="filter-slider"
-                />
-              </div>
-
-              <div className="control-group-row">
-                <span className="control-label-text">Grayscale</span>
-                <button
-                  type="button"
-                  onClick={() => setGrayscale(!grayscale)}
-                  className={`toggle-switch ${grayscale ? "active" : ""}`}
-                >
-                  <span className="toggle-slider"></span>
-                </button>
-              </div>
-
-              <div className="control-group-row">
-                <span className="control-label-text">Binarization</span>
-                <button
-                  type="button"
-                  onClick={() => setBinarize(!binarize)}
-                  className={`toggle-switch ${binarize ? "active" : ""}`}
-                >
-                  <span className="toggle-slider"></span>
-                </button>
-              </div>
-
-              {binarize && (
-                <div className="control-group sub-control animate-fade-in">
+              <div className="controls-panel glass-card">
+                <div className="control-group">
                   <div className="control-label">
-                    <span>Threshold Value</span>
-                    <span className="control-value">{threshold}</span>
+                    <span>Brightness</span>
+                    <span className="control-value">{brightness > 0 ? `+${brightness}` : brightness}</span>
+                  </div>
+                  <input 
+                    type="range" 
+                    min="-100" 
+                    max="100" 
+                    value={brightness}
+                    onChange={(e) => setBrightness(parseInt(e.target.value))}
+                    className="filter-slider"
+                  />
+                </div>
+
+                <div className="control-group">
+                  <div className="control-label">
+                    <span>Contrast</span>
+                    <span className="control-value">{contrast > 0 ? `+${contrast}` : contrast}</span>
+                  </div>
+                  <input 
+                    type="range" 
+                    min="-100" 
+                    max="100" 
+                    value={contrast}
+                    onChange={(e) => setContrast(parseInt(e.target.value))}
+                    className="filter-slider"
+                  />
+                </div>
+
+                <div className="control-group">
+                  <div className="control-label">
+                    <span>Blur</span>
+                    <span className="control-value">{blur}px</span>
                   </div>
                   <input 
                     type="range" 
                     min="0" 
-                    max="255" 
-                    value={threshold}
-                    onChange={(e) => setThreshold(parseInt(e.target.value))}
+                    max="10" 
+                    value={blur}
+                    onChange={(e) => setBlur(parseInt(e.target.value))}
                     className="filter-slider"
                   />
                 </div>
-              )}
+
+                <div className="divider" />
+
+                <div className="control-group-row">
+                  <span className="control-label-text">Grayscale</span>
+                  <button
+                    type="button"
+                    onClick={() => setGrayscale(!grayscale)}
+                    className={`toggle-switch ${grayscale ? "active" : ""}`}
+                  >
+                    <span className="toggle-slider"></span>
+                  </button>
+                </div>
+
+                <div className="control-group-row">
+                  <span className="control-label-text">Binarization</span>
+                  <button
+                    type="button"
+                    onClick={() => setBinarize(!binarize)}
+                    className={`toggle-switch ${binarize ? "active" : ""}`}
+                  >
+                    <span className="toggle-slider"></span>
+                  </button>
+                </div>
+
+                {binarize && (
+                  <div className="control-group sub-control animate-fade-in">
+                    <div className="control-label">
+                      <span>Threshold Value</span>
+                      <span className="control-value">{threshold}</span>
+                    </div>
+                    <input 
+                      type="range" 
+                      min="0" 
+                      max="255" 
+                      value={threshold}
+                      onChange={(e) => setThreshold(parseInt(e.target.value))}
+                      className="filter-slider"
+                    />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
@@ -313,7 +317,7 @@ export default function ImageFilterTool() {
           position: relative;
         }
         .tool-box-container {
-          max-width: 900px;
+          max-width: 950px;
           width: 100%;
           z-index: 10;
           display: flex;
@@ -357,10 +361,10 @@ export default function ImageFilterTool() {
         }
         .editor-grid {
           display: grid;
-          grid-template-columns: 1.2fr 0.8fr;
+          grid-template-columns: 1.25fr 0.75fr;
           gap: 24px;
           padding: 24px;
-          min-height: 450px;
+          min-height: 480px;
         }
         @media (max-width: 768px) {
           .editor-grid {
@@ -372,26 +376,32 @@ export default function ImageFilterTool() {
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          background: rgba(0, 0, 0, 0.2);
+          background: rgba(0, 0, 0, 0.35);
           border: 1px solid var(--border-color);
-          border-radius: 8px;
+          border-radius: 12px;
           overflow: hidden;
-          padding: 16px;
-          gap: 12px;
+          padding: 20px;
+          gap: 16px;
+          backdrop-filter: blur(10px);
         }
         .canvas-wrapper {
           max-width: 100%;
-          max-height: 400px;
+          max-height: 420px;
           overflow: auto;
           display: flex;
           align-items: center;
           justify-content: center;
+          background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 0);
+          background-size: 16px 16px;
+          border-radius: 8px;
+          padding: 10px;
         }
         .image-canvas {
           max-width: 100%;
           max-height: 100%;
           object-fit: contain;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+          border-radius: 4px;
         }
         .canvas-actions {
           display: flex;
@@ -399,10 +409,19 @@ export default function ImageFilterTool() {
           width: 100%;
         }
         .btn-icon-only {
-          padding: 8px 12px;
+          padding: 10px;
           display: flex;
           align-items: center;
           justify-content: center;
+          border-radius: 8px;
+          background: rgba(239, 68, 68, 0.1);
+          color: #ef4444;
+          border: 1px solid rgba(239, 68, 68, 0.2);
+          transition: all 0.2s;
+        }
+        .btn-icon-only:hover {
+          background: rgba(239, 68, 68, 0.2);
+          transform: translateY(-1px);
         }
         .action-icon {
           width: 16px;
@@ -411,18 +430,31 @@ export default function ImageFilterTool() {
         .controls-column {
           display: flex;
           flex-direction: column;
-          gap: 20px;
+          gap: 16px;
         }
         .controls-column h4 {
-          font-size: 1rem;
+          font-size: 1.05rem;
           font-family: var(--font-display);
           color: var(--text-primary);
+          font-weight: 600;
         }
         .file-info {
-          font-size: 0.75rem;
+          font-size: 0.72rem;
           color: var(--text-muted);
           margin-top: -12px;
-          margin-bottom: 8px;
+          margin-bottom: 4px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .controls-panel {
+          padding: 20px;
+          display: flex;
+          flex-direction: column;
+          gap: 18px;
+          border-radius: 12px;
+          background: rgba(255, 255, 255, 0.015);
+          border: 1px solid var(--border-color);
         }
         .control-group {
           display: flex;
@@ -430,43 +462,66 @@ export default function ImageFilterTool() {
           gap: 8px;
         }
         .sub-control {
-          padding-left: 12px;
-          border-left: 2px solid var(--border-color);
+          padding-left: 14px;
+          border-left: 2px solid var(--accent-primary);
+          margin-top: -6px;
         }
         .control-group-row {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 4px 0;
+          padding: 2px 0;
         }
         .control-label-text {
-          font-size: 0.8rem;
+          font-size: 0.82rem;
           color: var(--text-secondary);
           font-weight: 500;
         }
         .control-label {
           display: flex;
           justify-content: space-between;
-          font-size: 0.8rem;
+          font-size: 0.82rem;
           color: var(--text-secondary);
           font-weight: 500;
         }
         .control-value {
           font-family: monospace;
           color: var(--accent-primary);
+          font-weight: 600;
+        }
+        .divider {
+          height: 1px;
+          background: var(--border-color);
+          margin: 6px 0;
         }
         .filter-slider {
           width: 100%;
-          height: 5px;
-          background: rgba(128, 128, 128, 0.2);
-          border-radius: 5px;
+          height: 6px;
+          background: rgba(128, 128, 128, 0.15);
+          border-radius: 6px;
           outline: none;
           cursor: pointer;
+          -webkit-appearance: none;
+        }
+        .filter-slider::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 14px;
+          height: 14px;
+          border-radius: 50%;
+          background: var(--accent-primary);
+          cursor: pointer;
+          transition: transform 0.1s, background-color 0.2s;
+          box-shadow: 0 0 8px rgba(99, 102, 241, 0.4);
+        }
+        .filter-slider::-webkit-slider-thumb:hover {
+          transform: scale(1.2);
+          background: var(--accent-primary-hover);
         }
         .toggle-switch {
           position: relative;
-          width: 34px;
-          height: 18px;
+          width: 36px;
+          height: 20px;
           background: rgba(128, 128, 128, 0.15);
           border: 1px solid var(--border-color);
           border-radius: 20px;
@@ -478,11 +533,12 @@ export default function ImageFilterTool() {
         .toggle-switch.active {
           background: var(--accent-primary);
           border-color: var(--accent-primary);
+          box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
         }
         .toggle-slider {
           position: absolute;
-          width: 12px;
-          height: 12px;
+          width: 14px;
+          height: 14px;
           border-radius: 50%;
           background: #ffffff;
           top: 2px;
@@ -494,7 +550,7 @@ export default function ImageFilterTool() {
           transform: translateX(16px);
         }
         .animate-fade-in {
-          animation: fadeIn 0.2s ease-out forwards;
+          animation: fadeIn 0.25s ease-out forwards;
         }
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(-4px); }
