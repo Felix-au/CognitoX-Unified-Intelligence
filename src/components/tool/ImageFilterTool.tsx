@@ -20,6 +20,7 @@ export default function ImageFilterTool() {
 
   // Day 3 Filter States
   const [sobel, setSobel] = useState(false);
+  const [canny, setCanny] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -46,7 +47,7 @@ export default function ImageFilterTool() {
   useEffect(() => {
     if (!originalImage) return;
     applyFilters();
-  }, [originalImage, brightness, contrast, grayscale, binarize, threshold, blur, sobel]);
+  }, [originalImage, brightness, contrast, grayscale, binarize, threshold, blur, sobel, canny]);
 
   const drawOriginalImage = (img: HTMLImageElement) => {
     const canvas = canvasRef.current;
@@ -86,8 +87,8 @@ export default function ImageFilterTool() {
     const imgData = ctx.getImageData(0, 0, width, height);
     const data = imgData.data;
 
-    // Apply Grayscale Conversion (Prerequisite for Sobel)
-    if (grayscale || binarize || sobel) {
+    // Apply Grayscale Conversion (Prerequisite for Sobel and Canny)
+    if (grayscale || binarize || sobel || canny) {
       for (let i = 0; i < data.length; i += 4) {
         const r = data[i];
         const g = data[i + 1];
@@ -129,7 +130,7 @@ export default function ImageFilterTool() {
     }
 
     // Apply Sobel Filter
-    if (sobel) {
+    if (sobel && !canny) {
       const Gx = [-1, 0, 1, -2, 0, 2, -1, 0, 1];
       const Gy = [-1, -2, -1, 0, 0, 0, 1, 2, 1];
       
@@ -159,6 +160,51 @@ export default function ImageFilterTool() {
           data[idx + 1] = mag;
           data[idx + 2] = mag;
         }
+      }
+    }
+
+    // Apply Canny Edge Detection
+    if (canny) {
+      // Step 1: 5x5 Gaussian Blur for noise reduction
+      const gaussianKernel = [
+        2,  4,  5,  4, 2,
+        4,  9, 12,  9, 4,
+        5, 12, 15, 12, 5,
+        4,  9, 12,  9, 4,
+        2,  4,  5,  4, 2
+      ];
+      const kernelSum = 159;
+      
+      const blurred = new Uint8ClampedArray(width * height);
+      const tempGray = new Uint8ClampedArray(width * height);
+      
+      // Store grayscale values in simple 1D array
+      for (let i = 0; i < width * height; i++) {
+        tempGray[i] = data[i * 4];
+      }
+
+      // Perform 5x5 Gaussian convolution
+      for (let y = 2; y < height - 2; y++) {
+        for (let x = 2; x < width - 2; x++) {
+          let sum = 0;
+          for (let ky = -2; ky <= 2; ky++) {
+            for (let kx = -2; kx <= 2; kx++) {
+              const val = tempGray[(y + ky) * width + (x + kx)];
+              const kernelVal = gaussianKernel[(ky + 2) * 5 + (kx + 2)];
+              sum += val * kernelVal;
+            }
+          }
+          blurred[y * width + x] = sum / kernelSum;
+        }
+      }
+
+      // Output blurred results temporarily for this commit stage
+      for (let i = 0; i < width * height; i++) {
+        const val = blurred[i];
+        const idx = i * 4;
+        data[idx] = val;
+        data[idx + 1] = val;
+        data[idx + 2] = val;
       }
     }
 
@@ -233,6 +279,7 @@ export default function ImageFilterTool() {
     setThreshold(128);
     setBlur(0);
     setSobel(false);
+    setCanny(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -411,8 +458,25 @@ export default function ImageFilterTool() {
                   <span className="control-label-text">Sobel Edges</span>
                   <button
                     type="button"
-                    onClick={() => setSobel(!sobel)}
+                    onClick={() => {
+                      setSobel(!sobel);
+                      if (!sobel) setCanny(false);
+                    }}
                     className={`toggle-switch ${sobel ? "active" : ""}`}
+                  >
+                    <span className="toggle-slider"></span>
+                  </button>
+                </div>
+
+                <div className="control-group-row">
+                  <span className="control-label-text">Canny Edges</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCanny(!canny);
+                      if (!canny) setSobel(false);
+                    }}
+                    className={`toggle-switch ${canny ? "active" : ""}`}
                   >
                     <span className="toggle-slider"></span>
                   </button>
