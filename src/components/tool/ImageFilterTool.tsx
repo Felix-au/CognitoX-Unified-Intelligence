@@ -229,9 +229,49 @@ export default function ImageFilterTool() {
         }
       }
 
-      // Output gradient magnitudes temporarily for this commit stage
+      // Step 3: Non-maximum Suppression (NMS) for thinned edges
+      const suppressed = new Uint8ClampedArray(width * height);
+      for (let y = 1; y < height - 1; y++) {
+        for (let x = 1; x < width - 1; x++) {
+          const idx = y * width + x;
+          const mag = magnitudes[idx];
+          if (mag === 0) continue;
+          
+          let angle = angles[idx] * (180 / Math.PI);
+          if (angle < 0) angle += 180;
+          
+          let mag1 = 0;
+          let mag2 = 0;
+          
+          if ((angle >= 0 && angle < 22.5) || (angle >= 157.5 && angle <= 180)) {
+            // Horizontal (0 degrees)
+            mag1 = magnitudes[idx - 1];
+            mag2 = magnitudes[idx + 1];
+          } else if (angle >= 22.5 && angle < 67.5) {
+            // Diagonal (45 degrees)
+            mag1 = magnitudes[idx - width + 1];
+            mag2 = magnitudes[idx + width - 1];
+          } else if (angle >= 67.5 && angle < 112.5) {
+            // Vertical (90 degrees)
+            mag1 = magnitudes[idx - width];
+            mag2 = magnitudes[idx + width];
+          } else if (angle >= 112.5 && angle < 157.5) {
+            // Diagonal (135 degrees)
+            mag1 = magnitudes[idx - width - 1];
+            mag2 = magnitudes[idx + width + 1];
+          }
+          
+          if (mag >= mag1 && mag >= mag2) {
+            suppressed[idx] = mag;
+          } else {
+            suppressed[idx] = 0;
+          }
+        }
+      }
+
+      // Output suppressed results temporarily for this commit stage
       for (let i = 0; i < width * height; i++) {
-        const val = Math.min(255, magnitudes[i]);
+        const val = Math.min(255, suppressed[i]);
         const idx = i * 4;
         data[idx] = val;
         data[idx + 1] = val;
