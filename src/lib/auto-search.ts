@@ -107,10 +107,16 @@ export async function extractSearchKeywords(content: string, documentContext?: s
       systemInstruction: "You are a precise keyword extraction assistant. Output ONLY a clean, valid JSON array of strings."
     });
     
-    const cleanedText = res.text.replace(/```json/g, "").replace(/```/g, "").trim();
-    const parsed = JSON.parse(cleanedText);
+    let jsonString = res.text.trim();
+    const startIdx = jsonString.indexOf("[");
+    const endIdx = jsonString.lastIndexOf("]");
+    if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+      jsonString = jsonString.substring(startIdx, endIdx + 1);
+    }
+
+    const parsed = JSON.parse(jsonString);
     if (Array.isArray(parsed)) {
-      return parsed.slice(0, 2);
+      return parsed.map(item => String(item).trim()).filter(Boolean).slice(0, 2);
     }
   } catch (err) {
     console.error("Keyword extraction failed, falling back:", err);
