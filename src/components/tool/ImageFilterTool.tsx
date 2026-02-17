@@ -269,9 +269,48 @@ export default function ImageFilterTool() {
         }
       }
 
-      // Output suppressed results temporarily for this commit stage
+      // Step 4: Double Threshold & Hysteresis Tracking
+      const highThreshold = 40;
+      const lowThreshold = 12;
+      const resultEdges = new Uint8ClampedArray(width * height);
+      
+      const strongVal = 255;
+      const weakVal = 100;
+
       for (let i = 0; i < width * height; i++) {
-        const val = Math.min(255, suppressed[i]);
+        const mag = suppressed[i];
+        if (mag >= highThreshold) {
+          resultEdges[i] = strongVal;
+        } else if (mag >= lowThreshold) {
+          resultEdges[i] = weakVal;
+        } else {
+          resultEdges[i] = 0;
+        }
+      }
+
+      // Hysteresis: connect weak edges to strong neighbors
+      for (let y = 1; y < height - 1; y++) {
+        for (let x = 1; x < width - 1; x++) {
+          const idx = y * width + x;
+          if (resultEdges[idx] === weakVal) {
+            let hasStrongNeighbor = false;
+            for (let ky = -1; ky <= 1; ky++) {
+              for (let kx = -1; kx <= 1; kx++) {
+                if (resultEdges[(y + ky) * width + (x + kx)] === strongVal) {
+                  hasStrongNeighbor = true;
+                  break;
+                }
+              }
+              if (hasStrongNeighbor) break;
+            }
+            resultEdges[idx] = hasStrongNeighbor ? strongVal : 0;
+          }
+        }
+      }
+
+      // Final pass: clean up remaining non-promoted weak edges
+      for (let i = 0; i < width * height; i++) {
+        const val = resultEdges[i] === strongVal ? 255 : 0;
         const idx = i * 4;
         data[idx] = val;
         data[idx + 1] = val;
