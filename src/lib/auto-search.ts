@@ -92,6 +92,7 @@ export async function searchArxiv(query: string): Promise<string> {
  * @returns A promise resolving to an array of keywords.
  */
 export async function extractSearchKeywords(content: string, documentContext?: string): Promise<string[]> {
+  let responseText = "";
   try {
     const prompt = `Analyze the user prompt and any attached document text. 
     Extract 1 to 2 precise search keywords or key subject matters (as short 1-3 word search terms) that would benefit from external context retrieval (e.g. Wikipedia or arXiv).
@@ -106,8 +107,9 @@ export async function extractSearchKeywords(content: string, documentContext?: s
     const res = await generateOmniKeyCompletion(prompt, {
       systemInstruction: "You are a precise keyword extraction assistant. Output ONLY a clean, valid JSON array of strings."
     });
+    responseText = res.text;
     
-    let jsonString = res.text.trim();
+    let jsonString = responseText.trim();
     const startIdx = jsonString.indexOf("[");
     const endIdx = jsonString.lastIndexOf("]");
     if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
@@ -119,7 +121,19 @@ export async function extractSearchKeywords(content: string, documentContext?: s
       return parsed.map(item => String(item).trim()).filter(Boolean).slice(0, 2);
     }
   } catch (err) {
-    console.error("Keyword extraction failed, falling back:", err);
+    console.error("Keyword JSON parsing failed, attempting regex fallback:", err);
+    if (responseText) {
+      const matches = responseText.match(/"([^"\\]*(?:\\.[^"\\]*)*)"|'([^'\\]*(?:\\.[^'\\]*)*)'/g);
+      if (matches && matches.length > 0) {
+        const extracted = matches
+          .map(m => m.replace(/^["']|["']$/g, "").trim())
+          .filter(val => val.length > 1 && !val.includes("[") && !val.includes("]"))
+          .slice(0, 2);
+        if (extracted.length > 0) {
+          return extracted;
+        }
+      }
+    }
   }
   
   const words = content.split(/\s+/).filter(w => w.length > 3).slice(0, 2);
