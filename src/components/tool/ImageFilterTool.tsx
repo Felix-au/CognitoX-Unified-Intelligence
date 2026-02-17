@@ -18,6 +18,9 @@ export default function ImageFilterTool() {
   const [threshold, setThreshold] = useState(128);
   const [blur, setBlur] = useState(0);
 
+  // Day 3 Filter States
+  const [sobel, setSobel] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { showToast } = useToast();
@@ -43,7 +46,7 @@ export default function ImageFilterTool() {
   useEffect(() => {
     if (!originalImage) return;
     applyFilters();
-  }, [originalImage, brightness, contrast, grayscale, binarize, threshold, blur]);
+  }, [originalImage, brightness, contrast, grayscale, binarize, threshold, blur, sobel]);
 
   const drawOriginalImage = (img: HTMLImageElement) => {
     const canvas = canvasRef.current;
@@ -63,9 +66,12 @@ export default function ImageFilterTool() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    const width = originalImage.naturalWidth;
+    const height = originalImage.naturalHeight;
+
     // Reset dimensions
-    canvas.width = originalImage.naturalWidth;
-    canvas.height = originalImage.naturalHeight;
+    canvas.width = width;
+    canvas.height = height;
     
     // Apply hardware-accelerated Blur if active
     if (blur > 0) {
@@ -75,13 +81,13 @@ export default function ImageFilterTool() {
     }
 
     ctx.drawImage(originalImage, 0, 0);
-    ctx.filter = "none"; // Reset filter for future drawing operations
+    ctx.filter = "none"; // Reset filter
 
-    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const imgData = ctx.getImageData(0, 0, width, height);
     const data = imgData.data;
 
-    // Apply Grayscale Conversion
-    if (grayscale || binarize) {
+    // Apply Grayscale Conversion (Prerequisite for Sobel)
+    if (grayscale || binarize || sobel) {
       for (let i = 0; i < data.length; i += 4) {
         const r = data[i];
         const g = data[i + 1];
@@ -119,6 +125,40 @@ export default function ImageFilterTool() {
         data[i] = val;
         data[i + 1] = val;
         data[i + 2] = val;
+      }
+    }
+
+    // Apply Sobel Filter
+    if (sobel) {
+      const Gx = [-1, 0, 1, -2, 0, 2, -1, 0, 1];
+      const Gy = [-1, -2, -1, 0, 0, 0, 1, 2, 1];
+      
+      const grayData = new Uint8ClampedArray(data.length);
+      for (let i = 0; i < data.length; i += 4) {
+        grayData[i] = data[i]; // Store grayscale value
+      }
+      
+      for (let y = 1; y < height - 1; y++) {
+        for (let x = 1; x < width - 1; x++) {
+          let sumX = 0;
+          let sumY = 0;
+          
+          for (let ky = -1; ky <= 1; ky++) {
+            for (let kx = -1; kx <= 1; kx++) {
+              const pixelIdx = ((y + ky) * width + (x + kx)) * 4;
+              const val = grayData[pixelIdx];
+              const kernelIdx = (ky + 1) * 3 + (kx + 1);
+              sumX += val * Gx[kernelIdx];
+              sumY += val * Gy[kernelIdx];
+            }
+          }
+          
+          const mag = Math.min(255, Math.sqrt(sumX * sumX + sumY * sumY));
+          const idx = (y * width + x) * 4;
+          data[idx] = mag;
+          data[idx + 1] = mag;
+          data[idx + 2] = mag;
+        }
       }
     }
 
@@ -192,6 +232,7 @@ export default function ImageFilterTool() {
     setBinarize(false);
     setThreshold(128);
     setBlur(0);
+    setSobel(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -365,6 +406,17 @@ export default function ImageFilterTool() {
                     />
                   </div>
                 )}
+
+                <div className="control-group-row">
+                  <span className="control-label-text">Sobel Edges</span>
+                  <button
+                    type="button"
+                    onClick={() => setSobel(!sobel)}
+                    className={`toggle-switch ${sobel ? "active" : ""}`}
+                  >
+                    <span className="toggle-slider"></span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
