@@ -21,6 +21,8 @@ export default function ImageFilterTool() {
   // Day 3 Filter States
   const [sobel, setSobel] = useState(false);
   const [canny, setCanny] = useState(false);
+  const [cannyLowThreshold, setCannyLowThreshold] = useState(12);
+  const [cannyHighThreshold, setCannyHighThreshold] = useState(40);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -47,7 +49,7 @@ export default function ImageFilterTool() {
   useEffect(() => {
     if (!originalImage) return;
     applyFilters();
-  }, [originalImage, brightness, contrast, grayscale, binarize, threshold, blur, sobel, canny]);
+  }, [originalImage, brightness, contrast, grayscale, binarize, threshold, blur, sobel, canny, cannyLowThreshold, cannyHighThreshold]);
 
   const drawOriginalImage = (img: HTMLImageElement) => {
     const canvas = canvasRef.current;
@@ -270,8 +272,8 @@ export default function ImageFilterTool() {
       }
 
       // Step 4: Double Threshold & Hysteresis Tracking
-      const highThreshold = 40;
-      const lowThreshold = 12;
+      const highThreshold = cannyHighThreshold;
+      const lowThreshold = cannyLowThreshold;
       const resultEdges = new Uint8ClampedArray(width * height);
       
       const strongVal = 255;
@@ -390,6 +392,8 @@ export default function ImageFilterTool() {
     setBlur(0);
     setSobel(false);
     setCanny(false);
+    setCannyLowThreshold(12);
+    setCannyHighThreshold(40);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -591,6 +595,39 @@ export default function ImageFilterTool() {
                     <span className="toggle-slider"></span>
                   </button>
                 </div>
+
+                {canny && (
+                  <>
+                    <div className="control-group sub-control animate-fade-in">
+                      <div className="control-label">
+                        <span>Low Threshold</span>
+                        <span className="control-value">{cannyLowThreshold}</span>
+                      </div>
+                      <input 
+                        type="range" 
+                        min="1" 
+                        max="100" 
+                        value={cannyLowThreshold}
+                        onChange={(e) => setCannyLowThreshold(parseInt(e.target.value))}
+                        className="filter-slider"
+                      />
+                    </div>
+                    <div className="control-group sub-control animate-fade-in">
+                      <div className="control-label">
+                        <span>High Threshold</span>
+                        <span className="control-value">{cannyHighThreshold}</span>
+                      </div>
+                      <input 
+                        type="range" 
+                        min="10" 
+                        max="150" 
+                        value={cannyHighThreshold}
+                        onChange={(e) => setCannyHighThreshold(parseInt(e.target.value))}
+                        className="filter-slider"
+                      />
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
