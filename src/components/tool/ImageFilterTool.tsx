@@ -198,9 +198,40 @@ export default function ImageFilterTool() {
         }
       }
 
-      // Output blurred results temporarily for this commit stage
+      // Step 2: Intensity Gradients (Sobel Gx, Gy convolution to find magnitudes and angles)
+      const Gx = [-1, 0, 1, -2, 0, 2, -1, 0, 1];
+      const Gy = [-1, -2, -1, 0, 0, 0, 1, 2, 1];
+      
+      const magnitudes = new Float32Array(width * height);
+      const angles = new Float32Array(width * height);
+
+      for (let y = 1; y < height - 1; y++) {
+        for (let x = 1; x < width - 1; x++) {
+          let sumX = 0;
+          let sumY = 0;
+          
+          for (let ky = -1; ky <= 1; ky++) {
+            for (let kx = -1; kx <= 1; kx++) {
+              const val = blurred[(y + ky) * width + (x + kx)];
+              const kernelIdx = (ky + 1) * 3 + (kx + 1);
+              sumX += val * Gx[kernelIdx];
+              sumY += val * Gy[kernelIdx];
+            }
+          }
+          
+          const magnitude = Math.sqrt(sumX * sumX + sumY * sumY);
+          magnitudes[y * width + x] = magnitude;
+
+          // Compute angle in radians and normalize to [0, PI]
+          let angle = Math.atan2(sumY, sumX);
+          if (angle < 0) angle += Math.PI;
+          angles[y * width + x] = angle;
+        }
+      }
+
+      // Output gradient magnitudes temporarily for this commit stage
       for (let i = 0; i < width * height; i++) {
-        const val = blurred[i];
+        const val = Math.min(255, magnitudes[i]);
         const idx = i * 4;
         data[idx] = val;
         data[idx + 1] = val;
