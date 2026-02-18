@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useToast } from "@/providers/ToastProvider";
 import axios from "axios";
 import { Send, Paperclip, Sparkles, X, File, Image as ImageIcon, FileText, Copy, Check, Loader2 } from "lucide-react";
+import MermaidChart from "@/components/MermaidChart";
 
 interface Message {
   id: string;
