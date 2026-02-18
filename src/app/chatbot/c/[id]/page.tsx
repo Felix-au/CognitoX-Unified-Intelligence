@@ -941,13 +941,8 @@ function parseMarkdown(text: string): React.ReactNode[] {
       const code = lines.join("\n");
       if (language === "mermaid") {
         return (
-          <div key={index} className="mermaid-inline-container-placeholder">
-            <pre className="code-block-wrapper">
-              <div className="code-block-header">
-                <span>Mermaid Diagram (Visual Rendering Pending)</span>
-              </div>
-              <code className="code-block-content">{code}</code>
-            </pre>
+          <div key={index} className="mermaid-inline-container">
+            <MermaidChart code={code} />
           </div>
         );
       }
