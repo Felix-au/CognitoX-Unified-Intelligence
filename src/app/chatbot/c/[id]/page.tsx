@@ -605,6 +605,21 @@ export default function ConversationPage() {
           font-size: 0.8rem;
           width: 100%;
         }
+        .mermaid-inline-container {
+          width: 100%;
+          margin: 14px 0;
+          border-radius: 12px;
+          overflow: hidden;
+          border: 1px solid var(--border-color);
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+          background: rgba(0, 0, 0, 0.2);
+        }
+        .mermaid-inline-container :global(.mermaid-chart-container) {
+          min-height: 380px !important;
+          height: 380px !important;
+          border-radius: 12px;
+          border: none !important;
+        }
         .markdown-content :global(.table-wrapper) {
           width: 100%;
           overflow-x: auto;
