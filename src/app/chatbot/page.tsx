@@ -99,7 +99,7 @@ export default function ChatbotDashboard() {
           </div>
 
           {/* Image Filter Studio */}
-          <div className="shortcut-card glass-card">
+          <div className="shortcut-card glass-card" onClick={() => handleQuickLaunch("image_filter_tool")}>
             <div className="card-header">
               <Image className="card-icon text-purple" />
               <h3>Image Filter Studio</h3>
