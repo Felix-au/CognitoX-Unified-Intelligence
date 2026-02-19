@@ -172,6 +172,7 @@ export default function ChatbotDashboard() {
         .text-cyan { color: #22d3ee; }
         .text-green { color: #34d399; }
         .text-pink { color: #f472b6; }
+        .text-purple { color: #c084fc; }
         .shortcut-card h3 {
           font-size: 1.05rem;
           font-weight: 600;
