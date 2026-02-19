@@ -30,6 +30,7 @@ export default function ChatbotDashboard() {
           let routeName = "notes-tool";
           if (variant === "youtube_tool") routeName = "youtube-video-tool";
           else if (variant === "diagram_tool") routeName = "diagrams-tool";
+          else if (variant === "image_filter_tool") routeName = "image-filter-tool";
           
           router.push(`/chatbot/t/${routeName}`);
         }
