@@ -98,6 +98,19 @@ export default function ChatbotDashboard() {
             </div>
           </div>
 
+          {/* Image Filter Studio */}
+          <div className="shortcut-card glass-card">
+            <div className="card-header">
+              <Image className="card-icon text-purple" />
+              <h3>Image Filter Studio</h3>
+            </div>
+            <p className="card-body">Apply advanced client-side filters (brightness, contrast, Sobel/Canny edge detection) to document scans and images.</p>
+            <div className="card-footer">
+              <span>Filter images</span>
+              <ArrowRight className="arrow-icon" />
+            </div>
+          </div>
+
         </div>
       </div>
 
