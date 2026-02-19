@@ -171,6 +171,12 @@ export default function ChatbotDashboard() {
           gap: 12px;
           cursor: pointer;
           min-height: 200px;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .shortcut-card:hover {
+          transform: translateY(-5px) scale(1.015);
+          border-color: rgba(99, 102, 241, 0.3);
+          box-shadow: 0 12px 30px rgba(99, 102, 241, 0.08);
         }
         .card-header {
           display: flex;
