@@ -1,15 +1,21 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import axios from "axios";
 import { useToast } from "@/providers/ToastProvider";
 import ToolsHeading from "./ToolsHeading";
-import { Upload, ImageIcon, Trash2, Download, Copy, RotateCcw, Crop, Check, X } from "lucide-react";
+import { Upload, ImageIcon, Trash2, Download, Copy, RotateCcw, Crop, Check, X, Send } from "lucide-react";
 
 export default function ImageFilterTool() {
+  const router = useRouter();
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState("");
   const [originalImage, setOriginalImage] = useState<HTMLImageElement | null>(null);
   
+  // Sending State
+  const [sendingToChat, setSendingToChat] = useState(false);
+
   // Cropping States
   const [isCropping, setIsCropping] = useState(false);
   const [isDraggingCrop, setIsDraggingCrop] = useState(false);
@@ -521,6 +527,7 @@ export default function ImageFilterTool() {
     setIsDraggingCrop(false);
     setCropStart(null);
     setCropEnd(null);
+    setSendingToChat(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -529,6 +536,10 @@ export default function ImageFilterTool() {
       title: "Workspace Reset",
       message: "Canvas cleared and workspace reset.",
     });
+  };
+
+  const handleSendToChat = async () => {
+    // Placeholder for Commit 6
   };
 
   const handleFileDrop = (e: React.DragEvent) => {
@@ -641,6 +652,19 @@ export default function ImageFilterTool() {
                     <button onClick={() => setIsCropping(true)} className="btn-secondary btn-action" title="Crop Scan Area">
                       <Crop className="action-icon" />
                       <span>Crop Scan</span>
+                    </button>
+                    <button 
+                      onClick={handleSendToChat} 
+                      disabled={sendingToChat}
+                      className="btn-secondary btn-action" 
+                      title="Send Filtered Image to Chat"
+                    >
+                      {sendingToChat ? (
+                        <RotateCcw className="action-icon animate-spin" />
+                      ) : (
+                        <Send className="action-icon" />
+                      )}
+                      <span>{sendingToChat ? "Sending..." : "Send to Chat"}</span>
                     </button>
                     <button onClick={handleReset} className="btn-icon-only btn-danger" title="Clear Image">
                       <Trash2 className="action-icon" />
