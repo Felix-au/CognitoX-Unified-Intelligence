@@ -3,13 +3,18 @@
 import { useState, useRef, useEffect } from "react";
 import { useToast } from "@/providers/ToastProvider";
 import ToolsHeading from "./ToolsHeading";
-import { Upload, ImageIcon, Trash2, Download, Copy, RotateCcw } from "lucide-react";
+import { Upload, ImageIcon, Trash2, Download, Copy, RotateCcw, Crop, Check, X } from "lucide-react";
 
 export default function ImageFilterTool() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState("");
   const [originalImage, setOriginalImage] = useState<HTMLImageElement | null>(null);
   
+  // Cropping States
+  const [isCropping, setIsCropping] = useState(false);
+  const [cropStart, setCropStart] = useState<{ x: number; y: number } | null>(null);
+  const [cropEnd, setCropEnd] = useState<{ x: number; y: number } | null>(null);
+
   // Day 2 Filter States
   const [brightness, setBrightness] = useState(0);
   const [contrast, setContrast] = useState(0);
@@ -380,6 +385,16 @@ export default function ImageFilterTool() {
     }
   };
 
+  const handleConfirmCrop = () => {
+    // Placeholder for Commit 4
+  };
+
+  const handleCancelCrop = () => {
+    setIsCropping(false);
+    setCropStart(null);
+    setCropEnd(null);
+  };
+
   const handleReset = () => {
     setImageFile(null);
     setFileName("");
@@ -394,6 +409,9 @@ export default function ImageFilterTool() {
     setCanny(false);
     setCannyLowThreshold(12);
     setCannyHighThreshold(40);
+    setIsCropping(false);
+    setCropStart(null);
+    setCropEnd(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -463,17 +481,36 @@ export default function ImageFilterTool() {
                 <canvas ref={canvasRef} className="image-canvas" />
               </div>
               <div className="canvas-actions">
-                <button onClick={handleDownload} className="btn-primary btn-action" title="Download Image">
-                  <Download className="action-icon" />
-                  <span>Download PNG</span>
-                </button>
-                <button onClick={handleCopy} className="btn-secondary btn-action" title="Copy to Clipboard">
-                  <Copy className="action-icon" />
-                  <span>Copy Image</span>
-                </button>
-                <button onClick={handleReset} className="btn-icon-only btn-danger" title="Clear Image">
-                  <Trash2 className="action-icon" />
-                </button>
+                {isCropping ? (
+                  <>
+                    <button onClick={handleConfirmCrop} className="btn-primary btn-action" title="Confirm Crop Selection">
+                      <Check className="action-icon" />
+                      <span>Confirm Crop</span>
+                    </button>
+                    <button onClick={handleCancelCrop} className="btn-secondary btn-action" title="Cancel Crop">
+                      <X className="action-icon" />
+                      <span>Cancel</span>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button onClick={handleDownload} className="btn-primary btn-action" title="Download Image">
+                      <Download className="action-icon" />
+                      <span>Download PNG</span>
+                    </button>
+                    <button onClick={handleCopy} className="btn-secondary btn-action" title="Copy to Clipboard">
+                      <Copy className="action-icon" />
+                      <span>Copy Image</span>
+                    </button>
+                    <button onClick={() => setIsCropping(true)} className="btn-secondary btn-action" title="Crop Scan Area">
+                      <Crop className="action-icon" />
+                      <span>Crop Scan</span>
+                    </button>
+                    <button onClick={handleReset} className="btn-icon-only btn-danger" title="Clear Image">
+                      <Trash2 className="action-icon" />
+                    </button>
+                  </>
+                )}
               </div>
             </div>
             
