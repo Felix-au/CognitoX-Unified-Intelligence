@@ -539,7 +539,72 @@ export default function ImageFilterTool() {
   };
 
   const handleSendToChat = async () => {
-    // Placeholder for Commit 6
+    const canvas = canvasRef.current;
+    if (!canvas || !originalImage) return;
+
+    setSendingToChat(true);
+
+    canvas.toBlob(async (blob) => {
+      if (!blob) {
+        showToast({
+          type: "error",
+          title: "Export Failed",
+          message: "Failed to generate image file for chat upload."
+        });
+        setSendingToChat(false);
+        return;
+      }
+
+      try {
+        const uploadFileName = `filtered-${fileName.split('.')[0] || "scan"}.png`;
+        const file = new File([blob], uploadFileName, { type: "image/png" });
+
+        // Create new conversation session of variant "chat"
+        const convTitle = `Filtered Scan - ${fileName.split('.')[0] || "scan"}`;
+        const convRes = await axios.post("/api/conversation", {
+          title: convTitle,
+          variant: "chat"
+        });
+
+        if (!convRes.data?.success) {
+          throw new Error(convRes.data?.message || "Failed to create new conversation.");
+        }
+
+        const convId = convRes.data.data.id;
+
+        // Upload image to the conversation
+        const fd = new FormData();
+        fd.append("conversationId", convId);
+        fd.append("content", "Analyze this filtered scan.");
+        fd.append("webSearchEnabled", "true");
+        fd.append("files", file);
+
+        const chatRes = await axios.post("/api/chat", fd, {
+          headers: { "Content-Type": "multipart/form-data" }
+        });
+
+        if (!chatRes.data?.success) {
+          throw new Error(chatRes.data?.message || "Failed to attach image to chat.");
+        }
+
+        showToast({
+          type: "success",
+          title: "Sent to Chat",
+          message: "Filtered image successfully attached. Opening chat session..."
+        });
+
+        // Redirect user to the new conversation
+        router.push(`/chatbot/c/${convId}`);
+      } catch (err: any) {
+        console.error(err);
+        showToast({
+          type: "error",
+          title: "Upload Failed",
+          message: err.response?.data?.message || err.message || "Failed to upload image to chat."
+        });
+        setSendingToChat(false);
+      }
+    }, "image/png");
   };
 
   const handleFileDrop = (e: React.DragEvent) => {
