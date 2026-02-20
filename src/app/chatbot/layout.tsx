@@ -253,7 +253,7 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
       {/* Sidebar */}
       <aside className="sidebar glass-panel">
         <div className="sidebar-header">
-          <div className="brand-logo">
+          <div className="brand-logo" style={{ cursor: "pointer" }} onClick={() => router.push("/chatbot")}>
             <Sparkles className="brand-icon" />
             <span>CognitoX</span>
           </div>
