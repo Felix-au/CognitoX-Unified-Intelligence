@@ -12,6 +12,7 @@ export default function ImageFilterTool() {
   
   // Cropping States
   const [isCropping, setIsCropping] = useState(false);
+  const [isDraggingCrop, setIsDraggingCrop] = useState(false);
   const [cropStart, setCropStart] = useState<{ x: number; y: number } | null>(null);
   const [cropEnd, setCropEnd] = useState<{ x: number; y: number } | null>(null);
 
@@ -385,12 +386,36 @@ export default function ImageFilterTool() {
     }
   };
 
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isCropping) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    setCropStart({ x, y });
+    setCropEnd({ x, y });
+    setIsDraggingCrop(true);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isCropping || !cropStart || !isDraggingCrop) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    setCropEnd({ x, y });
+  };
+
+  const handleMouseUp = () => {
+    if (!isCropping) return;
+    setIsDraggingCrop(false);
+  };
+
   const handleConfirmCrop = () => {
     // Placeholder for Commit 4
   };
 
   const handleCancelCrop = () => {
     setIsCropping(false);
+    setIsDraggingCrop(false);
     setCropStart(null);
     setCropEnd(null);
   };
@@ -410,6 +435,7 @@ export default function ImageFilterTool() {
     setCannyLowThreshold(12);
     setCannyHighThreshold(40);
     setIsCropping(false);
+    setIsDraggingCrop(false);
     setCropStart(null);
     setCropEnd(null);
     if (fileInputRef.current) {
@@ -477,8 +503,35 @@ export default function ImageFilterTool() {
         ) : (
           <div className="editor-grid glass-panel">
             <div className="canvas-column">
-              <div className="canvas-wrapper">
+              <div 
+                className="canvas-wrapper"
+                style={{ 
+                  position: "relative",
+                  overflow: isCropping ? "hidden" : "auto",
+                  cursor: isCropping ? "crosshair" : "default"
+                }}
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+              >
                 <canvas ref={canvasRef} className="image-canvas" />
+                {isCropping && cropStart && cropEnd && (
+                  <div 
+                    className="crop-overlay-box"
+                    style={{
+                      position: "absolute",
+                      border: "2px dashed #818cf8",
+                      background: "rgba(99, 102, 241, 0.15)",
+                      left: Math.min(cropStart.x, cropEnd.x),
+                      top: Math.min(cropStart.y, cropEnd.y),
+                      width: Math.abs(cropStart.x - cropEnd.x),
+                      height: Math.abs(cropStart.y - cropEnd.y),
+                      pointerEvents: "none",
+                      boxShadow: "0 0 0 9999px rgba(0, 0, 0, 0.5)",
+                      zIndex: 100
+                    }}
+                  />
+                )}
               </div>
               <div className="canvas-actions">
                 {isCropping ? (
