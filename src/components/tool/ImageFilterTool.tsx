@@ -410,7 +410,90 @@ export default function ImageFilterTool() {
   };
 
   const handleConfirmCrop = () => {
-    // Placeholder for Commit 4
+    const canvas = canvasRef.current;
+    if (!canvas || !cropStart || !cropEnd) return;
+
+    try {
+      const rect = canvas.getBoundingClientRect();
+      const wrapper = canvas.parentElement;
+      if (!wrapper) return;
+      const wrapperRect = wrapper.getBoundingClientRect();
+
+      // Convert local coordinates relative to the wrapper to client coordinates
+      const startClientX = cropStart.x + wrapperRect.left;
+      const startClientY = cropStart.y + wrapperRect.top;
+      const endClientX = cropEnd.x + wrapperRect.left;
+      const endClientY = cropEnd.y + wrapperRect.top;
+
+      // Calculate selected region bounding box relative to the canvas client rect
+      const xStart = Math.min(startClientX, endClientX) - rect.left;
+      const yStart = Math.min(startClientY, endClientY) - rect.top;
+      const widthSel = Math.abs(startClientX - endClientX);
+      const heightSel = Math.abs(startClientY - endClientY);
+
+      // Clamp selection to canvas boundaries
+      const cropX1 = Math.max(0, Math.min(rect.width, xStart));
+      const cropY1 = Math.max(0, Math.min(rect.height, yStart));
+      const cropX2 = Math.max(0, Math.min(rect.width, xStart + widthSel));
+      const cropY2 = Math.max(0, Math.min(rect.height, yStart + heightSel));
+      
+      const cropW = cropX2 - cropX1;
+      const cropH = cropY2 - cropY1;
+
+      if (cropW < 5 || cropH < 5) {
+        showToast({
+          type: "error",
+          title: "Selection Too Small",
+          message: "Please drag a larger area to crop."
+        });
+        return;
+      }
+
+      // Map client-rect coordinates to natural canvas pixel coordinates
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+
+      const sourceX = cropX1 * scaleX;
+      const sourceY = cropY1 * scaleY;
+      const sourceWidth = cropW * scaleX;
+      const sourceHeight = cropH * scaleY;
+
+      // Extract sliced region using a temporary canvas
+      const tempCanvas = document.createElement("canvas");
+      tempCanvas.width = sourceWidth;
+      tempCanvas.height = sourceHeight;
+      const tempCtx = tempCanvas.getContext("2d");
+      if (!tempCtx) return;
+
+      tempCtx.drawImage(
+        canvas,
+        sourceX, sourceY, sourceWidth, sourceHeight,
+        0, 0, sourceWidth, sourceHeight
+      );
+
+      const dataUrl = tempCanvas.toDataURL("image/png");
+
+      const img = new Image();
+      img.src = dataUrl;
+      img.onload = () => {
+        setOriginalImage(img);
+        setIsCropping(false);
+        setCropStart(null);
+        setCropEnd(null);
+        showToast({
+          type: "success",
+          title: "Cropped Successfully",
+          message: "Scan cropped to selection bounds."
+        });
+      };
+    } catch (err) {
+      console.error(err);
+      showToast({
+        type: "error",
+        title: "Crop Failed",
+        message: "Failed to crop the selected area."
+      });
+    }
   };
 
   const handleCancelCrop = () => {
