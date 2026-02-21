@@ -1004,10 +1004,16 @@ export default function ImageFilterTool() {
           width: 100%;
           padding: 10px 14px;
           background: rgba(255, 255, 255, 0.12);
-          border: 1px solid rgba(255, 255, 255, 0.15);
+          border: 1px solid rgba(255, 255, 255, 0.18);
           border-radius: 10px;
           margin-top: 4px;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+          backdrop-filter: blur(8px);
+        }
+        :global([data-theme="light"]) .canvas-actions {
+          background: #ffffff;
+          border: 1px solid rgba(0, 0, 0, 0.08);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
         .actions-group {
           display: flex;
