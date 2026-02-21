@@ -694,47 +694,51 @@ export default function ImageFilterTool() {
               </div>
               <div className="canvas-actions">
                 {isCropping ? (
-                  <>
-                    <button onClick={handleConfirmCrop} className="btn-primary btn-action" title="Confirm Crop Selection">
+                  <div className="actions-group">
+                    <span className="status-badge cropping">Cropping Active</span>
+                    <div className="toolbar-divider" />
+                    <button onClick={handleConfirmCrop} className="btn-toolbar btn-primary" title="Confirm Crop Selection">
                       <Check className="action-icon" />
-                      <span>Confirm Crop</span>
+                      <span>Confirm</span>
                     </button>
-                    <button onClick={handleCancelCrop} className="btn-secondary btn-action" title="Cancel Crop">
+                    <button onClick={handleCancelCrop} className="btn-toolbar btn-secondary" title="Cancel Crop">
                       <X className="action-icon" />
                       <span>Cancel</span>
                     </button>
-                  </>
+                  </div>
                 ) : (
-                  <>
-                    <button onClick={handleDownload} className="btn-primary btn-action" title="Download Image">
-                      <Download className="action-icon" />
-                      <span>Download PNG</span>
+                  <div className="actions-group">
+                    <button onClick={() => setIsCropping(true)} className="btn-toolbar btn-secondary" title="Crop Scan Area">
+                      <Crop className="action-icon" />
+                      <span>Crop Scan</span>
                     </button>
-                    <button onClick={handleCopy} className="btn-secondary btn-action" title="Copy to Clipboard">
+                    <div className="toolbar-divider" />
+                    <button onClick={handleCopy} className="btn-toolbar btn-secondary" title="Copy Filtered Image to Clipboard">
                       <Copy className="action-icon" />
                       <span>Copy Image</span>
                     </button>
-                    <button onClick={() => setIsCropping(true)} className="btn-secondary btn-action" title="Crop Scan Area">
-                      <Crop className="action-icon" />
-                      <span>Crop Scan</span>
+                    <button onClick={handleDownload} className="btn-toolbar btn-secondary" title="Download Image as PNG">
+                      <Download className="action-icon" />
+                      <span>Download PNG</span>
                     </button>
                     <button 
                       onClick={handleSendToChat} 
                       disabled={sendingToChat}
-                      className="btn-secondary btn-action" 
+                      className="btn-toolbar btn-accent btn-send-chat" 
                       title="Send Filtered Image to Chat"
                     >
                       {sendingToChat ? (
-                        <RotateCcw className="action-icon animate-spin" />
+                        <div className="btn-spinner"></div>
                       ) : (
                         <Send className="action-icon" />
                       )}
                       <span>{sendingToChat ? "Sending..." : "Send to Chat"}</span>
                     </button>
-                    <button onClick={handleReset} className="btn-icon-only btn-danger" title="Clear Image">
+                    <div className="toolbar-divider" />
+                    <button onClick={handleReset} className="btn-toolbar btn-danger" title="Reset Filters & Crop Area">
                       <Trash2 className="action-icon" />
                     </button>
-                  </>
+                  </div>
                 )}
               </div>
             </div>
