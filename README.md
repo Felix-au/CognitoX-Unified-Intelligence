@@ -12,7 +12,7 @@ CognitoX is designed to run locally in a single directory as a Next.js 15 App Ro
 2. **Smart Notes OCR:** Converts scanned notes and documents into detailed, formatted Markdown outlines, summaries, key terms, and sample Q&A sheets.
 3. **YouTube Media Analyzer:** Paste a YouTube URL to retrieve transcriptions and automatically compile lecture summaries and exam study prep guides.
 4. **Diagram Studio:** Generate flowcharts, sequence diagrams, class diagrams, etc., using Mermaid.js syntax. Supports manual editing and conversational refinements.
-5. **Image Filter Tool:** Client-side visual canvas for real-time image filtering (Contrast, Brightness, Blur, Grayscale, Binarization, and Edge Detection) before importing to the chat workspace.
+5. **Image Filter Tool:** Client-side visual canvas for real-time image filtering (Contrast, Brightness, Blur, Grayscale, Binarization, and Edge Detection) with visual crop scan area controls, image copying to clipboard, PNG downloading, and Send to Chat loading status animations integrated inside a consolidated bottom canvas actions tray (optimized with a complete white background in light mode).
 6. **Agentic Tool Calling:** Background agents to perform Wikipedia searches, arXiv paper retrievals, and DuckDuckGo web searches.
 
 ---
