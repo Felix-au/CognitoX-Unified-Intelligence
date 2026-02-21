@@ -1077,9 +1077,15 @@ export default function ImageFilterTool() {
           letter-spacing: 0.05em;
           padding: 4px 8px;
           border-radius: 4px;
-          background: rgba(245, 158, 11, 0.1);
+          background: rgba(245, 158, 11, 0.15);
           color: #f59e0b;
-          border: 1px solid rgba(245, 158, 11, 0.2);
+          border: 1px solid rgba(245, 158, 11, 0.25);
+          animation: pulse-glow 2s infinite ease-in-out;
+        }
+        @keyframes pulse-glow {
+          0% { opacity: 0.8; box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.25); }
+          50% { opacity: 1; box-shadow: 0 0 6px 1px rgba(245, 158, 11, 0.35); }
+          100% { opacity: 0.8; box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.25); }
         }
         .action-icon {
           width: 16px;
