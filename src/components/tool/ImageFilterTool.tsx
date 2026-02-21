@@ -1022,9 +1022,16 @@ export default function ImageFilterTool() {
           font-size: 0.75rem;
           font-weight: 500;
           border-radius: 6px;
-          transition: all 0.2s ease;
+          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
           border: 1px solid transparent;
           cursor: pointer;
+        }
+        .btn-toolbar:active:not(:disabled) {
+          transform: translateY(1px);
+        }
+        .btn-toolbar:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
         }
         .btn-toolbar.btn-primary {
           background: var(--accent-primary);
