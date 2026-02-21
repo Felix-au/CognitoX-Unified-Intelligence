@@ -1001,32 +1001,85 @@ export default function ImageFilterTool() {
           display: flex;
           justify-content: center;
           align-items: center;
-          gap: 12px;
           width: 100%;
+          padding: 10px 14px;
+          background: rgba(255, 255, 255, 0.12);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          border-radius: 10px;
+          margin-top: 4px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
-        .btn-action {
+        .actions-group {
           display: flex;
           align-items: center;
-          gap: 8px;
-          padding: 10px 20px;
-          border-radius: 8px;
+          gap: 6px;
         }
-        .btn-icon-only {
-          padding: 10px;
+        .btn-toolbar {
           display: flex;
           align-items: center;
-          justify-content: center;
-          border-radius: 8px;
+          gap: 6px;
+          padding: 6px 12px;
+          font-size: 0.75rem;
+          font-weight: 500;
+          border-radius: 6px;
+          transition: all 0.2s ease;
+          border: 1px solid transparent;
+          cursor: pointer;
         }
-        .btn-danger {
+        .btn-toolbar.btn-primary {
+          background: var(--accent-primary);
+          color: white;
+        }
+        .btn-toolbar.btn-primary:hover {
+          background: var(--accent-primary-hover);
+        }
+        .btn-toolbar.btn-secondary {
+          background: rgba(255, 255, 255, 0.05);
+          color: var(--text-secondary);
+          border-color: rgba(255, 255, 255, 0.1);
+        }
+        .btn-toolbar.btn-secondary:hover {
+          background: rgba(255, 255, 255, 0.1);
+          color: var(--text-primary);
+          border-color: rgba(255, 255, 255, 0.2);
+        }
+        .btn-toolbar.btn-accent {
+          background: rgba(99, 102, 241, 0.15);
+          color: var(--accent-primary);
+          border-color: rgba(99, 102, 241, 0.25);
+        }
+        .btn-toolbar.btn-accent:hover:not(:disabled) {
+          background: var(--accent-primary);
+          color: white;
+          border-color: var(--accent-primary);
+        }
+        .btn-toolbar.btn-danger {
           background: rgba(239, 68, 68, 0.1);
           color: #ef4444;
-          border: 1px solid rgba(239, 68, 68, 0.2);
-          transition: all 0.2s;
+          border-color: rgba(239, 68, 68, 0.2);
+          padding: 6px;
         }
-        .btn-danger:hover {
-          background: rgba(239, 68, 68, 0.2);
-          transform: translateY(-1px);
+        .btn-toolbar.btn-danger:hover {
+          background: #ef4444;
+          color: white;
+          border-color: #ef4444;
+        }
+        .toolbar-divider {
+          width: 1px;
+          height: 18px;
+          background: rgba(255, 255, 255, 0.15);
+          margin: 0 4px;
+        }
+        .status-badge.cropping {
+          font-size: 0.7rem;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          padding: 4px 8px;
+          border-radius: 4px;
+          background: rgba(245, 158, 11, 0.1);
+          color: #f59e0b;
+          border: 1px solid rgba(245, 158, 11, 0.2);
         }
         .action-icon {
           width: 16px;
