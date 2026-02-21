@@ -692,6 +692,7 @@ export default function ImageFilterTool() {
                   />
                 )}
               </div>
+              {/* Consolidated Canvas Actions Tray: Grouped options (Crop, Copy, Download, Send to Chat, Reset) styled inside a lightened toolbar pill */}
               <div className="canvas-actions">
                 {isCropping ? (
                   <div className="actions-group">
