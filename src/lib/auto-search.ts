@@ -86,6 +86,93 @@ export async function searchArxiv(query: string): Promise<string> {
 }
 
 /**
+ * Decodes basic HTML entities for cleaner text snippets.
+ */
+function decodeHtmlEntities(str: string): string {
+  return str
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#x27;/g, "'")
+    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/g, " ");
+}
+
+/**
+ * Searches DuckDuckGo HTML search page and scrapes results (free fallback).
+ * @param query The search query term.
+ * @returns A formatted markdown string containing the DuckDuckGo references.
+ */
+export async function searchDuckDuckGo(query: string): Promise<string> {
+  try {
+    const url = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
+    const res = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept-Language': 'en-US,en;q=0.9'
+      }
+    });
+
+    if (!res.ok) {
+      console.warn(`DuckDuckGo scraper returned status: ${res.status}`);
+      return '';
+    }
+
+    const html = await res.text();
+    const results: Array<{ title: string; snippet: string; url: string }> = [];
+    const blockRegex = /<h2 class="result__title">([\s\S]*?)<\/a>\s*<\/h2>([\s\S]*?)<a class="result__snippet"[\s\S]*?>([\s\S]*?)<\/a>/g;
+    let match;
+    let count = 0;
+
+    while ((match = blockRegex.exec(html)) !== null && count < 3) {
+      const titleBlock = match[1];
+      const snippetBlock = match[3];
+
+      const hrefMatch = titleBlock.match(/href="([^"]+)"/);
+      const titleText = titleBlock.substring(titleBlock.indexOf('>') + 1).replace(/<[^>]*>/g, "").trim();
+
+      let targetUrl = "";
+      if (hrefMatch && hrefMatch[1]) {
+        const rawUrl = hrefMatch[1];
+        try {
+          const urlObj = new URL(rawUrl.startsWith("http") ? rawUrl : `https:${rawUrl}`);
+          const uddg = urlObj.searchParams.get("uddg");
+          if (uddg) {
+            targetUrl = uddg;
+          } else {
+            targetUrl = rawUrl;
+          }
+        } catch {
+          const uddgMatch = rawUrl.match(/[?&]uddg=([^&]+)/);
+          targetUrl = uddgMatch ? decodeURIComponent(uddgMatch[1]) : rawUrl;
+        }
+      }
+
+      const cleanSnippet = decodeHtmlEntities(snippetBlock.replace(/<[^>]*>/g, "").trim());
+      const cleanTitle = decodeHtmlEntities(titleText.replace(/<[^>]*>/g, "").trim());
+
+      if (targetUrl && cleanTitle && cleanSnippet) {
+        results.push({
+          title: cleanTitle,
+          snippet: cleanSnippet,
+          url: targetUrl
+        });
+        count++;
+      }
+    }
+
+    if (results.length === 0) return '';
+
+    const references = results.map(r => `### Web: ${r.title}\n${r.snippet}\n**Link**: [${r.title}](${r.url})`);
+    return references.join("\n\n");
+  } catch (err) {
+    console.error("DuckDuckGo search failed:", err);
+    return '';
+  }
+}
+
+/**
  * Extracts 1-2 search terms semantically from the user's prompt and note context.
  * @param content The user message content.
  * @param documentContext Optional attached note/file context.
@@ -154,13 +241,15 @@ export async function performWorkspaceResearch(content: string, documentContext?
   const researchOutputs: string[] = [];
 
   for (const keyword of validKeywords) {
-    const [wikiResult, arxivResult] = await Promise.all([
+    const [wikiResult, arxivResult, ddgResult] = await Promise.all([
       searchWikipedia(keyword),
-      searchArxiv(keyword)
+      searchArxiv(keyword),
+      searchDuckDuckGo(keyword)
     ]);
 
     if (wikiResult) researchOutputs.push(wikiResult);
     if (arxivResult) researchOutputs.push(arxivResult);
+    if (ddgResult) researchOutputs.push(ddgResult);
   }
 
   return researchOutputs.filter(r => r.length > 0).join("\n\n");
