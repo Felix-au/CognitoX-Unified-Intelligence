@@ -1,4 +1,5 @@
 import { FileType } from "@/types/files";
+import { pdfToPng } from "pdf-to-png-converter";
 
 export interface ParsedFile {
   filename: string;
@@ -41,14 +42,16 @@ export async function parsePdfTextOrImages(buffer: Buffer): Promise<{ text: stri
     // 2. Render each page as a screenshot (useful for layout preservation/Notes OCR)
     let images: Array<{ base64Content: string; mimeType: string; filename: string }> = [];
     try {
-      console.log("Rendering PDF pages as screenshots...");
-      const screenshotData = await pdf.getScreenshot({ imageDataUrl: true });
-      images = (screenshotData.pages || []).map((page: any, idx: number) => {
-        const base64 = page.dataUrl.split(",").pop() || "";
+      console.log("Rendering PDF pages as screenshots with pdf-to-png-converter...");
+      const pngPages = await pdfToPng(buffer, {
+        viewportScale: 1.5
+      });
+      images = pngPages.map((page: any) => {
+        const base64 = page.content.toString("base64");
         return {
           base64Content: base64,
           mimeType: "image/png",
-          filename: `page_${idx + 1}.png`
+          filename: page.name || `page_${page.pageNumber}.png`
         };
       });
     } catch (err) {
