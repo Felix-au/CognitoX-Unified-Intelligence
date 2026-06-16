@@ -3,7 +3,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { sendMessageSchema, getMessagesSchema, deleteMessageSchema } from "@/lib/schema";
 import { parseUploadFile, ParsedFile } from "@/lib/files";
-import { generateOmniKeyCompletion } from "@/lib/omnikey";
+import { generateOmniKeyCompletion, generateOmniKeyStream } from "@/lib/omnikey";
 import { generatePollinationsImage } from "@/lib/pollinations";
 import { SUPPORTED_FILE_TYPES, FileType } from "@/types/files";
 import { 
@@ -62,7 +62,7 @@ export async function GET(request: Request) {
   }
 }
 
-// POST: Stage user message, run OmniKey reasoning or drawing, save response
+// POST: Stage user message, run OmniKey reasoning or drawing, save response in stream
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
   if (!session || !session.user) {
@@ -222,169 +222,212 @@ export async function POST(request: Request) {
       }
     }
 
-    let botMessage: any;
+    // Set up ReadableStream response
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      async start(controller) {
+        const sendData = (data: any) => {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
+        };
 
-    if (conversation.variant === "youtube_tool") {
-      // YouTube Crawler & Summarizer logic inside main chat
-      let botResponseText = "";
-      try {
-        const isPartRequest = validated.content.trim().match(/^generate\s+part\s+(\d+)$/i);
-        if (isPartRequest) {
-          const requestedPartNum = parseInt(isPartRequest[1], 10);
+        try {
+          let botMessage: any;
+          let botResponseText = "";
 
-          // Find the first user message in this conversation which contains the YouTube URL
-          const firstUserMessage = await prisma.chat.findFirst({
-            where: { conversationId: validated.conversationId, sender: 'user' },
-            orderBy: { createdAt: 'asc' }
-          });
+          if (conversation.variant === "youtube_tool") {
+            let botModelName = "omnikey-youtube";
 
-          if (!firstUserMessage) {
-            throw new Error("Could not find the original video link in this session.");
-          }
+            const isPartRequest = validated.content.trim().match(/^generate\s+part\s+(\d+)$/i);
+            if (isPartRequest) {
+              const requestedPartNum = parseInt(isPartRequest[1], 10);
+              const firstUserMessage = await prisma.chat.findFirst({
+                where: { conversationId: validated.conversationId, sender: 'user' },
+                orderBy: { createdAt: 'asc' }
+              });
 
-          const url = firstUserMessage.content || "";
-          const videoId = extractYoutubeVideoId(url);
-          const transcript = await fetchYoutubeTranscript(videoId);
+              if (!firstUserMessage) throw new Error("Could not find the original video link.");
 
-          if (!transcript) {
-            throw new Error("Transcript is empty or could not be parsed.");
-          }
+              const url = firstUserMessage.content || "";
+              const videoId = extractYoutubeVideoId(url);
+              const transcript = await fetchYoutubeTranscript(videoId);
 
-          const chunks = splitTranscriptIntoChunks(transcript);
-          const totalParts = chunks.length;
+              if (!transcript) throw new Error("Transcript is empty.");
 
-          if (requestedPartNum < 1 || requestedPartNum > totalParts) {
-            throw new Error(`Invalid part number. This video has only ${totalParts} parts.`);
-          }
+              const chunks = splitTranscriptIntoChunks(transcript);
+              const totalParts = chunks.length;
 
-          const partIndex = requestedPartNum - 1;
-          const partOutline = await summarizeYoutubeVideoPart(url, videoId, partIndex, totalParts, chunks[partIndex]);
+              if (requestedPartNum < 1 || requestedPartNum > totalParts) {
+                throw new Error(`Invalid part number. Video has only ${totalParts} parts.`);
+              }
 
-          if (requestedPartNum < totalParts) {
-            botResponseText = `${partOutline}\n\n> [!NOTE]\n> **Outline section ${requestedPartNum} of ${totalParts} completed.**\n> To generate the next section, type or click: **Generate Part ${requestedPartNum + 1}**`;
+              const partIndex = requestedPartNum - 1;
+              const systemInstruction = `You are an educational lecture summarization assistant for CognitoX.
+              Produce a highly detailed, structured outline of ONLY the provided transcript section. Summarize Part ${requestedPartNum} of ${totalParts}.`;
+
+              const userPrompt = `Video URL: https://www.youtube.com/watch?v=${videoId}\n\nTranscript section (Part ${requestedPartNum} of ${totalParts}):\n${chunks[partIndex]}`;
+
+              const streamGenerator = generateOmniKeyStream(userPrompt, { systemInstruction });
+              for await (const token of streamGenerator) {
+                botResponseText += token;
+                sendData({ token });
+              }
+
+              if (requestedPartNum < totalParts) {
+                const suffix = `\n\n> [!NOTE]\n> **Outline section ${requestedPartNum} of ${totalParts} completed.**\n> To generate the next section, type or click: **Generate Part ${requestedPartNum + 1}**`;
+                botResponseText += suffix;
+                sendData({ token: suffix });
+              } else {
+                const suffix = `\n\n> [!NOTE]\n> **Outline fully complete!** You have generated all ${totalParts} parts of the lecture outline.`;
+                botResponseText += suffix;
+                sendData({ token: suffix });
+              }
+            } else {
+              const isUrl = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\//i.test(validated.content.trim());
+              if (isUrl) {
+                const videoId = extractYoutubeVideoId(validated.content);
+                const transcript = await fetchYoutubeTranscript(videoId);
+                if (!transcript) throw new Error("Transcript is empty.");
+
+                const chunks = splitTranscriptIntoChunks(transcript);
+                const systemInstruction = `You are an educational lecture summarization assistant for CognitoX. Summarize Part 1 of ${chunks.length}.`;
+                const userPrompt = `Video URL: ${validated.content}\n\nTranscript section:\n${chunks[0]}`;
+
+                const streamGenerator = generateOmniKeyStream(userPrompt, { systemInstruction });
+                for await (const token of streamGenerator) {
+                  botResponseText += token;
+                  sendData({ token });
+                }
+
+                if (chunks.length > 1) {
+                  const suffix = `\n\n> [!NOTE]\n> **This video outline is divided into ${chunks.length} parts due to length.**\n> To generate the next section, type or click: **Generate Part 2**`;
+                  botResponseText += suffix;
+                  sendData({ token: suffix });
+                }
+              } else {
+                const firstUserMessage = await prisma.chat.findFirst({
+                  where: { conversationId: validated.conversationId, sender: 'user' },
+                  orderBy: { createdAt: 'asc' }
+                });
+
+                if (!firstUserMessage) throw new Error("No video analyzed in this session yet.");
+
+                const url = firstUserMessage.content || "";
+                const videoId = extractYoutubeVideoId(url);
+                const transcript = await fetchYoutubeTranscript(videoId);
+
+                if (!transcript) throw new Error("Transcript is empty.");
+
+                const systemInstruction = `You are a helpful educational study assistant for CognitoX. Answer only based on transcript facts.`;
+                const userPrompt = `Transcript:\n${transcript}\n\nUser Question:\n${validated.content}`;
+
+                const streamGenerator = generateOmniKeyStream(userPrompt, { systemInstruction });
+                for await (const token of streamGenerator) {
+                  botResponseText += token;
+                  sendData({ token });
+                }
+              }
+            }
+
+            botMessage = await prisma.chat.create({
+              data: {
+                conversationId: validated.conversationId,
+                type: 'text',
+                sender: 'bot',
+                model: botModelName,
+                content: botResponseText
+              }
+            });
+          } else if (classification === "image" && imageDescription) {
+            const imageUrl = await generatePollinationsImage(imageDescription);
+            botMessage = await prisma.chat.create({
+              data: {
+                conversationId: validated.conversationId,
+                type: 'image',
+                sender: 'bot',
+                model: 'pollinations-flux',
+                imageUrl: imageUrl,
+                content: `Generated image matching your description: "${imageDescription}"`
+              }
+            });
           } else {
-            botResponseText = `${partOutline}\n\n> [!NOTE]\n> **Outline fully complete!** You have generated all ${totalParts} parts of the lecture outline.`;
-          }
-        } else {
-          // Check if it's a YouTube URL
-          const isUrl = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\//i.test(validated.content.trim());
-          if (isUrl) {
-            botResponseText = await summarizeYoutubeVideo(validated.content);
-          } else {
-            // It's a custom question about the video!
-            const firstUserMessage = await prisma.chat.findFirst({
-              where: { conversationId: validated.conversationId, sender: 'user' },
-              orderBy: { createdAt: 'asc' }
+            let promptWithContext = validated.content;
+            if (documentsContext || searchContext) {
+              const contexts: string[] = [];
+              if (documentsContext) {
+                contexts.push(`--- Document Context ---\n${documentsContext}`);
+              }
+              if (searchContext) {
+                contexts.push(`--- External Research Context (Wikipedia/arXiv) ---\n${searchContext}`);
+              }
+              promptWithContext = `${contexts.join("\n\n")}\n\nUser Query: ${validated.content}\n\nUse the provided document and external contexts above to answer the query accurately. Reference sources explicitly.`;
+            }
+
+            const systemPrompt = "You are the CognitoX AI assistant, a premium cognitive workspace. Provide detailed, well-structured markdown answers. Utilize any provided document contexts or visual images attached to answer queries accurately.";
+
+            const streamGenerator = generateOmniKeyStream(promptWithContext, {
+              history: sessionHistory,
+              systemInstruction: systemPrompt,
+              files: imagePayloads
             });
 
-            if (!firstUserMessage) {
-              throw new Error("No video has been analyzed in this session yet. Please paste a YouTube link first.");
+            for await (const token of streamGenerator) {
+              botResponseText += token;
+              sendData({ token });
             }
 
-            const url = firstUserMessage.content || "";
-            const videoId = extractYoutubeVideoId(url);
-            const transcript = await fetchYoutubeTranscript(videoId);
-
-            if (!transcript) {
-              throw new Error("Transcript is empty or could not be parsed.");
-            }
-
-            botResponseText = await answerQuestionOnTranscript(transcript, validated.content);
+            botMessage = await prisma.chat.create({
+              data: {
+                conversationId: validated.conversationId,
+                type: 'text',
+                sender: 'bot',
+                model: 'omnikey-auto',
+                content: botResponseText
+              }
+            });
           }
+
+          try {
+            const messageCount = await prisma.chat.count({
+              where: { conversationId: validated.conversationId }
+            });
+            if (messageCount <= 2) {
+              const titleInput = `User: ${validated.content.substring(0, 300)}\nAssistant: ${(botResponseText || botMessage?.content || "").substring(0, 300)}`;
+              const titlePrompt = `Analyze the conversation snippet and generate a concise title (3-5 words maximum, no quotes, no markdown, no punctuation) that summarizes the topic. Snippet:\n${titleInput}\n\nTitle:`;
+              const titleRes = await generateOmniKeyCompletion(titlePrompt, {
+                systemInstruction: "You are a concise title generator. Output ONLY a clean 3-5 word title."
+              });
+              const dynamicTitle = titleRes.text.replace(/["'#*`]/g, "").trim();
+              if (dynamicTitle && dynamicTitle.length > 2) {
+                await prisma.conversation.update({
+                  where: { id: validated.conversationId },
+                  data: { title: dynamicTitle }
+                });
+              }
+            }
+          } catch (titleErr) {
+            console.error("Failed to generate dynamic title:", titleErr);
+          }
+
+          sendData({
+            done: true,
+            userMessage,
+            botMessage,
+            attachments: files.map(f => f.name)
+          });
+        } catch (innerErr: any) {
+          console.error("Error in streaming execution:", innerErr);
+          sendData({ error: innerErr.message || "Failed to process chat response." });
+        } finally {
+          controller.close();
         }
-      } catch (error: any) {
-        botResponseText = `Failed to process YouTube video. Error: ${error.message}`;
-      }
-
-      botMessage = await prisma.chat.create({
-        data: {
-          conversationId: validated.conversationId,
-          type: 'text',
-          sender: 'bot',
-          model: 'omnikey-youtube',
-          content: botResponseText
-        }
-      });
-    } else if (classification === "image" && imageDescription) {
-      // Image generation flow via Pollinations.ai
-      const imageUrl = await generatePollinationsImage(imageDescription);
-
-      botMessage = await prisma.chat.create({
-        data: {
-          conversationId: validated.conversationId,
-          type: 'image',
-          sender: 'bot',
-          model: 'pollinations-flux',
-          imageUrl: imageUrl,
-          content: `Generated image matching your description: "${imageDescription}"`
-        }
-      });
-    } else {
-      // Standard text response flow via OmniKey AI
-      // Standard text response flow via OmniKey AI using pre-fetched searchContext
-
-      let promptWithContext = validated.content;
-      if (documentsContext || searchContext) {
-        const contexts: string[] = [];
-        if (documentsContext) {
-          contexts.push(`--- Document Context ---\n${documentsContext}`);
-        }
-        if (searchContext) {
-          contexts.push(`--- External Research Context (Wikipedia/arXiv) ---\n${searchContext}`);
-        }
-        promptWithContext = `${contexts.join("\n\n")}\n\nUser Query: ${validated.content}\n\nUse the provided document and external contexts above to answer the query accurately. Reference sources explicitly (e.g. 'According to Wikipedia...' or 'As noted in arXiv paper...') if you use them to answer.`;
-      }
-
-      const systemPrompt = "You are the CognitoX AI assistant, a premium cognitive workspace. Provide detailed, well-structured markdown answers. Utilize any provided document contexts or visual images attached to answer queries accurately.";
-
-      const aiResponse = await generateOmniKeyCompletion(promptWithContext, {
-        history: sessionHistory,
-        systemInstruction: systemPrompt,
-        files: imagePayloads
-      });
-
-    // Save bot message
-    botMessage = await prisma.chat.create({
-      data: {
-        conversationId: validated.conversationId,
-        type: 'text',
-        sender: 'bot',
-        model: 'omnikey-auto',
-        content: aiResponse.text
       }
     });
-  }
 
-    // Generate dynamic title if it's the first exchange (userMessage + botMessage)
-    try {
-      const messageCount = await prisma.chat.count({
-        where: { conversationId: validated.conversationId }
-      });
-      if (messageCount <= 2) {
-        const titleInput = `User: ${validated.content.substring(0, 300)}\nAssistant: ${(botMessage?.content || "").substring(0, 300)}`;
-        const titlePrompt = `Analyze the conversation snippet and generate a concise title (3-5 words maximum, no quotes, no markdown, no punctuation) that summarizes the topic. Snippet:\n${titleInput}\n\nTitle:`;
-        const titleRes = await generateOmniKeyCompletion(titlePrompt, {
-          systemInstruction: "You are a concise title generator. Output ONLY a clean 3-5 word title."
-        });
-        const dynamicTitle = titleRes.text.replace(/["'#*`]/g, "").trim();
-        if (dynamicTitle && dynamicTitle.length > 2) {
-          await prisma.conversation.update({
-            where: { id: validated.conversationId },
-            data: { title: dynamicTitle }
-          });
-        }
-      }
-    } catch (titleErr) {
-      console.error("Failed to generate dynamic title:", titleErr);
-    }
-
-    return Response.json({
-      success: true,
-      message: "Response generated successfully",
-      data: {
-        userMessage,
-        botMessage,
-        attachments: files.map(f => f.name)
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache, no-transform",
+        "Connection": "keep-alive"
       }
     });
   } catch (error) {
