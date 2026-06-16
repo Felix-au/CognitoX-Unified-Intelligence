@@ -125,3 +125,51 @@ export async function DELETE(request: Request) {
     return Response.json({ success: false, message: "Internal Server Error" }, { status: 500 });
   }
 }
+
+const patchConversationSchema = z.object({
+  conversationId: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid conversation ID format (must be 24-character hex string)"),
+  isArchived: z.boolean(),
+});
+
+// PATCH: Toggle archive/unarchive conversation
+export async function PATCH(request: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session || !session.user) {
+    return Response.json({ success: false, message: "Unauthorized" }, { status: 401 });
+  }
+
+  const userId = (session.user as any).id;
+
+  try {
+    const body = await request.json();
+    const validated = patchConversationSchema.parse(body);
+
+    const conversation = await prisma.conversation.findFirst({
+      where: {
+        id: validated.conversationId,
+        userId: userId
+      }
+    });
+
+    if (!conversation) {
+      return Response.json({ success: false, message: "Conversation not found" }, { status: 404 });
+    }
+
+    const updated = await prisma.conversation.update({
+      where: { id: validated.conversationId },
+      data: { isArchived: validated.isArchived }
+    });
+
+    return Response.json({
+      success: true,
+      message: validated.isArchived ? "Conversation archived successfully" : "Conversation unarchived successfully",
+      data: updated
+    });
+  } catch (error) {
+    console.error("PATCH /api/conversation error:", error);
+    if (error instanceof Error && error.name === 'ZodError') {
+      return Response.json({ success: false, message: "Invalid request data", error: (error as any).issues }, { status: 400 });
+    }
+    return Response.json({ success: false, message: "Internal Server Error" }, { status: 500 });
+  }
+}
