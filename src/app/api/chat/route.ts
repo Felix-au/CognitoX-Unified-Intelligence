@@ -172,6 +172,17 @@ export async function POST(request: Request) {
 
     const documentsContext = textContextParts.join("\n\n");
 
+    // Check if we should execute background web search research
+    const isFirstMessage = (await prisma.chat.count({
+      where: { conversationId: validated.conversationId }
+    })) <= 1;
+
+    const shouldSearch = (conversation.variant as string) !== "youtube_tool" &&
+                         (conversation.variant as string) !== "image_filter_tool" &&
+                         (conversation.variant as string) !== "diagram_tool" &&
+                         (isFirstMessage || files.length > 0) &&
+                         webSearchEnabled;
+
     // 1. Router Call: Classify prompt into text vs image drawing
     const systemRouterPrompt = `You are a router assistant for CognitoX. 
     Analyze the user request and determine if the user is asking to draw, paint, generate, or render a visual image.
@@ -181,9 +192,20 @@ export async function POST(request: Request) {
       "image_description": "refined prompt detailing what image to generate, or empty if classification is text"
     }`;
 
-    const classificationResult = await generateOmniKeyCompletion(validated.content, {
-      systemInstruction: systemRouterPrompt
-    });
+    // Parallelize classifier and web search context retrieval
+    const promises: Promise<any>[] = [
+      generateOmniKeyCompletion(validated.content, {
+        systemInstruction: systemRouterPrompt
+      })
+    ];
+
+    if (shouldSearch) {
+      const { performWorkspaceResearch } = await import("@/lib/auto-search");
+      promises.push(performWorkspaceResearch(validated.content, documentsContext));
+    }
+
+    const [classificationResult, researchContextVal] = await Promise.all(promises);
+    const searchContext = shouldSearch ? (researchContextVal || "") : "";
 
     let classification = "text";
     let imageDescription = "";
@@ -299,25 +321,7 @@ export async function POST(request: Request) {
       });
     } else {
       // Standard text response flow via OmniKey AI
-      let searchContext = "";
-      if (
-        (conversation.variant as string) !== "youtube_tool" &&
-        (conversation.variant as string) !== "image_filter_tool" &&
-        (conversation.variant as string) !== "diagram_tool"
-      ) {
-        const isFirstMessage = (await prisma.chat.count({
-          where: { conversationId: validated.conversationId }
-        })) <= 1;
-
-        if ((isFirstMessage || files.length > 0) && webSearchEnabled) {
-          try {
-            const { performWorkspaceResearch } = await import("@/lib/auto-search");
-            searchContext = await performWorkspaceResearch(validated.content, documentsContext);
-          } catch (err) {
-            console.error("Workspace research failed:", err);
-          }
-        }
-      }
+      // Standard text response flow via OmniKey AI using pre-fetched searchContext
 
       let promptWithContext = validated.content;
       if (documentsContext || searchContext) {
