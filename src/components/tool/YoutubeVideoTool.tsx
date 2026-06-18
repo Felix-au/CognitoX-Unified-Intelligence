@@ -58,15 +58,64 @@ export default function YoutubeVideoTool() {
 
       const convId = convRes.data.data.id;
 
-      // Submit transcript parsing request
-      const chatRes = await axios.post("/api/tool-chat", {
-        conversationId: convId,
-        content: cleanUrl,
-        history: []
+      const response = await fetch("/api/tool-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          conversationId: convId,
+          content: cleanUrl,
+          history: [],
+        }),
       });
 
-      if (!chatRes.data?.success) {
-        throw new Error(chatRes.data?.message || "Failed to analyze YouTube video");
+      if (!response.ok) {
+        throw new Error("Failed to analyze YouTube video");
+      }
+
+      if (!response.body) {
+        throw new Error("No response body received");
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let done = false;
+      let buffer = "";
+      let success = false;
+
+      while (!done) {
+        const { value, done: readerDone } = await reader.read();
+        done = readerDone;
+        if (value) {
+          buffer += decoder.decode(value, { stream: !done });
+          const parts = buffer.split("\n\n");
+          buffer = parts.pop() || "";
+
+          for (const part of parts) {
+            const line = part.trim();
+            if (line.startsWith("data: ")) {
+              const dataStr = line.substring(6).trim();
+              if (dataStr) {
+                try {
+                  const data = JSON.parse(dataStr);
+                  if (data.done) {
+                    success = true;
+                  } else if (data.error) {
+                    throw new Error(data.error);
+                  }
+                } catch (e: any) {
+                  if (e.message && (e.message.includes("YouTube") || e.message.includes("transcript") || e.message.includes("limit"))) {
+                    throw e;
+                  }
+                  console.debug("JSON parse error on partial stream chunk:", e);
+                }
+              }
+            }
+          }
+        }
+      }
+
+      if (!success) {
+        throw new Error("Did not receive completion confirmation from stream.");
       }
 
       showToast({

@@ -105,12 +105,59 @@ export default function NotesTool() {
       fd.append("webSearchEnabled", String(webSearchEnabled));
       files.forEach((f) => fd.append("files", f));
 
-      const chatRes = await axios.post("/api/tool-chat", fd, {
-        headers: { "Content-Type": "multipart/form-data" },
+      const response = await fetch("/api/tool-chat", {
+        method: "POST",
+        body: fd,
       });
 
-      if (!chatRes.data?.success) {
-        throw new Error(chatRes.data?.message || "Failed to parse OCR notes");
+      if (!response.ok) {
+        throw new Error("Failed to parse OCR notes");
+      }
+
+      if (!response.body) {
+        throw new Error("No response body received");
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let done = false;
+      let buffer = "";
+      let success = false;
+
+      while (!done) {
+        const { value, done: readerDone } = await reader.read();
+        done = readerDone;
+        if (value) {
+          buffer += decoder.decode(value, { stream: !done });
+          const parts = buffer.split("\n\n");
+          buffer = parts.pop() || "";
+
+          for (const part of parts) {
+            const line = part.trim();
+            if (line.startsWith("data: ")) {
+              const dataStr = line.substring(6).trim();
+              if (dataStr) {
+                try {
+                  const data = JSON.parse(dataStr);
+                  if (data.done) {
+                    success = true;
+                  } else if (data.error) {
+                    throw new Error(data.error);
+                  }
+                } catch (e: any) {
+                  if (e.message && (e.message.includes("OCR") || e.message.includes("limit"))) {
+                    throw e;
+                  }
+                  console.debug("JSON parse error on partial stream chunk:", e);
+                }
+              }
+            }
+          }
+        }
+      }
+
+      if (!success) {
+        throw new Error("Did not receive completion confirmation from stream.");
       }
 
       showToast({

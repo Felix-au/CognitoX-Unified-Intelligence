@@ -122,21 +122,76 @@ export default function DiagramsTool() {
         setConversationId(convId);
       }
 
-      // Call tool chat API
       const webSearchEnabled = localStorage.getItem("webSearchEnabled") !== "false";
-      const chatRes = await axios.post("/api/tool-chat", {
-        conversationId: convId,
-        content: prompt.trim(),
-        history: [], // session history can be loaded later
-        webSearchEnabled
+      const response = await fetch("/api/tool-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          conversationId: convId,
+          content: prompt.trim(),
+          history: [],
+          webSearchEnabled,
+        }),
       });
 
-      if (!chatRes.data?.success) {
-        throw new Error(chatRes.data?.message || "Failed to generate diagram");
+      if (!response.ok) {
+        throw new Error("Failed to generate diagram");
       }
 
-      const generatedCode = chatRes.data.data.botMessage.content;
-      setCode(generatedCode);
+      if (!response.body) {
+        throw new Error("No response body received");
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let done = false;
+      let buffer = "";
+      let accumulatedCode = "";
+
+      while (!done) {
+        const { value, done: readerDone } = await reader.read();
+        done = readerDone;
+        if (value) {
+          buffer += decoder.decode(value, { stream: !done });
+          const parts = buffer.split("\n\n");
+          buffer = parts.pop() || "";
+
+          for (const part of parts) {
+            const line = part.trim();
+            if (line.startsWith("data: ")) {
+              const dataStr = line.substring(6).trim();
+              if (dataStr) {
+                try {
+                  const data = JSON.parse(dataStr);
+                  if (data.token) {
+                    accumulatedCode += data.token;
+                    // Strip backticks if they are starting to stream
+                    let tempCode = accumulatedCode.trim();
+                    if (tempCode.startsWith("```")) {
+                      const lines = tempCode.split("\n");
+                      if (lines[0].startsWith("```")) lines.shift();
+                      if (lines[lines.length - 1] === "```") lines.pop();
+                      tempCode = lines.join("\n").trim();
+                    }
+                    setCode(tempCode);
+                  } else if (data.done) {
+                    const generatedCode = data.botMessage.content;
+                    setCode(generatedCode);
+                  } else if (data.error) {
+                    throw new Error(data.error);
+                  }
+                } catch (e: any) {
+                  if (e.message && (e.message.includes("diagram") || e.message.includes("limit"))) {
+                    throw e;
+                  }
+                  console.debug("JSON parse error on partial stream chunk:", e);
+                }
+              }
+            }
+          }
+        }
+      }
+
       setPrompt("");
       showToast({
         type: "success",

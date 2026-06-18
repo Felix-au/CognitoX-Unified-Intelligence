@@ -154,20 +154,78 @@ export default function ConversationPage() {
         content: userPrompt || "Uploaded files",
         createdAt: new Date().toISOString()
       };
-      setMessages((prev) => [...prev, tempUserMessage]);
+      const tempBotMessageId = `temp_bot_${Date.now()}`;
+      const tempBotMessage: Message = {
+        id: tempBotMessageId,
+        sender: "bot",
+        type: "text",
+        content: "",
+        createdAt: new Date().toISOString()
+      };
 
-      const res = await axios.post("/api/chat", fd, {
-        headers: { "Content-Type": "multipart/form-data" }
+      setMessages((prev) => [...prev, tempUserMessage, tempBotMessage]);
+
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        body: fd
       });
 
-      if (res.data?.success) {
-        // Replace user message with database saved user message and append bot response
-        const { userMessage, botMessage } = res.data.data;
-        setMessages((prev) =>
-          prev.filter(m => !m.id.startsWith("temp_")).concat(userMessage, botMessage)
-        );
-        // Dispatch event to refresh the sidebar chat history (e.g. for dynamic titles)
-        window.dispatchEvent(new Event("refresh-history"));
+      if (!response.ok) {
+        throw new Error("Failed to send message");
+      }
+
+      if (!response.body) {
+        throw new Error("No response body received");
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let done = false;
+      let botContent = "";
+      let buffer = "";
+
+      while (!done) {
+        const { value, done: readerDone } = await reader.read();
+        done = readerDone;
+        if (value) {
+          buffer += decoder.decode(value, { stream: !done });
+          const parts = buffer.split("\n\n");
+          buffer = parts.pop() || "";
+
+          for (const part of parts) {
+            const line = part.trim();
+            if (line.startsWith("data: ")) {
+              const dataStr = line.substring(6).trim();
+              if (dataStr) {
+                try {
+                  const data = JSON.parse(dataStr);
+                  if (data.token) {
+                    botContent += data.token;
+                    setMessages((prev) =>
+                      prev.map((m) =>
+                        m.id === tempBotMessageId ? { ...m, content: botContent } : m
+                      )
+                    );
+                  } else if (data.done) {
+                    const { userMessage, botMessage } = data;
+                    setMessages((prev) =>
+                      prev.filter(m => m.id !== tempUserMessage.id && m.id !== tempBotMessageId).concat(userMessage, botMessage)
+                    );
+                    window.dispatchEvent(new Event("refresh-history"));
+                  } else if (data.error) {
+                    showToast({
+                      type: "error",
+                      title: "Stream Error",
+                      message: data.error
+                    });
+                  }
+                } catch (e) {
+                  console.debug("JSON parse error on partial stream chunk:", e);
+                }
+              }
+            }
+          }
+        }
       }
     } catch (error: any) {
       showToast({
