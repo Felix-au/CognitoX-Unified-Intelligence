@@ -8,7 +8,7 @@ import { useToast } from "@/providers/ToastProvider";
 import {
   Sparkles, Plus, MessageSquare, LogOut, FileText,
   Youtube, Terminal, Image, ChevronRight, Archive, Settings, Trash2,
-  Sun, Moon
+  Sun, Moon, Edit2
 } from "lucide-react";
 
 interface SidebarConversation {
@@ -25,6 +25,9 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
   const [urlConversationId, setUrlConversationId] = useState<string | null>(null);
   const [conversations, setConversations] = useState<SidebarConversation[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [historyTab, setHistoryTab] = useState<"active" | "archived">("active");
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [renameTitle, setRenameTitle] = useState("");
 
   const [theme, setTheme] = useState<"light" | "dark">("dark");
   const [webSearchEnabled, setWebSearchEnabled] = useState<boolean>(true);
@@ -73,7 +76,7 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
     if (status !== "authenticated") return;
     setLoadingHistory(true);
     try {
-      const res = await axios.get("/api/conversation");
+      const res = await axios.get(`/api/conversation?archived=${historyTab === "archived"}`);
       if (res.data?.success) {
         const filtered = res.data.data.filter((c: any) => c.variant !== "image_filter_tool");
         setConversations(filtered);
@@ -87,7 +90,7 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
 
   useEffect(() => {
     fetchHistory();
-  }, [status, pathname]); // Reload history on navigations/saves
+  }, [status, pathname, historyTab]); // Reload history on navigations/saves/tab changes
 
   useEffect(() => {
     const handleRefresh = () => {
@@ -127,6 +130,66 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
         type: "error",
         title: "Workspace Error",
         message: "Failed to initialize new session.",
+      });
+    }
+  };
+
+  const handleRename = async (id: string) => {
+    const title = renameTitle.trim();
+    if (!title) {
+      setRenamingId(null);
+      return;
+    }
+    try {
+      const res = await axios.post("/api/rename-conversation", {
+        conversationId: id,
+        title
+      });
+      if (res.data?.success) {
+        setConversations((prev) =>
+          prev.map((c) => (c.id === id ? { ...c, title } : c))
+        );
+        showToast({
+          type: "success",
+          title: "Session Renamed",
+          message: "Conversation title updated successfully."
+        });
+      }
+    } catch (err) {
+      console.error("Rename failed:", err);
+      showToast({
+        type: "error",
+        title: "Rename Error",
+        message: "Failed to rename session."
+      });
+    } finally {
+      setRenamingId(null);
+    }
+  };
+
+  const handleArchive = async (id: string, archive: boolean) => {
+    try {
+      const res = await axios.patch("/api/conversation", {
+        conversationId: id,
+        isArchived: archive
+      });
+      if (res.data?.success) {
+        showToast({
+          type: "success",
+          title: archive ? "Session Archived" : "Session Restored",
+          message: archive ? "Conversation moved to archives." : "Conversation restored to active sessions."
+        });
+        fetchHistory();
+        if (archive && pathname?.includes(`/c/${id}`)) {
+          router.push("/chatbot");
+        }
+      }
+    } catch (err) {
+      console.error("Archive failed:", err);
+      showToast({
+        type: "error",
+        title: "Archive Error",
+        message: "Failed to toggle archive state."
       });
     }
   };
@@ -305,6 +368,20 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
         <div className="history-section">
           <div className="history-header">
             <h3 className="section-title">Conversations</h3>
+            <div className="history-tabs">
+              <button
+                onClick={() => setHistoryTab("active")}
+                className={`tab-btn ${historyTab === "active" ? "active" : ""}`}
+              >
+                Active
+              </button>
+              <button
+                onClick={() => setHistoryTab("archived")}
+                className={`tab-btn ${historyTab === "archived" ? "active" : ""}`}
+              >
+                Archived
+              </button>
+            </div>
           </div>
 
           {loadingHistory ? (
@@ -313,7 +390,9 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
               <span>Loading sessions...</span>
             </div>
           ) : conversations.length === 0 ? (
-            <div className="history-empty">No active sessions.</div>
+            <div className="history-empty">
+              {historyTab === "active" ? "No active sessions." : "No archived sessions."}
+            </div>
           ) : (
             <ul className="history-list">
               {conversations.map((conv) => {
@@ -323,6 +402,7 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
                   : pathname?.includes(`/c/${conv.id}`);
 
                 const handleRoute = () => {
+                  if (renamingId === conv.id) return;
                   if (isDiagram) {
                     router.push(`/chatbot/t/diagrams-tool?conversationId=${conv.id}`);
                   } else {
@@ -338,18 +418,60 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
                     title={conv.title}
                   >
                     <MessageSquare className="history-icon" />
-                    <span className="history-title">{conv.title}</span>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteConversation(conv.id);
-                      }}
-                      className="btn-delete-conv"
-                      title="Delete Conversation"
-                    >
-                      <Trash2 className="delete-icon" />
-                    </button>
-                    <ChevronRight className="history-arrow" />
+                    {renamingId === conv.id ? (
+                      <input
+                        type="text"
+                        value={renameTitle}
+                        onChange={(e) => setRenameTitle(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") handleRename(conv.id);
+                          if (e.key === "Escape") setRenamingId(null);
+                        }}
+                        onBlur={() => handleRename(conv.id)}
+                        className="rename-input"
+                        autoFocus
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    ) : (
+                      <span className="history-title">{conv.title}</span>
+                    )}
+
+                    {renamingId !== conv.id && (
+                      <div className="conv-actions">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setRenamingId(conv.id);
+                            setRenameTitle(conv.title);
+                          }}
+                          className="btn-action-conv"
+                          title="Rename Session"
+                        >
+                          <Edit2 className="action-conv-icon" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleArchive(conv.id, historyTab === "active");
+                          }}
+                          className="btn-action-conv"
+                          title={historyTab === "active" ? "Archive Session" : "Restore Session"}
+                        >
+                          <Archive className="action-conv-icon" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteConversation(conv.id);
+                          }}
+                          className="btn-action-conv btn-delete-conv-item"
+                          title="Delete Session"
+                        >
+                          <Trash2 className="action-conv-icon" />
+                        </button>
+                      </div>
+                    )}
+                    {renamingId !== conv.id && <ChevronRight className="history-arrow" />}
                   </li>
                 );
               })}
@@ -588,16 +710,85 @@ export default function ChatbotLayout({ children }: { children: React.ReactNode 
           justify-content: center;
           transition: all 0.2s;
         }
-        .history-list li:hover .btn-delete-conv {
+        .history-list li:hover .history-arrow {
+          display: none;
+        }
+        .conv-actions {
+          display: none;
+          gap: 4px;
+          align-items: center;
+        }
+        .history-list li:hover .conv-actions {
           display: flex;
         }
-        .btn-delete-conv:hover {
+        .btn-action-conv {
+          background: none;
+          border: none;
+          color: var(--text-muted);
+          cursor: pointer;
+          padding: 4px;
+          border-radius: 4px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s;
+        }
+        .btn-action-conv:hover {
+          background: rgba(128, 128, 128, 0.15);
+          color: var(--text-primary);
+        }
+        .btn-delete-conv-item:hover {
           background: rgba(239, 68, 68, 0.15);
           color: var(--accent-danger);
         }
-        .delete-icon {
-          width: 14px;
-          height: 14px;
+        .action-conv-icon {
+          width: 13px;
+          height: 13px;
+        }
+        .history-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 12px;
+        }
+        .history-tabs {
+          display: flex;
+          gap: 4px;
+          background: rgba(128, 128, 128, 0.08);
+          padding: 2px;
+          border-radius: 6px;
+          border: 1px solid var(--border-color);
+        }
+        .tab-btn {
+          background: none;
+          border: none;
+          color: var(--text-muted);
+          padding: 3px 8px;
+          font-size: 0.68rem;
+          font-family: var(--font-display);
+          font-weight: 500;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        .tab-btn:hover {
+          color: var(--text-primary);
+        }
+        .tab-btn.active {
+          background: var(--mode-toggle-active-bg);
+          color: var(--text-primary);
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .rename-input {
+          flex: 1;
+          background: var(--input-bg);
+          border: 1px solid var(--accent-primary);
+          color: var(--text-primary);
+          font-size: 0.8rem;
+          padding: 2px 6px;
+          border-radius: 4px;
+          outline: none;
+          width: 100%;
         }
         .sidebar-footer {
           border-top: 1px solid var(--border-color);
