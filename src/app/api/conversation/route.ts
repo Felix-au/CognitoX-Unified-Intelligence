@@ -18,10 +18,13 @@ export async function GET(request: Request) {
   const userId = (session.user as any).id;
 
   try {
+    const { searchParams } = new URL(request.url);
+    const showArchived = searchParams.get("archived") === "true";
+
     const conversations = await prisma.conversation.findMany({
       where: {
         userId: userId,
-        isArchived: false,
+        isArchived: showArchived,
         variant: {
           not: "image_filter_tool"
         }
