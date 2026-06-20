@@ -52,12 +52,11 @@ No complex local setup is required to run the AI engine—it hooks into OmniKey 
 
 | Feature | Traditional AI Chat | CognitoX |
 |---|---|---|
-| **Interactivity** | Simple chat bubbles | Floating 3D visual constructs with responsive animations |
+| **Unified Intelligence** | Separate tools, isolated browser tabs | Process documents, images, YouTube video transcripts, and code diagramming in one place. |
+| **Image Filtering and Editing** | No pre-processing, direct uploads only | Crop and edit scans client-side using edge shaders (Sobel, Canny) before sending them to the chat. |
 | **Document Processing** | Text pasting or slow cloud parsers | Local Canvas OCR + Sobel and Canny Edge Filters |
 | **Media Crawling** | Cannot parse YouTube transcripts | Full YouTube URL crawling and auto-outline generator |
 | **Diagram Studio** | Code block outputs only | Interactive Mermaid.js viewer with line-level syntax alerts |
-| **Theme System** | Faint gray dark modes | Premium pitch-black (`#050505`) and crimson-orange light mode |
-| **Authentication** | Basic credentials | Firebase Auth verification check + NextAuth session mapping |
 
 ---
 
@@ -80,6 +79,7 @@ No complex local setup is required to run the AI engine—it hooks into OmniKey 
 * **Line-Level Syntax Alerts**: Parses errors caught during compilation and renders a line-number alert banner.
 
 ### 🎨 Image Filter Tool
+* **Pre-Chat Image Editing**: Crop, rotate, and apply Sobel/Canny edge shaders to clean up document scans before attaching them to your chat.
 * **GPU-Accelerated Filters**: Sobel edge detection, Canny filters, grayscale, and threshold adjustments via Canvas.
 * **Adaptive Canvas Scaling**: Fits high-resolution images within the workspace without layout shifts.
 
@@ -164,18 +164,18 @@ graph TD
 │  └───────────┼───────────────────────────────────┼──────────────────┘  │
 │              │                                   │                     │
 │              ▼                                   ▼                     │
-│  ┌────────────────────────┐         ┌────────────────────────────────┐  │
-│  │ External Gateways      │         │ Database Layer                 │  │
-│  │                        │         │                                │  │
-│  │  ┌──────────────────┐  │         │  ┌──────────────┐              │  │
-│  │  │ OmniKey AI       │  │         │  │ Prisma Client│              │  │
-│  │  │ Gateway          │  │         │  └──────┬───────┘              │  │
-│  │  └──────────────────┘  │         │         ▼                      │  │
-│  │  ┌──────────────────┐  │         │  ┌──────────────┐              │  │
-│  │  │ Pollinations.ai  │  │         │  │ MongoDB      │              │  │
-│  │  │ Image API        │  │         │  │ Atlas Cluster│              │  │
-│  │  └──────────────────┘  │         │  └──────────────┘              │  │
-│  └────────────────────────┘         └────────────────────────────────┘  │
+│  ┌────────────────────────┐         ┌────────────────────────────────┐ │
+│  │ External Gateways      │         │ Database Layer                 │ │
+│  │                        │         │                                │ │
+│  │  ┌──────────────────┐  │         │  ┌──────────────┐              │ │
+│  │  │ OmniKey AI       │  │         │  │ Prisma Client│              │ │
+│  │  │ Gateway          │  │         │  └──────┬───────┘              │ │
+│  │  └──────────────────┘  │         │         ▼                      │ │
+│  │  ┌──────────────────┐  │         │  ┌──────────────┐              │ │
+│  │  │ Pollinations.ai  │  │         │  │ MongoDB      │              │ │
+│  │  │ Image API        │  │         │  │ Atlas Cluster│              │ │
+│  │  └──────────────────┘  │         │  └──────────────┘              │ │
+│  └────────────────────────┘         └────────────────────────────────┘ │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
