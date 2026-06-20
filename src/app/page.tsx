@@ -184,14 +184,18 @@ export default function LandingPage() {
         </div>
       </div>
 
-      {/* Top-Left: Rotating Double Ring */}
+      {/* Top-Left: Rotating Triple Ring with Core */}
       <div className="sub-construct sub-construct-top-left">
         <div className="double-ring-3d">
+          <div className="sub-core"></div>
           <div className="sub-ring ring-a">
             <div className="sub-node node-a1"></div>
           </div>
           <div className="sub-ring ring-b">
             <div className="sub-node node-b1"></div>
+          </div>
+          <div className="sub-ring ring-c">
+            <div className="sub-node node-c1"></div>
           </div>
         </div>
       </div>
@@ -208,9 +212,10 @@ export default function LandingPage() {
         </div>
       </div>
 
-      {/* Bottom-Left: Three Intersecting Rings */}
+      {/* Bottom-Left: Four Intersecting Rings with Core */}
       <div className="sub-construct sub-construct-bottom-left">
         <div className="triple-ring-3d">
+          <div className="sub-core"></div>
           <div className="sub-ring ring-x">
             <div className="sub-node node-x1"></div>
           </div>
@@ -220,48 +225,65 @@ export default function LandingPage() {
           <div className="sub-ring ring-z">
             <div className="sub-node node-z1"></div>
           </div>
+          <div className="sub-ring ring-w">
+            <div className="sub-node node-w1"></div>
+          </div>
         </div>
       </div>
 
-      {/* Bottom-Right: 3D Neural Network / Brain */}
+      {/* Bottom-Right: 3D Rotating DNA Double Helix */}
       <div className="sub-construct sub-construct-bottom-right">
-        <div className="neural-net-3d">
-          <div className="net-node node-n1"></div>
-          <div className="net-node node-n2"></div>
-          <div className="net-node node-n3"></div>
-          <div className="net-node node-n4"></div>
-          <div className="net-node node-n5"></div>
-          <div className="net-node node-n6"></div>
-          <div className="net-node node-n7"></div>
-          <div className="net-node node-n8"></div>
-          <div className="net-node node-n9"></div>
-          <div className="net-node node-n10"></div>
-          <div className="net-node node-n11"></div>
-          <svg className="net-svg" viewBox="0 0 150 150">
-            {/* Outer Silhouette */}
-            <line x1="75" y1="15" x2="50" y2="25" className="net-line" />
-            <line x1="75" y1="15" x2="100" y2="25" className="net-line" />
-            <line x1="50" y1="25" x2="40" y2="50" className="net-line" />
-            <line x1="100" y1="25" x2="110" y2="50" className="net-line" />
-            <line x1="40" y1="50" x2="30" y2="85" className="net-line" />
-            <line x1="110" y1="50" x2="120" y2="85" className="net-line" />
-            <line x1="30" y1="85" x2="50" y2="110" className="net-line" />
-            <line x1="120" y1="85" x2="100" y2="110" className="net-line" />
-            <line x1="50" y1="110" x2="75" y2="135" className="net-line" />
-            <line x1="100" y1="110" x2="75" y2="135" className="net-line" />
-            
-            {/* Internal Synapse Core Connections */}
-            <line x1="75" y1="60" x2="75" y2="15" className="net-line" />
-            <line x1="75" y1="60" x2="50" y2="25" className="net-line" />
-            <line x1="75" y1="60" x2="100" y2="25" className="net-line" />
-            <line x1="75" y1="60" x2="40" y2="50" className="net-line" />
-            <line x1="75" y1="60" x2="110" y2="50" className="net-line" />
-            <line x1="75" y1="60" x2="30" y2="85" className="net-line" />
-            <line x1="75" y1="60" x2="120" y2="85" className="net-line" />
-            <line x1="75" y1="60" x2="50" y2="110" className="net-line" />
-            <line x1="75" y1="60" x2="100" y2="110" className="net-line" />
-            <line x1="75" y1="60" x2="75" y2="135" className="net-line" />
-          </svg>
+        <div className="helix-3d">
+          <div className="helix-rung rung-1">
+            <div className="helix-node node-l"></div>
+            <div className="helix-bar"></div>
+            <div className="helix-node node-r"></div>
+          </div>
+          <div className="helix-rung rung-2">
+            <div className="helix-node node-l"></div>
+            <div className="helix-bar"></div>
+            <div className="helix-node node-r"></div>
+          </div>
+          <div className="helix-rung rung-3">
+            <div className="helix-node node-l"></div>
+            <div className="helix-bar"></div>
+            <div className="helix-node node-r"></div>
+          </div>
+          <div className="helix-rung rung-4">
+            <div className="helix-node node-l"></div>
+            <div className="helix-bar"></div>
+            <div className="helix-node node-r"></div>
+          </div>
+          <div className="helix-rung rung-5">
+            <div className="helix-node node-l"></div>
+            <div className="helix-bar"></div>
+            <div className="helix-node node-r"></div>
+          </div>
+          <div className="helix-rung rung-6">
+            <div className="helix-node node-l"></div>
+            <div className="helix-bar"></div>
+            <div className="helix-node node-r"></div>
+          </div>
+          <div className="helix-rung rung-7">
+            <div className="helix-node node-l"></div>
+            <div className="helix-bar"></div>
+            <div className="helix-node node-r"></div>
+          </div>
+          <div className="helix-rung rung-8">
+            <div className="helix-node node-l"></div>
+            <div className="helix-bar"></div>
+            <div className="helix-node node-r"></div>
+          </div>
+          <div className="helix-rung rung-9">
+            <div className="helix-node node-l"></div>
+            <div className="helix-bar"></div>
+            <div className="helix-node node-r"></div>
+          </div>
+          <div className="helix-rung rung-10">
+            <div className="helix-node node-l"></div>
+            <div className="helix-bar"></div>
+            <div className="helix-node node-r"></div>
+          </div>
         </div>
       </div>
 
@@ -724,6 +746,27 @@ export default function LandingPage() {
           transform-style: preserve-3d;
           animation: spinDoubleRing 18s linear infinite;
         }
+        .sub-core {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 14px;
+          height: 14px;
+          background: radial-gradient(circle, #ffffff 0%, var(--accent-secondary) 60%, transparent 100%);
+          border-radius: 50%;
+          box-shadow: 0 0 12px var(--accent-secondary), 0 0 24px var(--accent-primary);
+          animation: pulseSubCore 3s ease-in-out infinite alternate;
+          z-index: 4;
+        }
+        :global([data-theme="light"]) .sub-core {
+          background: radial-gradient(circle, #ffedd5 0%, var(--accent-primary) 60%, transparent 100%);
+          box-shadow: 0 0 12px var(--core-shadow-1), 0 0 24px var(--core-shadow-2);
+        }
+        @keyframes pulseSubCore {
+          0% { transform: translate(-50%, -50%) scale(0.85); opacity: 0.8; }
+          100% { transform: translate(-50%, -50%) scale(1.15); opacity: 1; }
+        }
         .sub-ring {
           position: absolute;
           width: 100px;
@@ -734,6 +777,7 @@ export default function LandingPage() {
         }
         .ring-a { transform: rotateX(60deg) rotateY(30deg); }
         .ring-b { transform: rotateX(-60deg) rotateY(-30deg); }
+        .ring-c { transform: rotateX(30deg) rotateY(70deg); }
         .sub-node {
           position: absolute;
           width: 6px;
@@ -744,8 +788,9 @@ export default function LandingPage() {
         }
         .node-a1 { top: 0; left: 50%; transform: translate(-50%, -50%); }
         .node-b1 { bottom: 0; left: 50%; transform: translate(-50%, 50%); }
+        .node-c1 { top: 50%; right: 0; transform: translate(50%, -50%); }
         
-        /* Triple Ring Visual */
+        /* Triple/Quadruple Ring Visual */
         .triple-ring-3d {
           width: 100px;
           height: 100px;
@@ -756,52 +801,62 @@ export default function LandingPage() {
         .ring-x { transform: rotateX(60deg) rotateY(30deg); }
         .ring-y { transform: rotateX(-60deg) rotateY(-30deg); }
         .ring-z { transform: rotateY(90deg) rotateZ(45deg); }
+        .ring-w { transform: rotateX(-45deg) rotateY(45deg); }
         .node-x1 { top: 0; left: 50%; transform: translate(-50%, -50%); }
         .node-y1 { bottom: 0; left: 50%; transform: translate(-50%, 50%); }
         .node-z1 { top: 50%; right: 0; transform: translate(50%, -50%); }
+        .node-w1 { top: 50%; left: 0; transform: translate(-50%, -50%); }
         
-        /* 3D Neural Net Visual */
-        .neural-net-3d {
-          width: 180px;
+        /* 3D Helix Visual */
+        .helix-3d {
+          width: 120px;
           height: 180px;
           position: relative;
           transform-style: preserve-3d;
-          animation: spinNeural 20s linear infinite;
+          animation: spinHelix 15s linear infinite;
         }
-        .net-node {
+        .helix-rung {
           position: absolute;
-          width: 6px;
-          height: 6px;
+          width: 100%;
+          height: 16px;
+          transform-style: preserve-3d;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .helix-node {
+          position: absolute;
+          width: 8px;
+          height: 8px;
           background-color: var(--node-bg);
           border-radius: 50%;
           box-shadow: 0 0 8px var(--node-bg), 0 0 16px var(--accent-secondary);
-          transform-style: preserve-3d;
         }
-        .node-n1 { top: 10%; left: 50%; transform: translate(-50%, -50%) translateZ(40px); }
-        .node-n2 { top: 16.7%; left: 33.3%; transform: translate(-50%, -50%) translateZ(20px); }
-        .node-n3 { top: 16.7%; left: 66.7%; transform: translate(-50%, -50%) translateZ(-20px); }
-        .node-n4 { top: 33.3%; left: 26.7%; transform: translate(-50%, -50%) translateZ(30px); }
-        .node-n5 { top: 33.3%; left: 73.3%; transform: translate(-50%, -50%) translateZ(-30px); }
-        .node-n6 { top: 40%; left: 50%; transform: translate(-50%, -50%) translateZ(0px); }
-        .node-n7 { top: 56.7%; left: 20%; transform: translate(-50%, -50%) translateZ(25px); }
-        .node-n8 { top: 56.7%; left: 80%; transform: translate(-50%, -50%) translateZ(-25px); }
-        .node-n9 { top: 73.3%; left: 33.3%; transform: translate(-50%, -50%) translateZ(15px); }
-        .node-n10 { top: 73.3%; left: 66.7%; transform: translate(-50%, -50%) translateZ(-15px); }
-        .node-n11 { top: 90%; left: 50%; transform: translate(-50%, -50%) translateZ(-40px); }
-        
-        .net-svg {
+        .node-l {
+          left: 15px;
+        }
+        .node-r {
+          right: 15px;
+        }
+        .helix-bar {
           position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          pointer-events: none;
+          left: 20px;
+          right: 20px;
+          height: 1px;
+          background: var(--ring-border);
         }
-        .net-line {
-          stroke: var(--net-line-color);
-          stroke-opacity: var(--line-opacity);
-          stroke-width: 1;
-        }
+        
+        /* Translate and rotate each rung to form the helix */
+        .rung-1  { transform: translateY(0px) rotateY(0deg); }
+        .rung-2  { transform: translateY(18px) rotateY(36deg); }
+        .rung-3  { transform: translateY(36px) rotateY(72deg); }
+        .rung-4  { transform: translateY(54px) rotateY(108deg); }
+        .rung-5  { transform: translateY(72px) rotateY(144deg); }
+        .rung-6  { transform: translateY(90px) rotateY(180deg); }
+        .rung-7  { transform: translateY(108px) rotateY(216deg); }
+        .rung-8  { transform: translateY(126px) rotateY(252deg); }
+        .rung-9  { transform: translateY(144px) rotateY(288deg); }
+        .rung-10 { transform: translateY(162px) rotateY(324deg); }
         
         @keyframes rotateConstruct {
           0% { transform: rotateY(0deg) rotateX(0deg); }
@@ -841,9 +896,9 @@ export default function LandingPage() {
           0% { transform: rotateY(0deg) rotateX(0deg); }
           100% { transform: rotateY(360deg) rotateX(-360deg); }
         }
-        @keyframes spinNeural {
-          0% { transform: rotateY(0deg) rotateZ(0deg); }
-          100% { transform: rotateY(360deg) rotateZ(360deg); }
+        @keyframes spinHelix {
+          0% { transform: rotateY(0deg) rotateX(10deg); }
+          100% { transform: rotateY(360deg) rotateX(10deg); }
         }
 
         .features-grid {
