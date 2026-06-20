@@ -830,7 +830,7 @@ export default function LandingPage() {
           height: 180px;
           position: relative;
           transform-style: preserve-3d;
-          animation: spinHelix 12s ease-in-out infinite;
+          animation: spinHelix 12s cubic-bezier(0.25, 0, 0.25, 1) infinite;
         }
         .helix-rung {
           position: absolute;
@@ -914,9 +914,8 @@ export default function LandingPage() {
           100% { transform: rotateY(360deg) rotateX(-360deg); }
         }
         @keyframes spinHelix {
-          0% { transform: rotateY(0deg) rotateX(15deg) translateY(-6px); }
-          50% { transform: rotateY(180deg) rotateX(25deg) translateY(6px); }
-          100% { transform: rotateY(360deg) rotateX(15deg) translateY(-6px); }
+          0% { transform: rotateY(0deg) rotateX(15deg); }
+          100% { transform: rotateY(360deg) rotateX(15deg); }
         }
 
         .features-grid {
