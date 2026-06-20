@@ -11,7 +11,7 @@ mermaid.initialize({
   fontFamily: "var(--font-body)",
 });
 
-export default function MermaidChart({ code }: { code: string }) {
+export default function MermaidChart({ code, onError }: { code: string; onError?: (err: { message: string; line: number | null } | null) => void }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [svg, setSvg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -170,9 +170,17 @@ export default function MermaidChart({ code }: { code: string }) {
         const id = `mermaid-${Math.random().toString(36).substring(2, 9)}`;
         const { svg: renderedSvg } = await mermaid.render(id, code);
         setSvg(renderedSvg);
+        onError?.(null);
       } catch (err: any) {
         console.error("Mermaid rendering error:", err);
-        setError("Mermaid syntax error. Render failed. Please refine your diagram description.");
+        const errMsg = err?.message || err?.str || String(err) || "";
+        const lineMatch = errMsg.match(/(?:line|on line)\s+(\d+)/i);
+        const line = lineMatch ? parseInt(lineMatch[1], 10) : null;
+        const shortMsg = errMsg.split("\n").slice(0, 2).join("\n");
+        
+        setError(`Mermaid syntax error${line ? ` on line ${line}` : ""}: ${shortMsg}`);
+        onError?.({ message: shortMsg, line });
+
         const badNodes = document.querySelectorAll('[id^="dmermaid"]');
         badNodes.forEach(node => node.remove());
       } finally {

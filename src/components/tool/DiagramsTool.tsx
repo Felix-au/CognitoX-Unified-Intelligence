@@ -16,6 +16,7 @@ export default function DiagramsTool() {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [researchStep, setResearchStep] = useState(0);
   const [webSearchActive, setWebSearchActive] = useState(false);
+  const [diagramError, setDiagramError] = useState<{ message: string; line: number | null } | null>(null);
   
   const router = useRouter();
   const { showToast } = useToast();
@@ -220,6 +221,7 @@ export default function DiagramsTool() {
     setCode("");
     setPrompt("");
     setConversationId(null);
+    setDiagramError(null);
     router.push("/chatbot/t/diagrams-tool");
     showToast({
       type: "info",
@@ -273,7 +275,7 @@ export default function DiagramsTool() {
             <div className={`canvas-grid ${editMode === "code" ? "has-editor" : ""}`}>
               {/* Left Side: Visual Render */}
               <div className="canvas-viewer">
-                <MermaidChart code={code} />
+                <MermaidChart code={code} onError={setDiagramError} />
               </div>
 
               {/* Right Side: Manual Code Editor if active */}
@@ -289,6 +291,14 @@ export default function DiagramsTool() {
                     className="code-textarea"
                     placeholder="Enter Mermaid syntax..."
                   />
+                  {diagramError && (
+                    <div className="editor-error-banner">
+                      <div className="error-header">
+                        <span>Syntax Error {diagramError.line !== null ? `on line ${diagramError.line}` : ""}</span>
+                      </div>
+                      <p className="error-body">{diagramError.message}</p>
+                    </div>
+                  )}
                   <div className="panel-tip">
                     Editing code directly updates the live chart canvas.
                   </div>
@@ -532,6 +542,32 @@ export default function DiagramsTool() {
         @keyframes spin-clockwise {
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }
+        }
+        .editor-error-banner {
+          margin-top: 12px;
+          background: rgba(239, 68, 68, 0.08);
+          border: 1px solid rgba(239, 68, 68, 0.25);
+          border-radius: 8px;
+          padding: 10px 12px;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+        .error-header {
+          font-size: 0.72rem;
+          font-weight: 700;
+          color: var(--accent-danger);
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+          font-family: var(--font-display);
+        }
+        .error-body {
+          font-family: monospace;
+          font-size: 0.75rem;
+          color: var(--text-secondary);
+          margin: 0;
+          white-space: pre-wrap;
+          word-break: break-all;
         }
       `}</style>
     </div>
