@@ -149,6 +149,10 @@ export default function LandingPage() {
     <main className="landing-container">
       <div className="dotted-canvas"></div>
 
+      {/* Floating Neon Glow Backdrop */}
+      <div className="landing-glow-orb orb-purple"></div>
+      <div className="landing-glow-orb orb-cyan"></div>
+
       <button 
         type="button" 
         onClick={toggleTheme} 
@@ -169,6 +173,39 @@ export default function LandingPage() {
             </h1>
           </div>
 
+          {/* Interactive 3D-like Rotating Neural Construct */}
+          <div className="construct-container">
+            <div className="construct-3d">
+              {/* Central glowing core */}
+              <div className="construct-core"></div>
+              {/* Orbiting rings */}
+              <div className="construct-ring ring-1">
+                <div className="node node-1"></div>
+                <div className="node node-2"></div>
+              </div>
+              <div className="construct-ring ring-2">
+                <div className="node node-3"></div>
+                <div className="node node-4"></div>
+              </div>
+              <div className="construct-ring ring-3">
+                <div className="node node-5"></div>
+              </div>
+              {/* Connecting lines via dynamic SVG */}
+              <svg className="construct-svg" viewBox="0 0 200 200">
+                <defs>
+                  <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="var(--accent-primary)" stopOpacity="0.25" />
+                    <stop offset="100%" stopColor="var(--accent-secondary)" stopOpacity="0.25" />
+                  </linearGradient>
+                </defs>
+                <circle cx="100" cy="100" r="80" stroke="url(#grad1)" strokeWidth="1" fill="none" strokeDasharray="5,5" className="svg-ring-1" />
+                <circle cx="100" cy="100" r="55" stroke="url(#grad1)" strokeWidth="1.5" fill="none" className="svg-ring-2" />
+                <circle cx="100" cy="100" r="30" stroke="url(#grad1)" strokeWidth="0.5" fill="none" strokeDasharray="3,3" className="svg-ring-3" />
+                <line x1="100" y1="20" x2="100" y2="180" stroke="rgba(255, 255, 255, 0.05)" strokeWidth="1" />
+                <line x1="20" y1="100" x2="180" y2="100" stroke="rgba(255, 255, 255, 0.05)" strokeWidth="1" />
+              </svg>
+            </div>
+          </div>
 
           <div className="features-grid">
             <div className="feature-card glass-card">
@@ -207,7 +244,7 @@ export default function LandingPage() {
 
         {/* Right Side: Firebase Authentication Panel */}
         <div className="auth-section">
-          <div className="auth-box glass-panel">
+          <div className="auth-box">
             <h2>{authMode === "login" ? "Welcome Back" : "Create Account"}</h2>
             <p className="auth-intro">
               {authMode === "login" ? "Sign in to access your cognitive workspace." : "Register to start your sandboxed workspace."}
@@ -300,6 +337,44 @@ export default function LandingPage() {
           padding: 24px;
           transition: background-color 0.3s ease;
         }
+        
+        /* Floating Neon Glow Backdrop */
+        .landing-glow-orb {
+          position: absolute;
+          border-radius: 50%;
+          filter: blur(140px);
+          opacity: 0.15;
+          z-index: 1;
+          pointer-events: none;
+        }
+        .orb-purple {
+          width: 500px;
+          height: 500px;
+          background: radial-gradient(circle, var(--accent-primary) 0%, transparent 70%);
+          top: -100px;
+          left: -100px;
+          animation: floatOrb 25s ease-in-out infinite alternate;
+        }
+        .orb-cyan {
+          width: 600px;
+          height: 600px;
+          background: radial-gradient(circle, var(--accent-secondary) 0%, transparent 70%);
+          bottom: -150px;
+          right: -100px;
+          animation: floatOrb 30s ease-in-out infinite alternate-reverse;
+        }
+        @keyframes floatOrb {
+          0% {
+            transform: translate(0, 0) scale(1);
+          }
+          50% {
+            transform: translate(80px, 40px) scale(1.1);
+          }
+          100% {
+            transform: translate(-40px, 80px) scale(0.9);
+          }
+        }
+
         .landing-grid {
           display: grid;
           grid-template-columns: 1.2fr 0.8fr;
@@ -340,27 +415,134 @@ export default function LandingPage() {
           }
         }
         .hero-title {
-          font-size: 2rem;
-          line-height: 1.15;
+          font-size: 2.2rem;
+          line-height: 1.2;
           font-family: var(--font-display);
           font-weight: 700;
+          letter-spacing: -0.03em;
         }
         .gradient-text {
           background: linear-gradient(135deg, #6366f1 0%, #06b6d4 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
         }
-        .hero-subtitle {
-          color: var(--text-secondary);
-          font-size: 1.05rem;
-          line-height: 1.6;
-          max-width: 540px;
+        
+        /* 3D Neural Construct Visual */
+        .construct-container {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          height: 240px;
+          margin: 15px 0;
+          perspective: 800px;
+          position: relative;
         }
+        .construct-3d {
+          width: 200px;
+          height: 200px;
+          position: relative;
+          transform-style: preserve-3d;
+          animation: rotateConstruct 25s linear infinite;
+        }
+        .construct-core {
+          position: absolute;
+          top: 85px;
+          left: 85px;
+          width: 30px;
+          height: 30px;
+          background: radial-gradient(circle, #ffffff 0%, var(--accent-secondary) 50%, transparent 100%);
+          border-radius: 50%;
+          box-shadow: 0 0 30px var(--accent-secondary), 0 0 60px var(--accent-primary);
+          animation: pulseCore 3s ease-in-out infinite alternate;
+          z-index: 5;
+        }
+        .construct-ring {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          border: 1.5px solid rgba(255, 255, 255, 0.08);
+          border-radius: 50%;
+          transform-style: preserve-3d;
+        }
+        .ring-1 {
+          transform: rotateX(70deg) rotateY(20deg);
+          animation: spinRing1 12s linear infinite;
+        }
+        .ring-2 {
+          transform: rotateX(45deg) rotateY(-45deg);
+          animation: spinRing2 16s linear infinite;
+        }
+        .ring-3 {
+          transform: rotateX(-30deg) rotateY(60deg);
+          animation: spinRing3 20s linear infinite;
+        }
+        .node {
+          position: absolute;
+          width: 8px;
+          height: 8px;
+          background-color: #fff;
+          border-radius: 50%;
+          box-shadow: 0 0 10px #fff, 0 0 20px var(--accent-secondary);
+        }
+        .node-1 { top: 0; left: 50%; transform: translate(-50%, -50%); }
+        .node-2 { bottom: 0; left: 50%; transform: translate(-50%, 50%); }
+        .node-3 { top: 50%; left: 0; transform: translate(-50%, -50%); }
+        .node-4 { top: 50%; right: 0; transform: translate(50%, -50%); }
+        .node-5 { top: 15%; left: 15%; }
+        
+        .construct-svg {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          pointer-events: none;
+          transform: translateZ(-20px);
+        }
+        .svg-ring-1 {
+          animation: rotateSVG1 25s linear infinite;
+          transform-origin: center;
+        }
+        .svg-ring-2 {
+          animation: rotateSVG2 15s linear infinite reverse;
+          transform-origin: center;
+        }
+        
+        @keyframes rotateConstruct {
+          0% { transform: rotateY(0deg) rotateX(0deg); }
+          100% { transform: rotateY(360deg) rotateX(360deg); }
+        }
+        @keyframes pulseCore {
+          0% { transform: scale(0.85); opacity: 0.8; }
+          100% { transform: scale(1.15); opacity: 1; }
+        }
+        @keyframes spinRing1 {
+          0% { transform: rotateX(70deg) rotateY(20deg) rotateZ(0deg); }
+          100% { transform: rotateX(70deg) rotateY(20deg) rotateZ(360deg); }
+        }
+        @keyframes spinRing2 {
+          0% { transform: rotateX(45deg) rotateY(-45deg) rotateZ(360deg); }
+          100% { transform: rotateX(45deg) rotateY(-45deg) rotateZ(0deg); }
+        }
+        @keyframes spinRing3 {
+          0% { transform: rotateX(-30deg) rotateY(60deg) rotateZ(0deg); }
+          100% { transform: rotateX(-30deg) rotateY(60deg) rotateZ(360deg); }
+        }
+        @keyframes rotateSVG1 {
+          to { transform: rotate(360deg); }
+        }
+        @keyframes rotateSVG2 {
+          to { transform: rotate(360deg); }
+        }
+
         .features-grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
           gap: 16px;
           margin-top: 12px;
+          perspective: 1000px;
         }
         @media (max-width: 640px) {
           .features-grid {
@@ -372,21 +554,32 @@ export default function LandingPage() {
           gap: 12px;
           padding: 16px;
           align-items: flex-start;
+          transform-style: preserve-3d;
+          transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.3s, border-color 0.3s;
+        }
+        .feature-card:hover {
+          transform: translateY(-6px) rotateX(4deg) rotateY(-4deg) translateZ(10px);
+          background: rgba(255, 255, 255, 0.05);
+          border-color: rgba(99, 102, 241, 0.3);
+          box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3), 0 0 15px rgba(99, 102, 241, 0.1);
         }
         .feat-icon {
           width: 24px;
           height: 24px;
           flex-shrink: 0;
           margin-top: 2px;
+          transform: translateZ(20px);
         }
         .text-indigo { color: #818cf8; }
         .text-cyan { color: #22d3ee; }
         .text-green { color: #34d399; }
         .text-pink { color: #f472b6; }
+        
         .feature-card h3 {
           font-size: 0.95rem;
           font-weight: 600;
           margin-bottom: 4px;
+          color: var(--text-primary);
         }
         .feature-card p {
           font-size: 0.78rem;
@@ -397,11 +590,49 @@ export default function LandingPage() {
           display: flex;
           justify-content: center;
         }
+        
+        /* Auth Box with Premium Neon Border on Hover */
         .auth-box {
           width: 100%;
           max-width: 400px;
           padding: 32px;
+          position: relative;
+          background: var(--glass-bg);
+          backdrop-filter: var(--glass-backdrop);
+          -webkit-backdrop-filter: var(--glass-backdrop);
+          border: 1px solid var(--glass-border);
+          box-shadow: var(--glass-shadow);
+          border-radius: 16px;
+          transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
         }
+        .auth-box:hover {
+          border-color: transparent;
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 30px rgba(99, 102, 241, 0.2);
+          transform: translateY(-4px);
+        }
+        .auth-box::after {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          border-radius: 16px;
+          padding: 1.5px;
+          background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+          -webkit-mask: 
+             linear-gradient(#fff 0 0) content-box, 
+             linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor;
+                  mask-composite: exclude;
+          opacity: 0;
+          transition: opacity 0.4s ease;
+          pointer-events: none;
+        }
+        .auth-box:hover::after {
+          opacity: 1;
+        }
+        
         .auth-box h2 {
           font-size: 1.6rem;
           font-family: var(--font-display);
