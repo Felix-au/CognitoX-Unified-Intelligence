@@ -237,36 +237,30 @@ export default function LandingPage() {
           <div className="net-node node-n9"></div>
           <div className="net-node node-n10"></div>
           <div className="net-node node-n11"></div>
-          <div className="net-node node-n12"></div>
           <svg className="net-svg" viewBox="0 0 150 150">
-            {/* Outline connection lines */}
-            <line x1="75" y1="15" x2="55" y2="30" className="net-line" />
-            <line x1="75" y1="15" x2="95" y2="30" className="net-line" />
-            <line x1="55" y1="30" x2="35" y2="55" className="net-line" />
-            <line x1="95" y1="30" x2="115" y2="55" className="net-line" />
-            <line x1="35" y1="55" x2="45" y2="95" className="net-line" />
-            <line x1="115" y1="55" x2="105" y2="95" className="net-line" />
-            <line x1="45" y1="95" x2="75" y2="115" className="net-line" />
-            <line x1="105" y1="95" x2="75" y2="115" className="net-line" />
-            <line x1="75" y1="115" x2="75" y2="135" className="net-line" />
+            {/* Outer Silhouette */}
+            <line x1="75" y1="15" x2="50" y2="25" className="net-line" />
+            <line x1="75" y1="15" x2="100" y2="25" className="net-line" />
+            <line x1="50" y1="25" x2="40" y2="50" className="net-line" />
+            <line x1="100" y1="25" x2="110" y2="50" className="net-line" />
+            <line x1="40" y1="50" x2="30" y2="85" className="net-line" />
+            <line x1="110" y1="50" x2="120" y2="85" className="net-line" />
+            <line x1="30" y1="85" x2="50" y2="110" className="net-line" />
+            <line x1="120" y1="85" x2="100" y2="110" className="net-line" />
+            <line x1="50" y1="110" x2="75" y2="135" className="net-line" />
+            <line x1="100" y1="110" x2="75" y2="135" className="net-line" />
             
-            {/* Internal synapses */}
-            <line x1="75" y1="70" x2="75" y2="15" className="net-line" />
-            <line x1="75" y1="70" x2="55" y2="30" className="net-line" />
-            <line x1="75" y1="70" x2="95" y2="30" className="net-line" />
-            <line x1="75" y1="70" x2="35" y2="55" className="net-line" />
-            <line x1="75" y1="70" x2="115" y2="55" className="net-line" />
-            <line x1="75" y1="70" x2="55" y2="65" className="net-line" />
-            <line x1="75" y1="70" x2="95" y2="65" className="net-line" />
-            <line x1="75" y1="70" x2="45" y2="95" className="net-line" />
-            <line x1="75" y1="70" x2="105" y2="95" className="net-line" />
-            <line x1="75" y1="70" x2="75" y2="115" className="net-line" />
-            
-            {/* Cross hemispherical links */}
-            <line x1="55" y1="65" x2="35" y2="55" className="net-line" />
-            <line x1="95" y1="65" x2="115" y2="55" className="net-line" />
-            <line x1="55" y1="65" x2="45" y2="95" className="net-line" />
-            <line x1="95" y1="65" x2="105" y2="95" className="net-line" />
+            {/* Internal Synapse Core Connections */}
+            <line x1="75" y1="60" x2="75" y2="15" className="net-line" />
+            <line x1="75" y1="60" x2="50" y2="25" className="net-line" />
+            <line x1="75" y1="60" x2="100" y2="25" className="net-line" />
+            <line x1="75" y1="60" x2="40" y2="50" className="net-line" />
+            <line x1="75" y1="60" x2="110" y2="50" className="net-line" />
+            <line x1="75" y1="60" x2="30" y2="85" className="net-line" />
+            <line x1="75" y1="60" x2="120" y2="85" className="net-line" />
+            <line x1="75" y1="60" x2="50" y2="110" className="net-line" />
+            <line x1="75" y1="60" x2="100" y2="110" className="net-line" />
+            <line x1="75" y1="60" x2="75" y2="135" className="net-line" />
           </svg>
         </div>
       </div>
@@ -680,10 +674,10 @@ export default function LandingPage() {
           perspective: 500px;
         }
         .sub-construct-bottom-right {
-          bottom: 10%;
-          right: 8%;
-          width: 180px;
-          height: 180px;
+          bottom: 2%;
+          right: 2%;
+          width: 200px;
+          height: 200px;
           perspective: 600px;
         }
         @media (max-width: 968px) {
@@ -768,8 +762,8 @@ export default function LandingPage() {
         
         /* 3D Neural Net Visual */
         .neural-net-3d {
-          width: 150px;
-          height: 150px;
+          width: 180px;
+          height: 180px;
           position: relative;
           transform-style: preserve-3d;
           animation: spinNeural 20s linear infinite;
@@ -784,17 +778,16 @@ export default function LandingPage() {
           transform-style: preserve-3d;
         }
         .node-n1 { top: 10%; left: 50%; transform: translate(-50%, -50%) translateZ(40px); }
-        .node-n2 { top: 20%; left: 36.6%; transform: translate(-50%, -50%) translateZ(20px); }
-        .node-n3 { top: 20%; left: 63.3%; transform: translate(-50%, -50%) translateZ(-20px); }
-        .node-n4 { top: 36.6%; left: 23.3%; transform: translate(-50%, -50%) translateZ(30px); }
-        .node-n5 { top: 36.6%; left: 76.6%; transform: translate(-50%, -50%) translateZ(-30px); }
-        .node-n6 { top: 43.3%; left: 36.6%; transform: translate(-50%, -50%) translateZ(10px); }
-        .node-n7 { top: 43.3%; left: 63.3%; transform: translate(-50%, -50%) translateZ(-10px); }
-        .node-n8 { top: 46.6%; left: 50%; transform: translate(-50%, -50%) translateZ(0px); }
-        .node-n9 { top: 63.3%; left: 30%; transform: translate(-50%, -50%) translateZ(25px); }
-        .node-n10 { top: 63.3%; left: 70%; transform: translate(-50%, -50%) translateZ(-25px); }
-        .node-n11 { top: 76.6%; left: 50%; transform: translate(-50%, -50%) translateZ(35px); }
-        .node-n12 { top: 90%; left: 50%; transform: translate(-50%, -50%) translateZ(15px); }
+        .node-n2 { top: 16.7%; left: 33.3%; transform: translate(-50%, -50%) translateZ(20px); }
+        .node-n3 { top: 16.7%; left: 66.7%; transform: translate(-50%, -50%) translateZ(-20px); }
+        .node-n4 { top: 33.3%; left: 26.7%; transform: translate(-50%, -50%) translateZ(30px); }
+        .node-n5 { top: 33.3%; left: 73.3%; transform: translate(-50%, -50%) translateZ(-30px); }
+        .node-n6 { top: 40%; left: 50%; transform: translate(-50%, -50%) translateZ(0px); }
+        .node-n7 { top: 56.7%; left: 20%; transform: translate(-50%, -50%) translateZ(25px); }
+        .node-n8 { top: 56.7%; left: 80%; transform: translate(-50%, -50%) translateZ(-25px); }
+        .node-n9 { top: 73.3%; left: 33.3%; transform: translate(-50%, -50%) translateZ(15px); }
+        .node-n10 { top: 73.3%; left: 66.7%; transform: translate(-50%, -50%) translateZ(-15px); }
+        .node-n11 { top: 90%; left: 50%; transform: translate(-50%, -50%) translateZ(-40px); }
         
         .net-svg {
           position: absolute;
@@ -849,9 +842,8 @@ export default function LandingPage() {
           100% { transform: rotateY(360deg) rotateX(-360deg); }
         }
         @keyframes spinNeural {
-          0% { transform: rotateY(0deg) rotateX(10deg); }
-          50% { transform: rotateY(180deg) rotateX(-10deg); }
-          100% { transform: rotateY(360deg) rotateX(10deg); }
+          0% { transform: rotateY(0deg) rotateZ(0deg); }
+          100% { transform: rotateY(360deg) rotateZ(360deg); }
         }
 
         .features-grid {
