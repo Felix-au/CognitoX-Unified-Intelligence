@@ -72,7 +72,7 @@
   --accent-secondary: #0891b2;     /* Cyan 600 */
 
   /* Glassmorphism Presets (adjusted for light theme) */
-  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-bg: rgba(255, 255, 255, 0.28);
   --glass-border: rgba(0, 0, 0, 0.07);
   --glass-shadow: 0 8px 32px 0 rgba(15, 23, 42, 0.06);
   --glass-backdrop: blur(16px);
@@ -87,8 +87,8 @@
   --sidebar-active-text: var(--accent-primary);
 
   /* Glass Card Theme Variables */
-  --glass-card-bg: rgba(255, 255, 255, 0.65);
-  --glass-card-hover-bg: rgba(255, 255, 255, 0.85);
+  --glass-card-bg: rgba(255, 255, 255, 0.22);
+  --glass-card-hover-bg: rgba(255, 255, 255, 0.45);
   --glass-card-hover-border: rgba(99, 102, 241, 0.2);
 
   /* Secondary Button Theme Variables */

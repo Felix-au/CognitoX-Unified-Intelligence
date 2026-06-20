@@ -6,9 +6,9 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@/providers/ToastProvider";
 import { Sparkles, Terminal, FileText, Youtube, Image as ImageIcon, Chrome, Sun, Moon } from "lucide-react";
 import { auth, googleProvider } from "@/lib/firebase-client";
-import { 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
   signInWithPopup,
   sendEmailVerification
 } from "firebase/auth";
@@ -104,12 +104,7 @@ export default function LandingPage() {
     },
     {
       question: "Is there a free trial or usage limits?",
-      answer: "CognitoX offers complete access to all features in our standard workspace tier. Standard cognitive requests are processed securely with persistent session caching.",
-      tags: ["General"]
-    },
-    {
-      question: "Is CognitoX mobile responsive?",
-      answer: "Yes. The entire interface, from the landing page slide deck to the complex multi-panel chatbot workspaces, is designed to scale dynamically for smartphones, tablets, and desktops.",
+      answer: "CognitoX offers complete access to all features for free.",
       tags: ["General"]
     },
     {
@@ -163,11 +158,6 @@ export default function LandingPage() {
       tags: ["Tools"]
     },
     {
-      question: "Can I download text extracted by the Notes OCR tool?",
-      answer: "Yes. Once notes are extracted or summarized, you can copy them with a single click, save them to your notebook session, or export them to markdown files.",
-      tags: ["Tools"]
-    },
-    {
       question: "How does the Notes OCR protect my data privacy?",
       answer: "Unlike typical cloud-based scanners, CognitoX extracts text from document scans directly on your browser using a local Canvas drawing engine and image shaders. No document files are uploaded to third-party services.",
       tags: ["Security"]
@@ -185,11 +175,6 @@ export default function LandingPage() {
     {
       question: "Is my session data encrypted in transit?",
       answer: "Yes, all communications between the CognitoX frontend and backend API endpoints are encrypted in transit using industry-standard TLS 1.3 encryption protocols.",
-      tags: ["Security"]
-    },
-    {
-      question: "Can I request a full wipe of my saved history?",
-      answer: "Yes. You can permanently delete individual conversation histories, clear your session cache, or delete your account credentials directly from the account settings tab.",
       tags: ["Security"]
     }
   ];
@@ -271,7 +256,7 @@ export default function LandingPage() {
       let userCredential;
       if (authMode === "login") {
         userCredential = await signInWithEmailAndPassword(auth, email, password);
-        
+
         // Enforce email verification on login
         if (!userCredential.user.emailVerified) {
           // Attempt to send a verification link in case they missed the previous one
@@ -289,19 +274,19 @@ export default function LandingPage() {
         await handleNextAuthSignIn(idToken);
       } else {
         userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        
+
         // Send email verification link
         await sendEmailVerification(userCredential.user);
-        
+
         // Sign out of Firebase immediately so NextAuth does not automatically sign them in
         await auth.signOut();
-        
+
         showToast({
           type: "success",
           title: "Verification Link Sent",
           message: "Registration successful! A verification email has been sent to your inbox. Please verify your email before logging in.",
         });
-        
+
         setAuthMode("login");
       }
     } catch (err: any) {
@@ -310,7 +295,7 @@ export default function LandingPage() {
       else if (err.code === "auth/wrong-password") msg = "Incorrect password.";
       else if (err.code === "auth/email-already-in-use") msg = "Email already registered. Try logging in.";
       else if (err.code === "auth/weak-password") msg = "Password must be at least 6 characters.";
-      
+
       showToast({
         type: "error",
         title: "Auth Error",
@@ -483,9 +468,9 @@ export default function LandingPage() {
         </div>
       </div>
 
-      <button 
-        type="button" 
-        onClick={toggleTheme} 
+      <button
+        type="button"
+        onClick={toggleTheme}
         className="theme-toggle-btn glass-panel"
         title={theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
       >
@@ -494,8 +479,8 @@ export default function LandingPage() {
 
       {/* Floating Dot Navigation Indicators */}
       <div className="nav-dots">
-        <a 
-          href="#hero-section" 
+        <a
+          href="#hero-section"
           className={`nav-dot ${activeSection === "hero-section" ? "active" : ""}`}
           onClick={(e) => {
             e.preventDefault();
@@ -504,8 +489,8 @@ export default function LandingPage() {
           }}
           title="Branding & Login"
         ></a>
-        <a 
-          href="#faq-section" 
+        <a
+          href="#faq-section"
           className={`nav-dot ${activeSection === "faq-section" ? "active" : ""}`}
           onClick={(e) => {
             e.preventDefault();
@@ -514,8 +499,8 @@ export default function LandingPage() {
           }}
           title="Frequently Asked Questions"
         ></a>
-        <a 
-          href="#contact-section" 
+        <a
+          href="#contact-section"
           className={`nav-dot ${activeSection === "contact-section" ? "active" : ""}`}
           onClick={(e) => {
             e.preventDefault();
@@ -618,18 +603,18 @@ export default function LandingPage() {
                 <span className="divider-line"></span>
               </div>
 
-              <button 
+              <button
                 type="button"
-                onClick={handleGoogleSignIn} 
-                disabled={loading} 
+                onClick={handleGoogleSignIn}
+                disabled={loading}
                 className="google-signin-btn w-full"
               >
                 <div className="google-icon-wrapper">
                   <svg className="google-icon-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
-                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-                    <path fill="#4285F4" d="M46.5 24c0-1.55-.15-3.24-.47-4.77H24v9.03h12.75c-.55 2.89-2.2 5.33-4.66 7l7.25 5.62C43.59 36.65 46.5 30.87 46.5 24z"/>
-                    <path fill="#FBBC05" d="M10.54 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.98-6.19z"/>
-                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.25-5.62c-2.05 1.37-4.67 2.18-8.64 2.18-6.26 0-11.57-4.22-13.46-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+                    <path fill="#4285F4" d="M46.5 24c0-1.55-.15-3.24-.47-4.77H24v9.03h12.75c-.55 2.89-2.2 5.33-4.66 7l7.25 5.62C43.59 36.65 46.5 30.87 46.5 24z" />
+                    <path fill="#FBBC05" d="M10.54 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.98-6.19z" />
+                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.25-5.62c-2.05 1.37-4.67 2.18-8.64 2.18-6.26 0-11.57-4.22-13.46-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
                   </svg>
                 </div>
                 <span className="google-btn-text">Continue with Google</span>
@@ -662,7 +647,7 @@ export default function LandingPage() {
         <div className="faq-container glass-panel">
           <h2 className="section-title">Frequently Asked Questions</h2>
           <p className="section-subtitle">Learn more about CognitoX's unified intelligence capabilities</p>
-          
+
           <div className="faq-categories">
             {faqCategories.map((cat) => (
               <button
@@ -686,8 +671,8 @@ export default function LandingPage() {
                 const isOpen = activeFaq === index;
                 return (
                   <div key={index} className={`accordion-item ${isOpen ? 'active' : ''}`}>
-                    <button 
-                      onClick={() => setActiveFaq(isOpen ? null : index)} 
+                    <button
+                      onClick={() => setActiveFaq(isOpen ? null : index)}
                       className="accordion-header"
                       type="button"
                     >
@@ -707,18 +692,20 @@ export default function LandingPage() {
         </div>
 
         {/* SEO FAQ Schema Dynamic Injection */}
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "FAQPage",
-          "mainEntity": faqData.map(item => ({
-            "@type": "Question",
-            "name": item.question,
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": item.answer
-            }
-          }))
-        }) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            "mainEntity": faqData.map(item => ({
+              "@type": "Question",
+              "name": item.question,
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": item.answer
+              }
+            }))
+          })
+        }} />
       </section>
 
       {/* Section 3: Contact Developer Form */}
@@ -726,7 +713,7 @@ export default function LandingPage() {
         <div className="contact-container glass-panel">
           <h2>Contact Developer</h2>
           <p className="contact-intro">Submit a request to developers or report an issue in the workspace</p>
-          
+
           <form onSubmit={handleContactSubmit} className="contact-form">
             <div className="form-group">
               <label>Name</label>
@@ -739,7 +726,7 @@ export default function LandingPage() {
                 required
               />
             </div>
-            
+
             <div className="form-group">
               <label>Email Address</label>
               <input
@@ -751,7 +738,7 @@ export default function LandingPage() {
                 required
               />
             </div>
-            
+
             <div className="form-group">
               <label>Message</label>
               <textarea
@@ -763,7 +750,7 @@ export default function LandingPage() {
                 required
               ></textarea>
             </div>
-            
+
             <button type="submit" disabled={sendingMail} className="btn-primary w-full">
               {sendingMail ? "Sending Message..." : "Send Message"}
             </button>
