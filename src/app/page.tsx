@@ -821,12 +821,16 @@ export default function LandingPage() {
         }
 
         :global([data-theme="light"]) .construct-svg line {
-          stroke: rgba(0, 0, 0, 0.35) !important;
-          stroke-opacity: 1 !important;
+          stroke: rgba(0, 0, 0, 0.08) !important;
+          stroke-opacity: 0.5 !important;
         }
 
         :global([data-theme="light"]) .construct-svg circle {
           stroke: rgba(0, 0, 0, 0.2) !important;
+        }
+
+        :global([data-theme="light"]) .construct-svg .svg-ring-2 {
+          stroke: rgba(0, 0, 0, 0.06) !important;
         }
         
         /* Floating Neon Glow Backdrop */
