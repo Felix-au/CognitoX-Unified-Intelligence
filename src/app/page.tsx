@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/providers/ToastProvider";
-import { Sparkles, Terminal, FileText, Youtube, Image as ImageIcon, Chrome, Sun, Moon } from "lucide-react";
+import { Sparkles, Terminal, FileText, Youtube, Image as ImageIcon, Chrome, Sun, Moon, Mail, Send, HelpCircle, User, ChevronDown } from "lucide-react";
 import { auth, googleProvider } from "@/lib/firebase-client";
 import { 
   signInWithEmailAndPassword, 
@@ -22,6 +22,91 @@ export default function LandingPage() {
   const { showToast } = useToast();
 
   const [theme, setTheme] = useState<"light" | "dark">("dark");
+
+  // FAQ Accordion State
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
+  const toggleFaq = (index: number) => {
+    setOpenFaqIndex(openFaqIndex === index ? null : index);
+  };
+
+  // Contact Form State
+  const [contactName, setContactName] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [contactMessage, setContactMessage] = useState("");
+  const [sendingContact, setSendingContact] = useState(false);
+
+  // Active section for navigation dots
+  const [activeSection, setActiveSection] = useState("hero-section");
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const sections = ["hero-section", "faq-section", "contact-section"];
+      const scrollPosition = window.scrollY + window.innerHeight / 2;
+
+      for (const sectionId of sections) {
+        const el = document.getElementById(sectionId);
+        if (el) {
+          const top = el.offsetTop;
+          const height = el.offsetHeight;
+          if (scrollPosition >= top && scrollPosition < top + height) {
+            setActiveSection(sectionId);
+            break;
+          }
+        }
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const handleContactSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!contactName || !contactEmail || !contactMessage) {
+      showToast({
+        type: "error",
+        title: "Validation Error",
+        message: "Please fill in all contact form fields.",
+      });
+      return;
+    }
+
+    setSendingContact(true);
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: contactName,
+          email: contactEmail,
+          message: contactMessage,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to submit message.");
+      }
+
+      showToast({
+        type: "success",
+        title: "Message Delivered",
+        message: "Thank you! Your message has been sent to the developer.",
+      });
+      setContactName("");
+      setContactEmail("");
+      setContactMessage("");
+    } catch (err: any) {
+      showToast({
+        type: "error",
+        title: "Delivery Failed",
+        message: err.message || "Could not deliver message. Please try again.",
+      });
+    } finally {
+      setSendingContact(false);
+    }
+  };
 
   useEffect(() => {
     const activeTheme = document.documentElement.getAttribute("data-theme") as "light" | "dark" || "dark";
@@ -296,146 +381,341 @@ export default function LandingPage() {
         {theme === "light" ? <Moon className="theme-toggle-icon" /> : <Sun className="theme-toggle-icon" />}
       </button>
 
-      <div className="landing-grid">
-        {/* Left Side: Branding & Features */}
-        <div className="branding-section">
-          <div className="landing-brand-header">
-            <img src="/logo.png" alt="CognitoX Logo" className="logo-icon" />
-            <h1 className="hero-title">
-              Unified Intelligence across <br />
-              <span className="gradient-text">Web, Media, Notes &amp; Visuals</span>
-            </h1>
+      {/* Scroll Navigation Dots */}
+      <div className="nav-dots">
+        <a href="#hero-section" className={`nav-dot ${activeSection === "hero-section" ? "active" : ""}`} title="Hero Workspace"></a>
+        <a href="#faq-section" className={`nav-dot ${activeSection === "faq-section" ? "active" : ""}`} title="FAQ Studio"></a>
+        <a href="#contact-section" className={`nav-dot ${activeSection === "contact-section" ? "active" : ""}`} title="Contact Developer"></a>
+      </div>
+
+      {/* Slide 1: Hero and Authentication */}
+      <section className="landing-section" id="hero-section">
+        <div className="landing-grid">
+          {/* Left Side: Branding & Features */}
+          <div className="branding-section">
+            <div className="landing-brand-header">
+              <img src="/logo.png" alt="CognitoX Logo" className="logo-icon" />
+              <h1 className="hero-title">
+                Unified Intelligence across <br />
+                <span className="gradient-text">Web, Media, Notes &amp; Visuals</span>
+              </h1>
+            </div>
+
+            <div className="features-grid">
+              <div className="feature-card glass-card">
+                <FileText className="feat-icon text-indigo" />
+                <div>
+                  <h3>Smart Notes OCR</h3>
+                  <p>Convert scanned notes into organized study sheets instantly.</p>
+                </div>
+              </div>
+
+              <div className="feature-card glass-card">
+                <Youtube className="feat-icon text-cyan" />
+                <div>
+                  <h3>YouTube Analyzer</h3>
+                  <p>Crawl media transcripts to generate rich outlines and prep tests.</p>
+                </div>
+              </div>
+
+              <div className="feature-card glass-card">
+                <Terminal className="feat-icon text-green" />
+                <div>
+                  <h3>Diagram Studio</h3>
+                  <p>Compile descriptions into interactive Mermaid.js diagrams.</p>
+                </div>
+              </div>
+
+              <div className="feature-card glass-card">
+                <ImageIcon className="feat-icon text-pink" />
+                <div>
+                  <h3>Premium Image Filters</h3>
+                  <p>Enhance scans client-side with Canny edge and Sobel filters.</p>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="features-grid">
-            <div className="feature-card glass-card">
-              <FileText className="feat-icon text-indigo" />
-              <div>
-                <h3>Smart Notes OCR</h3>
-                <p>Convert scanned notes into organized study sheets instantly.</p>
-              </div>
-            </div>
+          {/* Right Side: Firebase Authentication Panel */}
+          <div className="auth-section">
+            <div className="auth-box">
+              <h2>{authMode === "login" ? "Welcome Back" : "Create Account"}</h2>
+              <p className="auth-intro">
+                {authMode === "login" ? "Sign in to access your cognitive workspace." : "Register to start your sandboxed workspace."}
+              </p>
 
-            <div className="feature-card glass-card">
-              <Youtube className="feat-icon text-cyan" />
-              <div>
-                <h3>YouTube Analyzer</h3>
-                <p>Crawl media transcripts to generate rich outlines and prep tests.</p>
-              </div>
-            </div>
+              <form onSubmit={handleEmailAuth} className="auth-form">
+                <div className="form-group">
+                  <label>Email Address</label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="user@example.com"
+                    className="input-field"
+                    required
+                  />
+                </div>
 
-            <div className="feature-card glass-card">
-              <Terminal className="feat-icon text-green" />
-              <div>
-                <h3>Diagram Studio</h3>
-                <p>Compile descriptions into interactive Mermaid.js diagrams.</p>
-              </div>
-            </div>
+                <div className="form-group">
+                  <label>Password</label>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="input-field"
+                    required
+                  />
+                </div>
 
-            <div className="feature-card glass-card">
-              <ImageIcon className="feat-icon text-pink" />
-              <div>
-                <h3>Premium Image Filters</h3>
-                <p>Enhance scans client-side with Canny edge and Sobel filters.</p>
+                <button type="submit" disabled={loading} className="btn-primary w-full">
+                  {loading ? "Authenticating..." : authMode === "login" ? "Enter CognitoX" : "Register Account"}
+                </button>
+              </form>
+
+              <div className="divider-row">
+                <span className="divider-line"></span>
+                <span className="divider-text">or continue with</span>
+                <span className="divider-line"></span>
+              </div>
+
+              <button 
+                type="button"
+                onClick={handleGoogleSignIn} 
+                disabled={loading} 
+                className="google-signin-btn w-full"
+              >
+                <div className="google-icon-wrapper">
+                  <svg className="google-icon-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                    <path fill="#4285F4" d="M46.5 24c0-1.55-.15-3.24-.47-4.77H24v9.03h12.75c-.55 2.89-2.2 5.33-4.66 7l7.25 5.62C43.59 36.65 46.5 30.87 46.5 24z"/>
+                    <path fill="#FBBC05" d="M10.54 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.98-6.19z"/>
+                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.25-5.62c-2.05 1.37-4.67 2.18-8.64 2.18-6.26 0-11.57-4.22-13.46-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                  </svg>
+                </div>
+                <span className="google-btn-text">Continue with Google</span>
+              </button>
+
+              <div className="auth-toggle">
+                {authMode === "login" ? (
+                  <p>
+                    Don't have an account?{" "}
+                    <span onClick={() => setAuthMode("signup")} className="toggle-link">
+                      Sign Up
+                    </span>
+                  </p>
+                ) : (
+                  <p>
+                    Already have an account?{" "}
+                    <span onClick={() => setAuthMode("login")} className="toggle-link">
+                      Log In
+                    </span>
+                  </p>
+                )}
               </div>
             </div>
           </div>
         </div>
+      </section>
 
-        {/* Right Side: Firebase Authentication Panel */}
-        <div className="auth-section">
-          <div className="auth-box">
-            <h2>{authMode === "login" ? "Welcome Back" : "Create Account"}</h2>
-            <p className="auth-intro">
-              {authMode === "login" ? "Sign in to access your cognitive workspace." : "Register to start your sandboxed workspace."}
-            </p>
+      {/* Slide 2: FAQ Accordion Section */}
+      <section className="landing-section" id="faq-section">
+        <div className="faq-container">
+          <div className="faq-header">
+            <h2 className="hero-title"><span className="gradient-text">Frequently Asked Questions</span></h2>
+            <p className="auth-intro">Everything you need to know about the CognitoX workspace.</p>
+          </div>
 
-            <form onSubmit={handleEmailAuth} className="auth-form">
+          <div className="faq-accordion">
+            <div className={`faq-item ${openFaqIndex === 0 ? "open" : ""}`}>
+              <button onClick={() => toggleFaq(0)} className="faq-trigger">
+                <span>What is CognitoX?</span>
+                <ChevronDown className="faq-icon-toggle" />
+              </button>
+              <div className="faq-content">
+                <p>CognitoX is a unified intelligence workspace and cognitive AI sandbox. It brings together document parsing, media crawls, diagram compilation, and image filters into a single, cohesive, sandboxed workspace.</p>
+              </div>
+            </div>
+
+            <div className={`faq-item ${openFaqIndex === 1 ? "open" : ""}`}>
+              <button onClick={() => toggleFaq(1)} className="faq-trigger">
+                <span>How does Notes OCR protect my data?</span>
+                <ChevronDown className="faq-icon-toggle" />
+              </button>
+              <div className="faq-content">
+                <p>Unlike cloud-based parsers, Notes OCR extracts raw text locally in your browser using canvas rendering. Combined with edge-detection filters, you can clean and sanitize your documents before sending them to the chat.</p>
+              </div>
+            </div>
+
+            <div className={`faq-item ${openFaqIndex === 2 ? "open" : ""}`}>
+              <button onClick={() => toggleFaq(2)} className="faq-trigger">
+                <span>Why use CognitoX instead of normal ChatGPT?</span>
+                <ChevronDown className="faq-icon-toggle" />
+              </button>
+              <div className="faq-content">
+                <p>Traditional chat tools are text-only. CognitoX offers specialized interactive workspaces tailored for study guides, YouTube transcript crawling, and Mermaid diagram compiling, synced to a secure MongoDB database.</p>
+              </div>
+            </div>
+
+            <div className={`faq-item ${openFaqIndex === 3 ? "open" : ""}`}>
+              <button onClick={() => toggleFaq(3)} className="faq-trigger">
+                <span>Are my diagram studio outlines saved locally?</span>
+                <ChevronDown className="faq-icon-toggle" />
+              </button>
+              <div className="faq-content">
+                <p>Yes, all your chatbot threads and tool workspace states are saved to your secure MongoDB database through Prisma. You can rename, archive, and manage your cognitive history from the sidebar.</p>
+              </div>
+            </div>
+          </div>
+
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                "mainEntity": [
+                  {
+                    "@type": "Question",
+                    "name": "What is CognitoX?",
+                    "acceptedAnswer": {
+                      "@type": "Answer",
+                      "text": "CognitoX is a unified intelligence workspace and cognitive AI sandbox. It brings together document parsing, media crawls, diagram compilation, and image filters into a single, cohesive, sandboxed workspace."
+                    }
+                  },
+                  {
+                    "@type": "Question",
+                    "name": "How does Notes OCR protect my data?",
+                    "acceptedAnswer": {
+                      "@type": "Answer",
+                      "text": "Unlike cloud-based parsers, Notes OCR extracts raw text locally in your browser using canvas rendering. Combined with edge-detection filters, you can clean and sanitize your documents before sending them to the chat."
+                    }
+                  },
+                  {
+                    "@type": "Question",
+                    "name": "Why use CognitoX instead of normal ChatGPT?",
+                    "acceptedAnswer": {
+                      "@type": "Answer",
+                      "text": "Traditional chat tools are text-only. CognitoX offers specialized interactive workspaces tailored for study guides, YouTube transcript crawling, and Mermaid diagram compiling, synced to a secure MongoDB database."
+                    }
+                  },
+                  {
+                    "@type": "Question",
+                    "name": "Are my diagram studio outlines saved locally?",
+                    "acceptedAnswer": {
+                      "@type": "Answer",
+                      "text": "Yes, all your chatbot threads and tool workspace states are saved to your secure MongoDB database through Prisma. You can rename, archive, and manage your cognitive history from the sidebar."
+                    }
+                  }
+                ]
+              })
+            }}
+          />
+        </div>
+      </section>
+
+      {/* Slide 3: Contact Developer Section */}
+      <section className="landing-section" id="contact-section">
+        <div className="contact-container">
+          <div className="contact-box">
+            <div className="contact-header">
+              <h2 className="hero-title"><span className="gradient-text">Contact Developer</span></h2>
+              <p className="contact-intro">Send a message directly to Felix-au (Harshit Soni).</p>
+            </div>
+
+            <form onSubmit={handleContactSubmit} className="auth-form">
+              <div className="form-group">
+                <label>Your Name</label>
+                <div style={{ position: "relative" }}>
+                  <input
+                    type="text"
+                    value={contactName}
+                    onChange={(e) => setContactName(e.target.value)}
+                    placeholder="John Doe"
+                    className="input-field"
+                    required
+                    style={{ paddingLeft: "36px" }}
+                  />
+                  <User size={16} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "var(--text-secondary)" }} />
+                </div>
+              </div>
+
               <div className="form-group">
                 <label>Email Address</label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="user@example.com"
-                  className="input-field"
-                  required
-                />
+                <div style={{ position: "relative" }}>
+                  <input
+                    type="email"
+                    value={contactEmail}
+                    onChange={(e) => setContactEmail(e.target.value)}
+                    placeholder="user@example.com"
+                    className="input-field"
+                    required
+                    style={{ paddingLeft: "36px" }}
+                  />
+                  <Mail size={16} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "var(--text-secondary)" }} />
+                </div>
               </div>
 
               <div className="form-group">
-                <label>Password</label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
+                <label>Your Message</label>
+                <textarea
+                  value={contactMessage}
+                  onChange={(e) => setContactMessage(e.target.value)}
+                  placeholder="How can I help you compile your cognitive space?"
                   className="input-field"
                   required
+                  rows={4}
+                  style={{ resize: "none" }}
                 />
               </div>
 
-              <button type="submit" disabled={loading} className="btn-primary w-full">
-                {loading ? "Authenticating..." : authMode === "login" ? "Enter CognitoX" : "Register Account"}
+              <button type="submit" disabled={sendingContact} className="btn-primary w-full">
+                {sendingContact ? "Sending..." : "Send Message"}
+                <Send size={14} style={{ marginLeft: "6px" }} />
               </button>
             </form>
-
-            <div className="divider-row">
-              <span className="divider-line"></span>
-              <span className="divider-text">or continue with</span>
-              <span className="divider-line"></span>
-            </div>
-
-            <button 
-              type="button"
-              onClick={handleGoogleSignIn} 
-              disabled={loading} 
-              className="google-signin-btn w-full"
-            >
-              <div className="google-icon-wrapper">
-                <svg className="google-icon-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
-                  <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-                  <path fill="#4285F4" d="M46.5 24c0-1.55-.15-3.24-.47-4.77H24v9.03h12.75c-.55 2.89-2.2 5.33-4.66 7l7.25 5.62C43.59 36.65 46.5 30.87 46.5 24z"/>
-                  <path fill="#FBBC05" d="M10.54 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.98-6.19z"/>
-                  <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.25-5.62c-2.05 1.37-4.67 2.18-8.64 2.18-6.26 0-11.57-4.22-13.46-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-                </svg>
-              </div>
-              <span className="google-btn-text">Continue with Google</span>
-            </button>
-
-            <div className="auth-toggle">
-              {authMode === "login" ? (
-                <p>
-                  Don't have an account?{" "}
-                  <span onClick={() => setAuthMode("signup")} className="toggle-link">
-                    Sign Up
-                  </span>
-                </p>
-              ) : (
-                <p>
-                  Already have an account?{" "}
-                  <span onClick={() => setAuthMode("login")} className="toggle-link">
-                    Log In
-                  </span>
-                </p>
-              )}
-            </div>
           </div>
         </div>
-      </div>
+      </section>
 
       <style jsx>{`
         .landing-container {
-          min-height: 100vh;
+          height: 100vh;
+          height: 100dvh;
           width: 100vw;
+          display: flex;
+          flex-direction: column;
+          position: relative;
+          background: var(--bg-color);
+          overflow-y: scroll;
+          scroll-snap-type: y mandatory;
+          scroll-behavior: smooth;
+          -webkit-overflow-scrolling: touch;
+        }
+
+        .landing-section {
+          height: 100vh;
+          height: 100dvh;
+          width: 100vw;
+          scroll-snap-align: start;
+          scroll-snap-stop: always;
           display: flex;
           align-items: center;
           justify-content: center;
           position: relative;
-          background: var(--bg-color);
-          overflow: hidden;
-          padding: 24px;
-          transition: background-color 0.3s ease;
+          padding: 40px 24px;
+          overflow-y: auto;
+          flex-shrink: 0;
+        }
+
+        /* Fixed background overlay */
+        .dotted-canvas, 
+        .landing-glow-orb, 
+        .construct-container, 
+        .sub-construct {
+          position: fixed !important;
+        }
           
           /* Visual variables (Dark Space theme default) */
           --grad-opacity: 0.18;
@@ -1145,6 +1425,176 @@ export default function LandingPage() {
         }
         .toggle-link:hover {
           text-decoration: underline;
+        }
+
+        /* Navigation Dots */
+        .nav-dots {
+          position: fixed;
+          right: 24px;
+          top: 50%;
+          transform: translateY(-50%);
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          z-index: 100;
+        }
+        .nav-dot {
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.2);
+          border: 1px solid rgba(255, 255, 255, 0.4);
+          transition: all 0.3s ease;
+        }
+        :global([data-theme="light"]) .nav-dot {
+          background: rgba(0, 0, 0, 0.2);
+          border: 1px solid rgba(0, 0, 0, 0.4);
+        }
+        .nav-dot:hover {
+          transform: scale(1.3);
+          background: var(--accent-primary);
+        }
+        .nav-dot.active {
+          transform: scale(1.3);
+          background: var(--accent-primary);
+          box-shadow: 0 0 10px var(--accent-primary);
+        }
+
+        /* FAQ Accordion Styling */
+        .faq-container {
+          width: 100%;
+          max-width: 800px;
+          display: flex;
+          flex-direction: column;
+          gap: 24px;
+          z-index: 10;
+        }
+        .faq-header {
+          text-align: center;
+          margin-bottom: 8px;
+        }
+        .faq-accordion {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+        .faq-item {
+          border-radius: 12px;
+          border: 1px solid var(--glass-border);
+          background: var(--glass-card-bg);
+          overflow: hidden;
+          transition: all 0.3s ease;
+        }
+        .faq-item:hover {
+          border-color: var(--glass-card-hover-border);
+          background: var(--glass-card-hover-bg);
+        }
+        .faq-trigger {
+          width: 100%;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 18px 24px;
+          background: transparent;
+          border: none;
+          color: var(--text-primary);
+          font-family: var(--font-display);
+          font-weight: 600;
+          font-size: 1.05rem;
+          text-align: left;
+          cursor: pointer;
+          transition: color 0.2s;
+        }
+        .faq-trigger:hover {
+          color: var(--accent-primary);
+        }
+        .faq-icon-toggle {
+          transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          color: var(--accent-primary);
+        }
+        .faq-item.open .faq-icon-toggle {
+          transform: rotate(180deg);
+        }
+        .faq-content {
+          max-height: 0;
+          overflow: hidden;
+          transition: max-height 0.4s cubic-bezier(0.25, 1, 0.5, 1), padding 0.4s ease;
+          padding: 0 24px;
+          color: var(--text-secondary);
+          font-size: 0.88rem;
+          line-height: 1.6;
+        }
+        .faq-item.open .faq-content {
+          max-height: 200px;
+          padding-bottom: 20px;
+        }
+
+        /* Contact Form Styling */
+        .contact-container {
+          width: 100%;
+          max-width: 500px;
+          z-index: 10;
+        }
+        .contact-box {
+          width: 100%;
+          padding: 32px;
+          position: relative;
+          background: rgba(10, 10, 10, 0.45);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+          border-radius: 16px;
+          transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        :global([data-theme="light"]) .contact-box {
+          background: rgba(255, 255, 255, 0.45);
+          border: 1px solid rgba(0, 0, 0, 0.08);
+          box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+        }
+        .contact-box:hover {
+          border-color: transparent;
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 30px rgba(99, 102, 241, 0.2);
+          transform: translateY(-4px);
+        }
+        :global([data-theme="light"]) .contact-box:hover {
+          box-shadow: 0 20px 40px rgba(31, 38, 135, 0.15), 0 0 30px rgba(99, 102, 241, 0.15);
+        }
+        .contact-box::after {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          border-radius: 16px;
+          padding: 1.5px;
+          background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+          -webkit-mask: 
+             linear-gradient(#fff 0 0) content-box, 
+             linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor;
+                  mask-composite: exclude;
+          opacity: 0;
+          transition: opacity 0.4s ease;
+          pointer-events: none;
+        }
+        .contact-box:hover::after {
+          opacity: 1;
+        }
+        
+        .contact-header {
+          text-align: center;
+          margin-bottom: 24px;
+        }
+        .contact-header h2 {
+          font-size: 1.6rem;
+          font-family: var(--font-display);
+          margin-bottom: 6px;
+        }
+        .contact-intro {
+          font-size: 0.82rem;
+          color: var(--text-secondary);
         }
       `}</style>
     </main>
