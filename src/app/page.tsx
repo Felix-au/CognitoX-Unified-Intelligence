@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/providers/ToastProvider";
-import { Sparkles, Terminal, FileText, Youtube, Image as ImageIcon, Chrome, Sun, Moon, Mail, Send, HelpCircle, User, ChevronDown } from "lucide-react";
+import { Sparkles, Terminal, FileText, Youtube, Image as ImageIcon, Chrome, Sun, Moon } from "lucide-react";
 import { auth, googleProvider } from "@/lib/firebase-client";
 import { 
   signInWithEmailAndPassword, 
@@ -22,43 +22,16 @@ export default function LandingPage() {
   const { showToast } = useToast();
 
   const [theme, setTheme] = useState<"light" | "dark">("dark");
+  const [activeSection, setActiveSection] = useState("hero-section");
 
   // FAQ Accordion State
-  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
-  const toggleFaq = (index: number) => {
-    setOpenFaqIndex(openFaqIndex === index ? null : index);
-  };
+  const [activeFaq, setActiveFaq] = useState<number | null>(null);
 
   // Contact Form State
   const [contactName, setContactName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
   const [contactMessage, setContactMessage] = useState("");
-  const [sendingContact, setSendingContact] = useState(false);
-
-  // Active section for navigation dots
-  const [activeSection, setActiveSection] = useState("hero-section");
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const sections = ["hero-section", "faq-section", "contact-section"];
-      const scrollPosition = window.scrollY + window.innerHeight / 2;
-
-      for (const sectionId of sections) {
-        const el = document.getElementById(sectionId);
-        if (el) {
-          const top = el.offsetTop;
-          const height = el.offsetHeight;
-          if (scrollPosition >= top && scrollPosition < top + height) {
-            setActiveSection(sectionId);
-            break;
-          }
-        }
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  const [sendingMail, setSendingMail] = useState(false);
 
   const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,12 +39,11 @@ export default function LandingPage() {
       showToast({
         type: "error",
         title: "Validation Error",
-        message: "Please fill in all contact form fields.",
+        message: "Please fill out all fields.",
       });
       return;
     }
-
-    setSendingContact(true);
+    setSendingMail(true);
     try {
       const res = await fetch("/api/contact", {
         method: "POST",
@@ -82,36 +54,83 @@ export default function LandingPage() {
           message: contactMessage,
         }),
       });
-
       const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || "Failed to submit message.");
+      if (res.ok && data.success) {
+        showToast({
+          type: "success",
+          title: "Message Sent",
+          message: "Your message has been dispatched successfully!",
+        });
+        setContactName("");
+        setContactEmail("");
+        setContactMessage("");
+      } else {
+        showToast({
+          type: "error",
+          title: "Dispatch Failed",
+          message: data.message || "Failed to send email.",
+        });
       }
-
-      showToast({
-        type: "success",
-        title: "Message Delivered",
-        message: "Thank you! Your message has been sent to the developer.",
-      });
-      setContactName("");
-      setContactEmail("");
-      setContactMessage("");
-    } catch (err: any) {
+    } catch (err) {
+      console.error(err);
       showToast({
         type: "error",
-        title: "Delivery Failed",
-        message: err.message || "Could not deliver message. Please try again.",
+        title: "Network Error",
+        message: "Could not connect to the mail gateway.",
       });
     } finally {
-      setSendingContact(false);
+      setSendingMail(false);
     }
   };
+
+  const faqData = [
+    {
+      question: "What is CognitoX?",
+      answer: "CognitoX is a premium unified intelligence workspace and cognitive AI sandbox that combines document OCR, YouTube transcript analysis, interactive Mermaid.js diagram studio, and client-side canvas filters in one single interface."
+    },
+    {
+      question: "How does Notes OCR protect my data?",
+      answer: "Unlike typical cloud scanners, CognitoX extracts text from document scans directly on your browser using a local Canvas drawing engine and Sobel/Canny image shaders. Your raw files are processed sandboxed client-side before any prompt execution."
+    },
+    {
+      question: "Why use CognitoX instead of ChatGPT in browser?",
+      answer: "CognitoX unifies disparate cognitive workloads (transcribing, OCR extracting, code compiling, image editing, and chatting) into a single workspace, backed by a persistent MongoDB session cache so you don't lose context."
+    },
+    {
+      question: "Are my diagram studio files saved?",
+      answer: "Yes. All note summaries, YouTube analysis mock tests, and compiled diagrams are securely written to your custom MongoDB Atlas cluster collections via a high-performance Prisma client."
+    }
+  ];
 
   useEffect(() => {
     const activeTheme = document.documentElement.getAttribute("data-theme") as "light" | "dark" || "dark";
     setTheme(activeTheme);
     document.title = "CognitoX: Unified Intelligence Workspace";
+
+    // IntersectionObserver to track active scrolling section for nav-dots
+    const sections = ["hero-section", "faq-section", "contact-section"];
+    const observers = sections.map((id) => {
+      const el = document.getElementById(id);
+      if (!el) return null;
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            setActiveSection(id);
+          }
+        },
+        { threshold: 0.5 }
+      );
+      observer.observe(el);
+      return { observer, el };
+    });
+
+    return () => {
+      observers.forEach((obs) => {
+        if (obs) {
+          obs.observer.unobserve(obs.el);
+        }
+      });
+    };
   }, []);
 
   const toggleTheme = () => {
@@ -381,14 +400,41 @@ export default function LandingPage() {
         {theme === "light" ? <Moon className="theme-toggle-icon" /> : <Sun className="theme-toggle-icon" />}
       </button>
 
-      {/* Scroll Navigation Dots */}
+      {/* Floating Dot Navigation Indicators */}
       <div className="nav-dots">
-        <a href="#hero-section" className={`nav-dot ${activeSection === "hero-section" ? "active" : ""}`} title="Hero Workspace"></a>
-        <a href="#faq-section" className={`nav-dot ${activeSection === "faq-section" ? "active" : ""}`} title="FAQ Studio"></a>
-        <a href="#contact-section" className={`nav-dot ${activeSection === "contact-section" ? "active" : ""}`} title="Contact Developer"></a>
+        <a 
+          href="#hero-section" 
+          className={`nav-dot ${activeSection === "hero-section" ? "active" : ""}`}
+          onClick={(e) => {
+            e.preventDefault();
+            document.getElementById("hero-section")?.scrollIntoView({ behavior: "smooth" });
+            setActiveSection("hero-section");
+          }}
+          title="Branding & Login"
+        ></a>
+        <a 
+          href="#faq-section" 
+          className={`nav-dot ${activeSection === "faq-section" ? "active" : ""}`}
+          onClick={(e) => {
+            e.preventDefault();
+            document.getElementById("faq-section")?.scrollIntoView({ behavior: "smooth" });
+            setActiveSection("faq-section");
+          }}
+          title="Frequently Asked Questions"
+        ></a>
+        <a 
+          href="#contact-section" 
+          className={`nav-dot ${activeSection === "contact-section" ? "active" : ""}`}
+          onClick={(e) => {
+            e.preventDefault();
+            document.getElementById("contact-section")?.scrollIntoView({ behavior: "smooth" });
+            setActiveSection("contact-section");
+          }}
+          title="Contact Developer"
+        ></a>
       </div>
 
-      {/* Slide 1: Hero and Authentication */}
+      {/* Section 1: Hero & Authentication */}
       <section className="landing-section" id="hero-section">
         <div className="landing-grid">
           {/* Left Side: Branding & Features */}
@@ -519,203 +565,109 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Slide 2: FAQ Accordion Section */}
+      {/* Section 2: FAQ Accordion */}
       <section className="landing-section" id="faq-section">
-        <div className="faq-container">
-          <div className="faq-header">
-            <h2 className="hero-title"><span className="gradient-text">Frequently Asked Questions</span></h2>
-            <p className="auth-intro">Everything you need to know about the CognitoX workspace.</p>
+        <div className="faq-container glass-panel">
+          <h2 className="section-title">Frequently Asked Questions</h2>
+          <p className="section-subtitle">Learn more about CognitoX's unified intelligence capabilities</p>
+          
+          <div className="accordion">
+            {faqData.map((item, index) => {
+              const isOpen = activeFaq === index;
+              return (
+                <div key={index} className={`accordion-item ${isOpen ? 'active' : ''}`}>
+                  <button 
+                    onClick={() => setActiveFaq(isOpen ? null : index)} 
+                    className="accordion-header"
+                    type="button"
+                  >
+                    <span>{item.question}</span>
+                    <span className="accordion-icon">{isOpen ? "−" : "+"}</span>
+                  </button>
+                  <div className="accordion-content">
+                    <p>{item.answer}</p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-
-          <div className="faq-accordion">
-            <div className={`faq-item ${openFaqIndex === 0 ? "open" : ""}`}>
-              <button onClick={() => toggleFaq(0)} className="faq-trigger">
-                <span>What is CognitoX?</span>
-                <ChevronDown className="faq-icon-toggle" />
-              </button>
-              <div className="faq-content">
-                <p>CognitoX is a unified intelligence workspace and cognitive AI sandbox. It brings together document parsing, media crawls, diagram compilation, and image filters into a single, cohesive, sandboxed workspace.</p>
-              </div>
-            </div>
-
-            <div className={`faq-item ${openFaqIndex === 1 ? "open" : ""}`}>
-              <button onClick={() => toggleFaq(1)} className="faq-trigger">
-                <span>How does Notes OCR protect my data?</span>
-                <ChevronDown className="faq-icon-toggle" />
-              </button>
-              <div className="faq-content">
-                <p>Unlike cloud-based parsers, Notes OCR extracts raw text locally in your browser using canvas rendering. Combined with edge-detection filters, you can clean and sanitize your documents before sending them to the chat.</p>
-              </div>
-            </div>
-
-            <div className={`faq-item ${openFaqIndex === 2 ? "open" : ""}`}>
-              <button onClick={() => toggleFaq(2)} className="faq-trigger">
-                <span>Why use CognitoX instead of normal ChatGPT?</span>
-                <ChevronDown className="faq-icon-toggle" />
-              </button>
-              <div className="faq-content">
-                <p>Traditional chat tools are text-only. CognitoX offers specialized interactive workspaces tailored for study guides, YouTube transcript crawling, and Mermaid diagram compiling, synced to a secure MongoDB database.</p>
-              </div>
-            </div>
-
-            <div className={`faq-item ${openFaqIndex === 3 ? "open" : ""}`}>
-              <button onClick={() => toggleFaq(3)} className="faq-trigger">
-                <span>Are my diagram studio outlines saved locally?</span>
-                <ChevronDown className="faq-icon-toggle" />
-              </button>
-              <div className="faq-content">
-                <p>Yes, all your chatbot threads and tool workspace states are saved to your secure MongoDB database through Prisma. You can rename, archive, and manage your cognitive history from the sidebar.</p>
-              </div>
-            </div>
-          </div>
-
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{
-              __html: JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "FAQPage",
-                "mainEntity": [
-                  {
-                    "@type": "Question",
-                    "name": "What is CognitoX?",
-                    "acceptedAnswer": {
-                      "@type": "Answer",
-                      "text": "CognitoX is a unified intelligence workspace and cognitive AI sandbox. It brings together document parsing, media crawls, diagram compilation, and image filters into a single, cohesive, sandboxed workspace."
-                    }
-                  },
-                  {
-                    "@type": "Question",
-                    "name": "How does Notes OCR protect my data?",
-                    "acceptedAnswer": {
-                      "@type": "Answer",
-                      "text": "Unlike cloud-based parsers, Notes OCR extracts raw text locally in your browser using canvas rendering. Combined with edge-detection filters, you can clean and sanitize your documents before sending them to the chat."
-                    }
-                  },
-                  {
-                    "@type": "Question",
-                    "name": "Why use CognitoX instead of normal ChatGPT?",
-                    "acceptedAnswer": {
-                      "@type": "Answer",
-                      "text": "Traditional chat tools are text-only. CognitoX offers specialized interactive workspaces tailored for study guides, YouTube transcript crawling, and Mermaid diagram compiling, synced to a secure MongoDB database."
-                    }
-                  },
-                  {
-                    "@type": "Question",
-                    "name": "Are my diagram studio outlines saved locally?",
-                    "acceptedAnswer": {
-                      "@type": "Answer",
-                      "text": "Yes, all your chatbot threads and tool workspace states are saved to your secure MongoDB database through Prisma. You can rename, archive, and manage your cognitive history from the sidebar."
-                    }
-                  }
-                ]
-              })
-            }}
-          />
         </div>
+
+        {/* SEO FAQ Schema Dynamic Injection */}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          "mainEntity": faqData.map(item => ({
+            "@type": "Question",
+            "name": item.question,
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": item.answer
+            }
+          }))
+        }) }} />
       </section>
 
-      {/* Slide 3: Contact Developer Section */}
+      {/* Section 3: Contact Developer Form */}
       <section className="landing-section" id="contact-section">
-        <div className="contact-container">
-          <div className="contact-box">
-            <div className="contact-header">
-              <h2 className="hero-title"><span className="gradient-text">Contact Developer</span></h2>
-              <p className="contact-intro">Send a message directly to Felix-au (Harshit Soni).</p>
+        <div className="contact-container glass-panel">
+          <h2>Contact Developer</h2>
+          <p className="contact-intro">Submit a request to developers or report an issue in the workspace</p>
+          
+          <form onSubmit={handleContactSubmit} className="contact-form">
+            <div className="form-group">
+              <label>Name</label>
+              <input
+                type="text"
+                value={contactName}
+                onChange={(e) => setContactName(e.target.value)}
+                placeholder="Your Name"
+                className="input-field"
+                required
+              />
             </div>
-
-            <form onSubmit={handleContactSubmit} className="auth-form">
-              <div className="form-group">
-                <label>Your Name</label>
-                <div style={{ position: "relative" }}>
-                  <input
-                    type="text"
-                    value={contactName}
-                    onChange={(e) => setContactName(e.target.value)}
-                    placeholder="John Doe"
-                    className="input-field"
-                    required
-                    style={{ paddingLeft: "36px" }}
-                  />
-                  <User size={16} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "var(--text-secondary)" }} />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label>Email Address</label>
-                <div style={{ position: "relative" }}>
-                  <input
-                    type="email"
-                    value={contactEmail}
-                    onChange={(e) => setContactEmail(e.target.value)}
-                    placeholder="user@example.com"
-                    className="input-field"
-                    required
-                    style={{ paddingLeft: "36px" }}
-                  />
-                  <Mail size={16} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "var(--text-secondary)" }} />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label>Your Message</label>
-                <textarea
-                  value={contactMessage}
-                  onChange={(e) => setContactMessage(e.target.value)}
-                  placeholder="How can I help you compile your cognitive space?"
-                  className="input-field"
-                  required
-                  rows={4}
-                  style={{ resize: "none" }}
-                />
-              </div>
-
-              <button type="submit" disabled={sendingContact} className="btn-primary w-full">
-                {sendingContact ? "Sending..." : "Send Message"}
-                <Send size={14} style={{ marginLeft: "6px" }} />
-              </button>
-            </form>
-          </div>
+            
+            <div className="form-group">
+              <label>Email Address</label>
+              <input
+                type="email"
+                value={contactEmail}
+                onChange={(e) => setContactEmail(e.target.value)}
+                placeholder="your.email@example.com"
+                className="input-field"
+                required
+              />
+            </div>
+            
+            <div className="form-group">
+              <label>Message</label>
+              <textarea
+                value={contactMessage}
+                onChange={(e) => setContactMessage(e.target.value)}
+                placeholder="How can we help you?"
+                className="input-field textarea-field"
+                rows={4}
+                required
+              ></textarea>
+            </div>
+            
+            <button type="submit" disabled={sendingMail} className="btn-primary w-full">
+              {sendingMail ? "Sending Message..." : "Send Message"}
+            </button>
+          </form>
         </div>
       </section>
 
       <style jsx>{`
         .landing-container {
           height: 100vh;
-          height: 100dvh;
           width: 100vw;
-          display: flex;
-          flex-direction: column;
           position: relative;
           background: var(--bg-color);
-          overflow-y: scroll;
+          overflow-y: auto;
           scroll-snap-type: y mandatory;
           scroll-behavior: smooth;
-          -webkit-overflow-scrolling: touch;
-        }
-
-        .landing-section {
-          height: 100vh;
-          height: 100dvh;
-          width: 100vw;
-          scroll-snap-align: start;
-          scroll-snap-stop: always;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          position: relative;
-          padding: 40px 24px;
-          overflow-y: auto;
-          flex-shrink: 0;
-        }
-
-        /* Fixed background overlay */
-        .dotted-canvas, 
-        .landing-glow-orb, 
-        .construct-container, 
-        .sub-construct {
-          position: fixed !important;
-        }
+          transition: background-color 0.3s ease;
           
           /* Visual variables (Dark Space theme default) */
           --grad-opacity: 0.18;
@@ -728,6 +680,15 @@ export default function LandingPage() {
           --core-bg-2: var(--accent-secondary);
           --core-shadow-1: var(--accent-secondary);
           --core-shadow-2: var(--accent-primary);
+        }
+        .dotted-canvas {
+          position: fixed !important;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          z-index: 0;
+          pointer-events: none;
         }
         
         :global([data-theme="light"]) .landing-container {
@@ -770,7 +731,7 @@ export default function LandingPage() {
         
         /* Floating Neon Glow Backdrop */
         .landing-glow-orb {
-          position: absolute;
+          position: fixed;
           border-radius: 50%;
           filter: blur(140px);
           opacity: 0.15;
@@ -859,7 +820,7 @@ export default function LandingPage() {
         
         /* 3D Neural Construct Visual in Background */
         .construct-container {
-          position: absolute;
+          position: fixed;
           top: 50%;
           left: 30%;
           transform: translate(-50%, -50%);
@@ -965,7 +926,7 @@ export default function LandingPage() {
 
         /* Secondary Background 3D Constructs */
         .sub-construct {
-          position: absolute;
+          position: fixed;
           pointer-events: none;
           z-index: 2;
           opacity: 0.35;
@@ -1388,7 +1349,7 @@ export default function LandingPage() {
           flex-grow: 0;
         }
         .theme-toggle-btn {
-          position: absolute;
+          position: fixed;
           top: 24px;
           right: 24px;
           width: 44px;
@@ -1427,7 +1388,30 @@ export default function LandingPage() {
           text-decoration: underline;
         }
 
-        /* Navigation Dots */
+        /* Full Page Scroll-Snap Sections */
+        .landing-section {
+          width: 100%;
+          height: 100vh;
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          scroll-snap-align: start;
+          scroll-snap-stop: always;
+          position: relative;
+          padding: 80px 24px 40px 24px;
+          z-index: 10;
+          box-sizing: border-box;
+          overflow: hidden;
+        }
+        @media (max-width: 968px) {
+          .landing-section {
+            padding: 80px 16px 40px 16px;
+            overflow-y: auto;
+          }
+        }
+
+        /* Sidebar Dots Navigation */
         .nav-dots {
           position: fixed;
           right: 24px;
@@ -1442,159 +1426,154 @@ export default function LandingPage() {
           width: 10px;
           height: 10px;
           border-radius: 50%;
-          background: rgba(255, 255, 255, 0.2);
-          border: 1px solid rgba(255, 255, 255, 0.4);
-          transition: all 0.3s ease;
+          background: rgba(255, 255, 255, 0.25);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          cursor: pointer;
         }
         :global([data-theme="light"]) .nav-dot {
           background: rgba(0, 0, 0, 0.2);
-          border: 1px solid rgba(0, 0, 0, 0.4);
+          border: 1px solid rgba(0, 0, 0, 0.05);
         }
         .nav-dot:hover {
           transform: scale(1.3);
           background: var(--accent-primary);
         }
         .nav-dot.active {
-          transform: scale(1.3);
+          transform: scale(1.4);
           background: var(--accent-primary);
           box-shadow: 0 0 10px var(--accent-primary);
         }
 
-        /* FAQ Accordion Styling */
+        /* FAQ Accordion Section styles */
         .faq-container {
-          width: 100%;
           max-width: 800px;
-          display: flex;
-          flex-direction: column;
-          gap: 24px;
+          width: 100%;
+          padding: 40px;
           z-index: 10;
         }
-        .faq-header {
+        @media (max-width: 640px) {
+          .faq-container {
+            padding: 24px 16px;
+          }
+        }
+        .section-title {
+          font-size: 2rem;
+          font-weight: 700;
           text-align: center;
           margin-bottom: 8px;
+          font-family: var(--font-display);
         }
-        .faq-accordion {
+        .section-subtitle {
+          font-size: 0.9rem;
+          color: var(--text-secondary);
+          text-align: center;
+          margin-bottom: 32px;
+        }
+        .accordion {
           display: flex;
           flex-direction: column;
           gap: 12px;
         }
-        .faq-item {
+        .accordion-item {
+          border: 1px solid var(--border-color);
           border-radius: 12px;
-          border: 1px solid var(--glass-border);
-          background: var(--glass-card-bg);
+          background: rgba(255, 255, 255, 0.01);
           overflow: hidden;
-          transition: all 0.3s ease;
+          transition: border-color 0.3s, background-color 0.3s;
         }
-        .faq-item:hover {
-          border-color: var(--glass-card-hover-border);
-          background: var(--glass-card-hover-bg);
+        :global([data-theme="light"]) .accordion-item {
+          background: rgba(0, 0, 0, 0.01);
         }
-        .faq-trigger {
+        .accordion-item:hover {
+          border-color: rgba(99, 102, 241, 0.2);
+          background: rgba(255, 255, 255, 0.02);
+        }
+        :global([data-theme="light"]) .accordion-item:hover {
+          background: rgba(0, 0, 0, 0.02);
+        }
+        .accordion-item.active {
+          border-color: rgba(99, 102, 241, 0.4);
+          background: rgba(255, 255, 255, 0.03);
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+        :global([data-theme="light"]) .accordion-item.active {
+          background: rgba(255, 255, 255, 0.8);
+          box-shadow: var(--glass-shadow);
+        }
+        .accordion-header {
           width: 100%;
           display: flex;
-          justify-content: space-between;
           align-items: center;
+          justify-content: space-between;
           padding: 18px 24px;
           background: transparent;
           border: none;
           color: var(--text-primary);
           font-family: var(--font-display);
+          font-size: 0.95rem;
           font-weight: 600;
-          font-size: 1.05rem;
-          text-align: left;
           cursor: pointer;
-          transition: color 0.2s;
+          text-align: left;
+          gap: 16px;
         }
-        .faq-trigger:hover {
+        .accordion-icon {
+          font-size: 1.2rem;
           color: var(--accent-primary);
+          transition: transform 0.3s;
         }
-        .faq-icon-toggle {
-          transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          color: var(--accent-primary);
-        }
-        .faq-item.open .faq-icon-toggle {
-          transform: rotate(180deg);
-        }
-        .faq-content {
+        .accordion-content {
           max-height: 0;
           overflow: hidden;
-          transition: max-height 0.4s cubic-bezier(0.25, 1, 0.5, 1), padding 0.4s ease;
+          transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s;
           padding: 0 24px;
+        }
+        .accordion-item.active .accordion-content {
+          max-height: 200px;
+          padding: 0 24px 20px 24px;
+        }
+        .accordion-content p {
+          font-size: 0.85rem;
           color: var(--text-secondary);
-          font-size: 0.88rem;
           line-height: 1.6;
         }
-        .faq-item.open .faq-content {
-          max-height: 200px;
-          padding-bottom: 20px;
-        }
 
-        /* Contact Form Styling */
+        /* Contact Section styles */
         .contact-container {
-          width: 100%;
           max-width: 500px;
-          z-index: 10;
-        }
-        .contact-box {
           width: 100%;
-          padding: 32px;
-          position: relative;
-          background: rgba(10, 10, 10, 0.45);
-          backdrop-filter: blur(16px);
-          -webkit-backdrop-filter: blur(16px);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-          border-radius: 16px;
-          transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+          padding: 40px;
+          z-index: 10;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
         }
-        :global([data-theme="light"]) .contact-box {
-          background: rgba(255, 255, 255, 0.45);
-          border: 1px solid rgba(0, 0, 0, 0.08);
-          box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+        @media (max-width: 640px) {
+          .contact-container {
+            padding: 24px 16px;
+          }
         }
-        .contact-box:hover {
-          border-color: transparent;
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 30px rgba(99, 102, 241, 0.2);
-          transform: translateY(-4px);
-        }
-        :global([data-theme="light"]) .contact-box:hover {
-          box-shadow: 0 20px 40px rgba(31, 38, 135, 0.15), 0 0 30px rgba(99, 102, 241, 0.15);
-        }
-        .contact-box::after {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          border-radius: 16px;
-          padding: 1.5px;
-          background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-          -webkit-mask: 
-             linear-gradient(#fff 0 0) content-box, 
-             linear-gradient(#fff 0 0);
-          -webkit-mask-composite: xor;
-                  mask-composite: exclude;
-          opacity: 0;
-          transition: opacity 0.4s ease;
-          pointer-events: none;
-        }
-        .contact-box:hover::after {
-          opacity: 1;
-        }
-        
-        .contact-header {
+        .contact-container h2 {
+          font-size: 1.8rem;
+          font-weight: 700;
           text-align: center;
-          margin-bottom: 24px;
-        }
-        .contact-header h2 {
-          font-size: 1.6rem;
-          font-family: var(--font-display);
-          margin-bottom: 6px;
+          margin-bottom: 4px;
         }
         .contact-intro {
-          font-size: 0.82rem;
+          font-size: 0.85rem;
           color: var(--text-secondary);
+          text-align: center;
+          margin-bottom: 24px;
+          line-height: 1.4;
+        }
+        .contact-form {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+        .textarea-field {
+          min-height: 110px;
+          resize: none;
         }
       `}</style>
     </main>
