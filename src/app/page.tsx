@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/providers/ToastProvider";
@@ -33,6 +33,11 @@ export default function LandingPage() {
   const [contactEmail, setContactEmail] = useState("");
   const [contactMessage, setContactMessage] = useState("");
   const [sendingMail, setSendingMail] = useState(false);
+
+  // Neural Mesh Canvas refs
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const mouseRef = useRef({ x: -9999, y: -9999 });
+  const themeRef = useRef<"light" | "dark">("dark");
 
   const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -210,6 +215,186 @@ export default function LandingPage() {
     };
   }, []);
 
+  // Keep themeRef in sync with theme state for canvas animation loop
+  useEffect(() => {
+    themeRef.current = theme;
+  }, [theme]);
+
+  // Interactive Neural Mesh particle simulation
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    let animId: number;
+    let W = window.innerWidth;
+    let H = window.innerHeight;
+    canvas.width = W;
+    canvas.height = H;
+
+    const NODE_COUNT = 72;
+    const CONNECT_DIST = 140;
+    const MOUSE_REVEAL_RADIUS = 195;
+    const MIN_SPEED = 0.3;
+    const MAX_SPEED = 1.4;
+
+    interface MeshNode {
+      x: number; y: number;
+      vx: number; vy: number;
+      r: number;
+    }
+
+    const nodes: MeshNode[] = Array.from({ length: NODE_COUNT }, () => ({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      vx: (Math.random() - 0.5) * 0.7,
+      vy: (Math.random() - 0.5) * 0.7,
+      r: Math.random() * 1.6 + 1.4,
+    }));
+
+    const onResize = () => {
+      W = window.innerWidth;
+      H = window.innerHeight;
+      canvas.width = W;
+      canvas.height = H;
+    };
+    const onMove = (e: MouseEvent) => { mouseRef.current = { x: e.clientX, y: e.clientY }; };
+    const onLeave = () => { mouseRef.current = { x: -9999, y: -9999 }; };
+
+    window.addEventListener("resize", onResize);
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseleave", onLeave);
+
+    const tick = () => {
+      const isDark = themeRef.current === "dark";
+      const mx = mouseRef.current.x;
+      const my = mouseRef.current.y;
+
+      ctx.clearRect(0, 0, W, H);
+
+      // Helix is bottom-right (fixed: bottom 2%, right 2%, 220×220px container)
+      const helixCX = W * 0.98 - 110;
+      const helixCY = H * 0.98 - 110;
+      const HELIX_AVOID_R = 150;
+
+      // Update positions — brownian drift + helix avoidance, speed in [MIN_SPEED, MAX_SPEED]
+      for (const n of nodes) {
+        // Tiny random walk so direction evolves naturally over time
+        n.vx += (Math.random() - 0.5) * 0.008;
+        n.vy += (Math.random() - 0.5) * 0.008;
+        // Repel from helix construct area
+        const hdx = n.x - helixCX;
+        const hdy = n.y - helixCY;
+        const hd2 = hdx * hdx + hdy * hdy;
+        if (hd2 < HELIX_AVOID_R * HELIX_AVOID_R && hd2 > 0) {
+          const hd = Math.sqrt(hd2);
+          const force = (1 - hd / HELIX_AVOID_R) * 0.28;
+          n.vx += (hdx / hd) * force;
+          n.vy += (hdy / hd) * force;
+        }
+        // Enforce speed band: never stop, never sprint
+        const spd = Math.sqrt(n.vx * n.vx + n.vy * n.vy);
+        if (spd > 0) {
+          const clamped = Math.min(Math.max(spd, MIN_SPEED), MAX_SPEED);
+          n.vx = (n.vx / spd) * clamped;
+          n.vy = (n.vy / spd) * clamped;
+        } else {
+          n.vx = MIN_SPEED;
+          n.vy = 0;
+        }
+        n.x += n.vx; n.y += n.vy;
+        if (n.x < 0) n.x = W; else if (n.x > W) n.x = 0;
+        if (n.y < 0) n.y = H; else if (n.y > H) n.y = 0;
+      }
+
+      // Draw connections
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const dx = nodes[j].x - nodes[i].x;
+          const dy = nodes[j].y - nodes[i].y;
+          const d2 = dx * dx + dy * dy;
+          if (d2 < CONNECT_DIST * CONNECT_DIST) {
+            const alpha = (1 - Math.sqrt(d2) / CONNECT_DIST);
+            if (isDark) {
+              ctx.shadowBlur = 0;
+              ctx.strokeStyle = `rgba(6,182,212,${alpha * 0.18})`;
+              ctx.lineWidth = 0.8;
+            } else {
+              // Light mode: same cyan as dark so all bg elements are unified
+              ctx.shadowBlur = 0;
+              ctx.strokeStyle = `rgba(6,182,212,${alpha * 0.18})`;
+              ctx.lineWidth = 0.8;
+            }
+            ctx.beginPath();
+            ctx.moveTo(nodes[i].x, nodes[i].y);
+            ctx.lineTo(nodes[j].x, nodes[j].y);
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+          }
+        }
+      }
+
+      // Mouse-reveal pass — draw glowing lines from cursor to nearby nodes
+      // Nodes never move toward cursor; only lines are revealed
+      if (mx > -100) {
+        for (const n of nodes) {
+          const rdx = mx - n.x;
+          const rdy = my - n.y;
+          const rd = Math.sqrt(rdx * rdx + rdy * rdy);
+          if (rd < MOUSE_REVEAL_RADIUS) {
+            const a = 1 - rd / MOUSE_REVEAL_RADIUS;
+            if (isDark) {
+              ctx.shadowBlur = 8;
+              ctx.shadowColor = `rgba(6,182,212,${a * 0.55})`;
+              ctx.strokeStyle = `rgba(6,182,212,${a * 0.6})`;
+              ctx.lineWidth = 1.0;
+            } else {
+              ctx.shadowBlur = 8;
+              ctx.shadowColor = `rgba(6,182,212,${a * 0.55})`;
+              ctx.strokeStyle = `rgba(6,182,212,${a * 0.6})`;
+              ctx.lineWidth = 1.0;
+            }
+            ctx.beginPath();
+            ctx.moveTo(n.x, n.y);
+            ctx.lineTo(mx, my);
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+          }
+        }
+      }
+
+      // Draw nodes
+      for (const n of nodes) {
+        if (isDark) {
+          ctx.shadowBlur = 10;
+          ctx.shadowColor = "rgba(6,182,212,0.65)";
+          ctx.fillStyle = "rgba(6,182,212,0.88)";
+        } else {
+          // Light mode: same cyan as dark
+          ctx.shadowBlur = 10;
+          ctx.shadowColor = "rgba(6,182,212,0.65)";
+          ctx.fillStyle = "rgba(6,182,212,0.88)";
+        }
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+
+      animId = requestAnimationFrame(tick);
+    };
+
+    tick();
+
+    return () => {
+      cancelAnimationFrame(animId);
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseleave", onLeave);
+    };
+  }, []);
+
   const toggleTheme = () => {
     const nextTheme = theme === "light" ? "dark" : "light";
     document.documentElement.setAttribute("data-theme", nextTheme);
@@ -328,6 +513,9 @@ export default function LandingPage() {
 
   return (
     <main className="landing-container">
+      {/* Interactive Neural Mesh Canvas */}
+      <canvas ref={canvasRef} className="neural-mesh-canvas" />
+
       <div className="dotted-canvas"></div>
 
       {/* Floating Neon Glow Backdrop */}
@@ -769,14 +957,14 @@ export default function LandingPage() {
           scroll-behavior: smooth;
           transition: background-color 0.3s ease;
           
-          /* Visual variables (Dark Space theme default) */
-          --grad-opacity: 0.18;
-          --line-opacity: 0.04;
-          --node-bg: #ffffff;
-          --ring-border: rgba(255, 255, 255, 0.08);
+          /* Visual variables — Dark mode: synced to cyan neural mesh palette */
+          --grad-opacity: 0.32;
+          --line-opacity: 0.09;
+          --node-bg: rgba(6, 182, 212, 0.85);
+          --ring-border: rgba(6, 182, 212, 0.24);
           --net-line-color: var(--accent-secondary);
-          --helix-bar-color: rgba(255, 255, 255, 0.25);
-          --core-bg-1: #ffffff;
+          --helix-bar-color: rgba(6, 182, 212, 0.7);
+          --core-bg-1: #cffafe;
           --core-bg-2: var(--accent-secondary);
           --core-shadow-1: var(--accent-secondary);
           --core-shadow-2: var(--accent-primary);
@@ -792,18 +980,19 @@ export default function LandingPage() {
         }
         
         :global([data-theme="light"]) .landing-container {
-          --grad-opacity: 0.55;
-          --line-opacity: 0.22;
-          --node-bg: #dc2626; /* Sun-like vibrant red nodes */
-          --ring-border: rgba(0, 0, 0, 0.2);
-          --net-line-color: #dc2626;
-          --helix-bar-color: rgba(0, 0, 0, 0.55); /* Solid blackish path for light mode */
-          --core-bg-1: #ffedd5; /* Warm light-orange core inner */
-          --core-bg-2: #ea580c; /* Warm orange core outer */
-          --core-shadow-1: rgba(234, 88, 12, 0.6);
-          --core-shadow-2: rgba(220, 38, 38, 0.4);
-          --accent-primary: #dc2626; /* Rose override */
-          --accent-secondary: #f97316; /* Sun-like orange override */
+          /* Construct geometry uses same cyan palette as dark mode — page bg stays light */
+          --grad-opacity: 0.32;
+          --line-opacity: 0.09;
+          --node-bg: rgba(6, 182, 212, 0.85);
+          --ring-border: rgba(6, 182, 212, 0.24);
+          --net-line-color: rgba(6, 182, 212, 0.6);
+          --helix-bar-color: rgba(6, 182, 212, 0.7);
+          --core-bg-1: #cffafe;
+          --core-bg-2: #06b6d4;
+          --core-shadow-1: rgba(6, 182, 212, 0.7);
+          --core-shadow-2: rgba(99, 102, 241, 0.4);
+          --accent-primary: #dc2626; /* Keep UI crimson for buttons/links */
+          --accent-secondary: #f97316; /* Keep UI orange for UI accents */
         }
         
         :global([data-theme="light"]) .orb-purple {
@@ -817,20 +1006,22 @@ export default function LandingPage() {
         :global([data-theme="light"]) .node,
         :global([data-theme="light"]) .sub-node,
         :global([data-theme="light"]) .helix-node {
-          background: radial-gradient(circle at 30% 30%, #ffcbd5, #dc2626 85%) !important;
+          /* Same cyan as dark mode — strong pulse */
+          background: radial-gradient(circle at 35% 35%, #cffafe, rgba(6,182,212,0.9) 75%) !important;
+          animation: strongNodeGlow 1.8s ease-in-out infinite alternate !important;
         }
 
         :global([data-theme="light"]) .construct-svg line {
-          stroke: rgba(0, 0, 0, 0.08) !important;
-          stroke-opacity: 0.5 !important;
+          stroke: rgba(6, 182, 212, 0.09) !important;
+          stroke-opacity: 1 !important;
         }
 
         :global([data-theme="light"]) .construct-svg circle {
-          stroke: rgba(0, 0, 0, 0.2) !important;
+          stroke: rgba(6, 182, 212, 0.32) !important;
         }
 
         :global([data-theme="light"]) .construct-svg .svg-ring-2 {
-          stroke: rgba(0, 0, 0, 0.06) !important;
+          stroke: rgba(6, 182, 212, 0.18) !important;
         }
         
         /* Floating Neon Glow Backdrop */
@@ -966,11 +1157,11 @@ export default function LandingPage() {
           top: 50%;
           left: 50%;
           transform: translate(-50%, -50%);
-          width: 40px;
-          height: 40px;
-          background: radial-gradient(circle, var(--core-bg-1) 0%, var(--core-bg-2) 50%, transparent 100%);
+          width: 46px;
+          height: 46px;
+          /* Off-center highlight → true 3D sphere illusion */
+          background: radial-gradient(circle at 30% 25%, var(--core-bg-1) 0%, var(--core-bg-2) 42%, #0e7490 78%, transparent 100%);
           border-radius: 50%;
-          box-shadow: 0 0 30px var(--core-shadow-1), 0 0 60px var(--core-shadow-2);
           animation: pulseCore 3s ease-in-out infinite alternate;
           z-index: 5;
         }
@@ -998,11 +1189,11 @@ export default function LandingPage() {
         }
         .node {
           position: absolute;
-          width: 8px;
-          height: 8px;
-          background: radial-gradient(circle at 30% 30%, #ffffff, var(--accent-secondary) 80%);
+          width: 10px;
+          height: 10px;
+          background: radial-gradient(circle at 35% 35%, #cffafe, rgba(6,182,212,0.9) 75%);
           border-radius: 50%;
-          box-shadow: 0 0 10px var(--node-bg), 0 0 20px var(--accent-secondary);
+          animation: strongNodeGlow 1.8s ease-in-out infinite alternate;
         }
         .node-1 { top: 0; left: 50%; transform: translate(-50%, -50%); }
         .node-2 { bottom: 0; left: 50%; transform: translate(-50%, 50%); }
@@ -1049,6 +1240,7 @@ export default function LandingPage() {
           width: 130px;
           height: 130px;
           perspective: 450px;
+          animation: cubeGlowContainer 9s ease-in-out infinite;
         }
         .sub-construct-bottom-left {
           bottom: 12%;
@@ -1060,9 +1252,9 @@ export default function LandingPage() {
         .sub-construct-bottom-right {
           bottom: 2%;
           right: 2%;
-          width: 200px;
-          height: 200px;
-          perspective: 600px;
+          width: 220px;
+          height: 220px;
+          perspective: 660px;
         }
         @media (max-width: 968px) {
           .sub-construct-top-left,
@@ -1088,11 +1280,9 @@ export default function LandingPage() {
           position: absolute;
           width: 80px;
           height: 80px;
-          border: 1px solid var(--ring-border);
-          background: rgba(99, 102, 241, 0.015);
-        }
-        :global([data-theme="light"]) .cube-face {
-          background: rgba(220, 38, 38, 0.03);
+          border: 1px solid rgba(6, 182, 212, 0.22);
+          background: rgba(6, 182, 212, 0);
+          animation: cubeFaceGlow 9s ease-in-out infinite;
         }
         .face-front  { transform: translateZ(40px); }
         .face-back   { transform: rotateY(180deg) translateZ(40px); }
@@ -1113,21 +1303,20 @@ export default function LandingPage() {
           top: 50%;
           left: 50%;
           transform: translate(-50%, -50%);
-          width: 14px;
-          height: 14px;
-          background: radial-gradient(circle, #ffffff 0%, var(--accent-secondary) 60%, transparent 100%);
+          width: 18px;
+          height: 18px;
+          /* 3D sphere: off-center highlight + dark shadow side */
+          background: radial-gradient(circle at 30% 25%, #e0f7fa 0%, #06b6d4 42%, #0e7490 78%, transparent 100%);
           border-radius: 50%;
-          box-shadow: 0 0 12px var(--accent-secondary), 0 0 24px var(--accent-primary);
           animation: pulseSubCore 3s ease-in-out infinite alternate;
           z-index: 4;
         }
         :global([data-theme="light"]) .sub-core {
-          background: radial-gradient(circle, #ffedd5 0%, var(--accent-primary) 60%, transparent 100%);
-          box-shadow: 0 0 12px var(--core-shadow-1), 0 0 24px var(--core-shadow-2);
+          background: radial-gradient(circle at 30% 25%, #cffafe 0%, #06b6d4 42%, #0e7490 78%, transparent 100%);
         }
         @keyframes pulseSubCore {
-          0% { transform: translate(-50%, -50%) scale(0.85); opacity: 0.8; }
-          100% { transform: translate(-50%, -50%) scale(1.15); opacity: 1; }
+          0%   { transform: translate(-50%,-50%) scale(0.85); opacity: 0.85; box-shadow: 0 0 10px rgba(6,182,212,0.65), 0 0 22px rgba(6,182,212,0.35); }
+          100% { transform: translate(-50%,-50%) scale(1.45); opacity: 1;    box-shadow: 0 0 26px rgba(6,182,212,1),    0 0 52px rgba(6,182,212,0.65), 0 0 78px rgba(6,182,212,0.3); }
         }
         .sub-ring {
           position: absolute;
@@ -1142,11 +1331,11 @@ export default function LandingPage() {
         .ring-c { transform: rotateX(30deg) rotateY(70deg); }
         .sub-node {
           position: absolute;
-          width: 6px;
-          height: 6px;
-          background: radial-gradient(circle at 30% 30%, #ffffff, var(--accent-secondary) 80%);
+          width: 8px;
+          height: 8px;
+          background: radial-gradient(circle at 35% 35%, #cffafe, rgba(6,182,212,0.9) 75%);
           border-radius: 50%;
-          box-shadow: 0 0 8px var(--node-bg), 0 0 16px var(--accent-secondary);
+          animation: strongNodeGlow 2.2s ease-in-out infinite alternate;
         }
         .node-a1 { top: 0; left: 50%; transform: translate(-50%, -50%); }
         .node-b1 { bottom: 0; left: 50%; transform: translate(-50%, 50%); }
@@ -1169,10 +1358,10 @@ export default function LandingPage() {
         .node-z1 { top: 50%; right: 0; transform: translate(50%, -50%); }
         .node-w1 { top: 50%; left: 0; transform: translate(-50%, -50%); }
         
-        /* 3D Helix Visual */
+        /* 3D Helix Visual — 10% bigger */
         .helix-3d {
-          width: 120px;
-          height: 180px;
+          width: 132px;
+          height: 198px;
           position: relative;
           transform-style: preserve-3d;
           animation: spinHelix 12s cubic-bezier(0.25, 0, 0.25, 1) infinite;
@@ -1180,7 +1369,7 @@ export default function LandingPage() {
         .helix-rung {
           position: absolute;
           width: 100%;
-          height: 16px;
+          height: 18px;
           transform-style: preserve-3d;
           display: flex;
           align-items: center;
@@ -1188,45 +1377,46 @@ export default function LandingPage() {
         }
         .helix-node {
           position: absolute;
-          width: 8px;
-          height: 8px;
-          background: radial-gradient(circle at 30% 30%, #ffffff, var(--accent-secondary) 80%);
+          width: 10px;
+          height: 10px;
+          background: radial-gradient(circle at 35% 35%, #cffafe, rgba(6,182,212,0.9) 75%);
           border-radius: 50%;
-          box-shadow: 0 0 8px var(--node-bg), 0 0 16px var(--accent-secondary);
+          animation: strongNodeGlow 1.6s ease-in-out infinite alternate;
         }
         .node-l {
-          left: 15px;
+          left: 17px;
         }
         .node-r {
-          right: 15px;
+          right: 17px;
         }
         .helix-bar {
           position: absolute;
-          left: 20px;
-          right: 20px;
-          height: 1px;
+          left: 22px;
+          right: 22px;
+          height: 2px;
           background: var(--helix-bar-color);
+          border-radius: 1px;
         }
         
-        /* Translate and rotate each rung to form the helix */
-        .rung-1  { transform: translateY(0px) rotateY(0deg); }
-        .rung-2  { transform: translateY(18px) rotateY(36deg); }
-        .rung-3  { transform: translateY(36px) rotateY(72deg); }
-        .rung-4  { transform: translateY(54px) rotateY(108deg); }
-        .rung-5  { transform: translateY(72px) rotateY(144deg); }
-        .rung-6  { transform: translateY(90px) rotateY(180deg); }
-        .rung-7  { transform: translateY(108px) rotateY(216deg); }
-        .rung-8  { transform: translateY(126px) rotateY(252deg); }
-        .rung-9  { transform: translateY(144px) rotateY(288deg); }
-        .rung-10 { transform: translateY(162px) rotateY(324deg); }
+        /* Translate and rotate each rung to form the helix (10% bigger) */
+        .rung-1  { transform: translateY(0px)   rotateY(0deg); }
+        .rung-2  { transform: translateY(20px)  rotateY(36deg); }
+        .rung-3  { transform: translateY(40px)  rotateY(72deg); }
+        .rung-4  { transform: translateY(59px)  rotateY(108deg); }
+        .rung-5  { transform: translateY(79px)  rotateY(144deg); }
+        .rung-6  { transform: translateY(99px)  rotateY(180deg); }
+        .rung-7  { transform: translateY(119px) rotateY(216deg); }
+        .rung-8  { transform: translateY(139px) rotateY(252deg); }
+        .rung-9  { transform: translateY(158px) rotateY(288deg); }
+        .rung-10 { transform: translateY(178px) rotateY(324deg); }
         
         @keyframes rotateConstruct {
           0% { transform: rotateY(0deg) rotateX(0deg); }
           100% { transform: rotateY(360deg) rotateX(360deg); }
         }
         @keyframes pulseCore {
-          0% { transform: scale(0.85); opacity: 0.8; }
-          100% { transform: scale(1.15); opacity: 1; }
+          0%   { transform: scale(0.85); opacity: 0.85; box-shadow: 0 0 22px rgba(6,182,212,0.7),  0 0 50px rgba(6,182,212,0.4); }
+          100% { transform: scale(1.3);  opacity: 1;    box-shadow: 0 0 55px rgba(6,182,212,1),   0 0 110px rgba(6,182,212,0.65), 0 0 155px rgba(6,182,212,0.25); }
         }
         @keyframes spinRing1 {
           0% { transform: rotateX(70deg) rotateY(20deg) rotateZ(0deg); }
@@ -1261,6 +1451,62 @@ export default function LandingPage() {
         @keyframes spinHelix {
           0% { transform: rotateY(0deg) rotateX(15deg); }
           100% { transform: rotateY(360deg) rotateX(15deg); }
+        }
+        /* ── Glow Pulse Keyframes for Node Spheres ──────────────────── */
+        @keyframes nodeGlow {
+          0%   { box-shadow: 0 0 8px var(--node-bg), 0 0 16px var(--accent-secondary); }
+          100% { box-shadow: 0 0 18px var(--node-bg), 0 0 34px var(--accent-secondary), 0 0 50px rgba(6,182,212,0.22); }
+        }
+        @keyframes crimsonGlow {
+          0%   { box-shadow: 0 0 8px rgba(153,27,27,0.6), 0 0 16px rgba(220,38,38,0.3); }
+          100% { box-shadow: 0 0 16px rgba(153,27,27,0.9), 0 0 30px rgba(220,38,38,0.55), 0 0 44px rgba(153,27,27,0.2); }
+        }
+        /* ── Strong Pulse for Helix & Orbit Nodes ─────────────────── */
+        @keyframes strongNodeGlow {
+          0%   { box-shadow: 0 0 12px var(--node-bg), 0 0 26px var(--accent-secondary), 0 0 42px rgba(6,182,212,0.4); transform: scale(1); }
+          100% { box-shadow: 0 0 28px var(--node-bg), 0 0 58px var(--accent-secondary), 0 0 88px rgba(6,182,212,0.7), 0 0 120px rgba(6,182,212,0.3); transform: scale(1.25); }
+        }
+        /* ── Cube Glow/Outline Animation Cycles ───────────────────── */
+        @keyframes cubeGlowContainer {
+          /* --- 1. Flicker Phase (0s to 1s -> 0% to 11.11%) --- */
+          0% { opacity: 0.55; filter: brightness(1.0) drop-shadow(none); }
+          1.85% { opacity: 1.0; filter: brightness(2.6) drop-shadow(0 0 12px rgba(6, 182, 212, 0.95)) drop-shadow(0 0 28px rgba(6, 182, 212, 0.65)); }
+          3.7% { opacity: 0.15; filter: brightness(0.4) drop-shadow(none); }
+          5.56% { opacity: 1.0; filter: brightness(2.6) drop-shadow(0 0 12px rgba(6, 182, 212, 0.95)) drop-shadow(0 0 28px rgba(6, 182, 212, 0.65)); }
+          7.41% { opacity: 0.1; filter: brightness(0.3) drop-shadow(none); }
+          9.26% { opacity: 1.0; filter: brightness(2.6) drop-shadow(0 0 12px rgba(6, 182, 212, 0.95)) drop-shadow(0 0 28px rgba(6, 182, 212, 0.65)); }
+          11.11% { opacity: 0.55; filter: brightness(1.0) drop-shadow(none); }
+          
+          /* --- 2. Outline Only Phase (1s to 2s -> 11.11% to 22.22%) --- */
+          22.22% { opacity: 0.55; filter: brightness(1.0) drop-shadow(none); }
+          
+          /* --- 3. Glow State Phase (2s to 4s -> 22.22% to 44.44%) --- */
+          24% { opacity: 1.0; filter: brightness(2.6) drop-shadow(0 0 14px rgba(6, 182, 212, 0.95)) drop-shadow(0 0 30px rgba(6, 182, 212, 0.7)) drop-shadow(0 0 50px rgba(6, 182, 212, 0.4)); }
+          42% { opacity: 1.0; filter: brightness(2.6) drop-shadow(0 0 14px rgba(6, 182, 212, 0.95)) drop-shadow(0 0 30px rgba(6, 182, 212, 0.7)) drop-shadow(0 0 50px rgba(6, 182, 212, 0.4)); }
+          44.44% { opacity: 0.55; filter: brightness(1.0) drop-shadow(none); }
+          
+          /* --- 4. Soothing Glow State Phase (4s to 9s -> 44.44% to 100%) --- */
+          66.67% { opacity: 1.0; filter: brightness(2.2) drop-shadow(0 0 14px rgba(6, 182, 212, 0.95)) drop-shadow(0 0 30px rgba(6, 182, 212, 0.7)); }
+          100% { opacity: 0.55; filter: brightness(1.0) drop-shadow(none); }
+        }
+
+        @keyframes cubeFaceGlow {
+          0% { background: rgba(6, 182, 212, 0); border-color: rgba(6, 182, 212, 0.22); }
+          1.85% { background: rgba(6, 182, 212, 0.18); border-color: rgba(6, 182, 212, 0.95); }
+          3.7% { background: rgba(6, 182, 212, 0); border-color: rgba(6, 182, 212, 0.22); }
+          5.56% { background: rgba(6, 182, 212, 0.18); border-color: rgba(6, 182, 212, 0.95); }
+          7.41% { background: rgba(6, 182, 212, 0); border-color: rgba(6, 182, 212, 0.22); }
+          9.26% { background: rgba(6, 182, 212, 0.18); border-color: rgba(6, 182, 212, 0.95); }
+          11.11% { background: rgba(6, 182, 212, 0); border-color: rgba(6, 182, 212, 0.22); }
+          
+          22.22% { background: rgba(6, 182, 212, 0); border-color: rgba(6, 182, 212, 0.22); }
+          
+          24% { background: rgba(6, 182, 212, 0.18); border-color: rgba(6, 182, 212, 0.95); }
+          42% { background: rgba(6, 182, 212, 0.18); border-color: rgba(6, 182, 212, 0.95); }
+          44.44% { background: rgba(6, 182, 212, 0); border-color: rgba(6, 182, 212, 0.22); }
+          
+          66.67% { background: rgba(6, 182, 212, 0.18); border-color: rgba(6, 182, 212, 0.95); }
+          100% { background: rgba(6, 182, 212, 0); border-color: rgba(6, 182, 212, 0.22); }
         }
 
         .features-grid {
@@ -1716,6 +1962,18 @@ export default function LandingPage() {
         .textarea-field {
           min-height: 110px;
           resize: none;
+        }
+
+        /* ── Neural Mesh Canvas ───────────────────────────────────── */
+        .neural-mesh-canvas {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100vw;
+          height: 100vh;
+          z-index: 1;
+          pointer-events: none;
+          display: block;
         }
       `}</style>
     </main>
