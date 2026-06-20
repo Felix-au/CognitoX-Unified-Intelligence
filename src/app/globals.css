@@ -4,9 +4,9 @@
   --font-body: var(--font-body), sans-serif;
 
   /* Color Palette (Deep Space Theme) */
-  --bg-color: #030712;
-  --bg-card: rgba(17, 24, 39, 0.55);
-  --border-color: rgba(255, 255, 255, 0.08);
+  --bg-color: #050505;
+  --bg-card: rgba(18, 18, 18, 0.65);
+  --border-color: rgba(255, 255, 255, 0.05);
   --border-focus: rgba(99, 102, 241, 0.4);
   
   --text-primary: #f3f4f6;
@@ -20,9 +20,9 @@
   --accent-success: #10b981;       /* Green */
 
   /* Glassmorphism Presets */
-  --glass-bg: rgba(15, 23, 42, 0.5);
-  --glass-border: rgba(255, 255, 255, 0.06);
-  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  --glass-bg: rgba(8, 8, 8, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.04);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
   --glass-backdrop: blur(12px);
 
   /* Layout dimensions */
@@ -30,8 +30,8 @@
   --sidebar-width: 260px;
 
   /* Theme specific properties */
-  --grid-dot-color: rgba(255, 255, 255, 0.04);
-  --input-bg: rgba(0, 0, 0, 0.3);
+  --grid-dot-color: rgba(255, 255, 255, 0.02);
+  --input-bg: rgba(10, 10, 10, 0.5);
 
   /* Sidebar Theme Variables */
   --sidebar-hover-bg: rgba(255, 255, 255, 0.03);
@@ -50,8 +50,8 @@
   /* Inline Code, Table and Canvas Theme Variables */
   --code-inline-bg: rgba(255, 255, 255, 0.08);
   --table-header-bg: rgba(255, 255, 255, 0.03);
-  --table-bg: rgba(17, 24, 39, 0.45);
-  --canvas-bg: rgba(17, 24, 39, 0.45);
+  --table-bg: rgba(15, 15, 15, 0.55);
+  --canvas-bg: rgba(15, 15, 15, 0.55);
   --code-editor-bg: rgba(0, 0, 0, 0.4);
   --code-editor-text: #e5e7eb;
   --mode-toggle-active-bg: rgba(255, 255, 255, 0.05);
