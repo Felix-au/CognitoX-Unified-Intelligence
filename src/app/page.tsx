@@ -441,8 +441,9 @@ export default function LandingPage() {
           --grad-opacity: 0.18;
           --line-opacity: 0.04;
           --node-bg: #ffffff;
-          --ring-border: rgba(255, 255, 255, 0.05);
+          --ring-border: rgba(255, 255, 255, 0.08);
           --net-line-color: var(--accent-secondary);
+          --helix-bar-color: rgba(255, 255, 255, 0.25);
           --core-bg-1: #ffffff;
           --core-bg-2: var(--accent-secondary);
           --core-shadow-1: var(--accent-secondary);
@@ -453,8 +454,9 @@ export default function LandingPage() {
           --grad-opacity: 0.55;
           --line-opacity: 0.22;
           --node-bg: #dc2626; /* Sun-like vibrant red nodes */
-          --ring-border: rgba(220, 38, 38, 0.18);
+          --ring-border: rgba(0, 0, 0, 0.2);
           --net-line-color: #dc2626;
+          --helix-bar-color: rgba(0, 0, 0, 0.55); /* Solid blackish path for light mode */
           --core-bg-1: #ffedd5; /* Warm light-orange core inner */
           --core-bg-2: #ea580c; /* Warm orange core outer */
           --core-shadow-1: rgba(234, 88, 12, 0.6);
@@ -469,6 +471,21 @@ export default function LandingPage() {
         
         :global([data-theme="light"]) .orb-cyan {
           background: radial-gradient(circle, rgba(249, 115, 22, 0.25) 0%, transparent 70%);
+        }
+
+        :global([data-theme="light"]) .node,
+        :global([data-theme="light"]) .sub-node,
+        :global([data-theme="light"]) .helix-node {
+          background: radial-gradient(circle at 30% 30%, #ffcbd5, #dc2626 85%) !important;
+        }
+
+        :global([data-theme="light"]) .construct-svg line {
+          stroke: rgba(0, 0, 0, 0.35) !important;
+          stroke-opacity: 1 !important;
+        }
+
+        :global([data-theme="light"]) .construct-svg circle {
+          stroke: rgba(0, 0, 0, 0.2) !important;
         }
         
         /* Floating Neon Glow Backdrop */
@@ -638,7 +655,7 @@ export default function LandingPage() {
           position: absolute;
           width: 8px;
           height: 8px;
-          background-color: var(--node-bg);
+          background: radial-gradient(circle at 30% 30%, #ffffff, var(--accent-secondary) 80%);
           border-radius: 50%;
           box-shadow: 0 0 10px var(--node-bg), 0 0 20px var(--accent-secondary);
         }
@@ -782,7 +799,7 @@ export default function LandingPage() {
           position: absolute;
           width: 6px;
           height: 6px;
-          background-color: var(--node-bg);
+          background: radial-gradient(circle at 30% 30%, #ffffff, var(--accent-secondary) 80%);
           border-radius: 50%;
           box-shadow: 0 0 8px var(--node-bg), 0 0 16px var(--accent-secondary);
         }
@@ -813,7 +830,7 @@ export default function LandingPage() {
           height: 180px;
           position: relative;
           transform-style: preserve-3d;
-          animation: spinHelix 15s linear infinite;
+          animation: spinHelix 12s ease-in-out infinite;
         }
         .helix-rung {
           position: absolute;
@@ -828,7 +845,7 @@ export default function LandingPage() {
           position: absolute;
           width: 8px;
           height: 8px;
-          background-color: var(--node-bg);
+          background: radial-gradient(circle at 30% 30%, #ffffff, var(--accent-secondary) 80%);
           border-radius: 50%;
           box-shadow: 0 0 8px var(--node-bg), 0 0 16px var(--accent-secondary);
         }
@@ -843,7 +860,7 @@ export default function LandingPage() {
           left: 20px;
           right: 20px;
           height: 1px;
-          background: var(--ring-border);
+          background: var(--helix-bar-color);
         }
         
         /* Translate and rotate each rung to form the helix */
@@ -897,8 +914,9 @@ export default function LandingPage() {
           100% { transform: rotateY(360deg) rotateX(-360deg); }
         }
         @keyframes spinHelix {
-          0% { transform: rotateY(0deg) rotateX(10deg); }
-          100% { transform: rotateY(360deg) rotateX(10deg); }
+          0% { transform: rotateY(0deg) rotateX(15deg) translateY(-6px); }
+          50% { transform: rotateY(180deg) rotateX(25deg) translateY(6px); }
+          100% { transform: rotateY(360deg) rotateX(15deg) translateY(-6px); }
         }
 
         .features-grid {
@@ -961,18 +979,26 @@ export default function LandingPage() {
           max-width: 400px;
           padding: 32px;
           position: relative;
-          background: var(--glass-bg);
-          backdrop-filter: var(--glass-backdrop);
-          -webkit-backdrop-filter: var(--glass-backdrop);
-          border: 1px solid var(--glass-border);
-          box-shadow: var(--glass-shadow);
+          background: rgba(10, 10, 10, 0.45);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
           border-radius: 16px;
           transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        :global([data-theme="light"]) .auth-box {
+          background: rgba(255, 255, 255, 0.45);
+          border: 1px solid rgba(0, 0, 0, 0.08);
+          box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
         }
         .auth-box:hover {
           border-color: transparent;
           box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 30px rgba(99, 102, 241, 0.2);
           transform: translateY(-4px);
+        }
+        :global([data-theme="light"]) .auth-box:hover {
+          box-shadow: 0 20px 40px rgba(31, 38, 135, 0.15), 0 0 30px rgba(99, 102, 241, 0.15);
         }
         .auth-box::after {
           content: '';
