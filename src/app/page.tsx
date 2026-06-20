@@ -26,6 +26,7 @@ export default function LandingPage() {
 
   // FAQ Accordion State
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
+  const [selectedFaqCategory, setSelectedFaqCategory] = useState("General");
 
   // Contact Form State
   const [contactName, setContactName] = useState("");
@@ -83,22 +84,52 @@ export default function LandingPage() {
     }
   };
 
+  const faqCategories = [
+    { id: "General", label: "General Info" },
+    { id: "API", label: "API Compatibility" },
+    { id: "Security", label: "Security & Encryption" }
+  ];
+
   const faqData = [
     {
       question: "What is CognitoX?",
-      answer: "CognitoX is a premium unified intelligence workspace and cognitive AI sandbox that combines document OCR, YouTube transcript analysis, interactive Mermaid.js diagram studio, and client-side canvas filters in one single interface."
+      answer: "CognitoX is a premium unified intelligence workspace and cognitive AI sandbox that combines document OCR, YouTube transcript analysis, interactive Mermaid.js diagram studio, and client-side canvas filters in one single interface.",
+      tags: ["General"]
     },
     {
       question: "How does Notes OCR protect my data?",
-      answer: "Unlike typical cloud scanners, CognitoX extracts text from document scans directly on your browser using a local Canvas drawing engine and Sobel/Canny image shaders. Your raw files are processed sandboxed client-side before any prompt execution."
+      answer: "Unlike typical cloud scanners, CognitoX extracts text from document scans directly on your browser using a local Canvas drawing engine and Sobel/Canny image shaders. Your raw files are processed sandboxed client-side before any prompt execution.",
+      tags: ["Security"]
     },
     {
       question: "Why use CognitoX instead of ChatGPT in browser?",
-      answer: "CognitoX unifies disparate cognitive workloads (transcribing, OCR extracting, code compiling, image editing, and chatting) into a single workspace, backed by a persistent MongoDB session cache so you don't lose context."
+      answer: "CognitoX unifies disparate cognitive workloads (transcribing, OCR extracting, code compiling, image editing, and chatting) into a single workspace, backed by a persistent MongoDB session cache so you don't lose context.",
+      tags: ["General"]
     },
     {
       question: "Are my diagram studio files saved?",
-      answer: "Yes. All note summaries, YouTube analysis mock tests, and compiled diagrams are securely written to your custom MongoDB Atlas cluster collections via a high-performance Prisma client."
+      answer: "Yes. All note summaries, YouTube analysis mock tests, and compiled diagrams are securely written to your custom MongoDB Atlas cluster collections via a high-performance Prisma client.",
+      tags: ["Security"]
+    },
+    {
+      question: "Is the API proxy gateway compatible with standard OpenAI and Gemini SDKs?",
+      answer: "Yes, CognitoX's proxy gateway implements standard OpenAI-compliant API schemas, allowing seamless drop-in integration with official OpenAI, Gemini, and LangChain client SDKs.",
+      tags: ["API"]
+    },
+    {
+      question: "What models are supported by the gateway?",
+      answer: "The gateway currently supports Gemini 1.5 Pro, Gemini 1.5 Flash, Claude 3.5 Sonnet, GPT-4o, and Llama 3.1 models, intelligently routing queries based on fallback configurations.",
+      tags: ["API", "General"]
+    },
+    {
+      question: "Does the proxy gateway support streaming completions?",
+      answer: "Absolutely. Standard Server-Sent Events (SSE) protocol is fully supported, streaming tokens chunk-by-chunk with minimal network buffering for real-time typewriter output.",
+      tags: ["API"]
+    },
+    {
+      question: "Do I need to change my code to use OmniKey AI?",
+      answer: "No, you only need to change the baseURL and developer API key headers in your client initialization code to point to our proxy gateway endpoint.",
+      tags: ["API"]
     }
   ];
 
@@ -571,25 +602,46 @@ export default function LandingPage() {
           <h2 className="section-title">Frequently Asked Questions</h2>
           <p className="section-subtitle">Learn more about CognitoX's unified intelligence capabilities</p>
           
+          <div className="faq-categories">
+            {faqCategories.map((cat) => (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => {
+                  setSelectedFaqCategory(cat.id);
+                  setActiveFaq(null);
+                }}
+                className={`faq-category-btn ${selectedFaqCategory === cat.id ? "active" : ""}`}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+
           <div className="accordion">
-            {faqData.map((item, index) => {
-              const isOpen = activeFaq === index;
-              return (
-                <div key={index} className={`accordion-item ${isOpen ? 'active' : ''}`}>
-                  <button 
-                    onClick={() => setActiveFaq(isOpen ? null : index)} 
-                    className="accordion-header"
-                    type="button"
-                  >
-                    <span>{item.question}</span>
-                    <span className="accordion-icon">{isOpen ? "−" : "+"}</span>
-                  </button>
-                  <div className="accordion-content">
-                    <p>{item.answer}</p>
+            {faqData
+              .filter((item) => item.tags.includes(selectedFaqCategory))
+              .map((item, index) => {
+                const isOpen = activeFaq === index;
+                return (
+                  <div key={index} className={`accordion-item ${isOpen ? 'active' : ''}`}>
+                    <button 
+                      onClick={() => setActiveFaq(isOpen ? null : index)} 
+                      className="accordion-header"
+                      type="button"
+                    >
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span className="star-prefix">✦</span>
+                        <span>{item.question}</span>
+                      </span>
+                      <span className="accordion-icon">{isOpen ? "−" : "+"}</span>
+                    </button>
+                    <div className="accordion-content">
+                      <p>{item.answer}</p>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
           </div>
         </div>
 
@@ -1451,6 +1503,44 @@ export default function LandingPage() {
           width: 100%;
           padding: 40px;
           z-index: 10;
+        }
+        .faq-categories {
+          display: flex;
+          justify-content: center;
+          gap: 12px;
+          margin-bottom: 32px;
+          flex-wrap: wrap;
+        }
+        .faq-category-btn {
+          padding: 8px 20px;
+          border-radius: 9999px;
+          font-size: 0.85rem;
+          font-family: var(--font-display);
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          background: var(--glass-bg);
+          border: 1px solid var(--border-color);
+          color: var(--text-secondary);
+        }
+        .faq-category-btn:hover {
+          color: var(--text-primary);
+          border-color: rgba(99, 102, 241, 0.3);
+          background: rgba(255, 255, 255, 0.05);
+        }
+        :global([data-theme="light"]) .faq-category-btn:hover {
+          background: rgba(0, 0, 0, 0.03);
+        }
+        .faq-category-btn.active {
+          background: var(--accent-primary);
+          border-color: var(--accent-primary);
+          color: #ffffff;
+          box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+        .star-prefix {
+          color: var(--accent-primary);
+          font-size: 0.85rem;
+          flex-shrink: 0;
         }
         @media (max-width: 640px) {
           .faq-container {
