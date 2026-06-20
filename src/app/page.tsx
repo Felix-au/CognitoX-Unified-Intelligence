@@ -184,8 +184,20 @@ export default function LandingPage() {
         </div>
       </div>
 
-      {/* Background 3D Construct 2: Rotating Wireframe Cube */}
-      <div className="sub-construct sub-construct-1">
+      {/* Top-Left: Rotating Double Ring */}
+      <div className="sub-construct sub-construct-top-left">
+        <div className="double-ring-3d">
+          <div className="sub-ring ring-a">
+            <div className="sub-node node-a1"></div>
+          </div>
+          <div className="sub-ring ring-b">
+            <div className="sub-node node-b1"></div>
+          </div>
+        </div>
+      </div>
+
+      {/* Top-Right: Rotating Wireframe Cube */}
+      <div className="sub-construct sub-construct-top-right">
         <div className="cube-3d">
           <div className="cube-face face-front"></div>
           <div className="cube-face face-back"></div>
@@ -196,15 +208,42 @@ export default function LandingPage() {
         </div>
       </div>
 
-      {/* Background 3D Construct 3: Rotating Double Ring */}
-      <div className="sub-construct sub-construct-2">
-        <div className="double-ring-3d">
-          <div className="sub-ring ring-a">
-            <div className="sub-node node-a1"></div>
+      {/* Bottom-Left: Three Intersecting Rings */}
+      <div className="sub-construct sub-construct-bottom-left">
+        <div className="triple-ring-3d">
+          <div className="sub-ring ring-x">
+            <div className="sub-node node-x1"></div>
           </div>
-          <div className="sub-ring ring-b">
-            <div className="sub-node node-b1"></div>
+          <div className="sub-ring ring-y">
+            <div className="sub-node node-y1"></div>
           </div>
+          <div className="sub-ring ring-z">
+            <div className="sub-node node-z1"></div>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom-Right: 3D Neural Network / Brain */}
+      <div className="sub-construct sub-construct-bottom-right">
+        <div className="neural-net-3d">
+          <div className="net-node node-n1"></div>
+          <div className="net-node node-n2"></div>
+          <div className="net-node node-n3"></div>
+          <div className="net-node node-n4"></div>
+          <div className="net-node node-n5"></div>
+          <div className="net-node node-n6"></div>
+          <div className="net-node node-n7"></div>
+          <div className="net-node node-n8"></div>
+          <svg className="net-svg" viewBox="0 0 150 150">
+            <line x1="75" y1="20" x2="30" y2="60" className="net-line" />
+            <line x1="75" y1="20" x2="120" y2="60" className="net-line" />
+            <line x1="30" y1="60" x2="75" y2="130" className="net-line" />
+            <line x1="120" y1="60" x2="75" y2="130" className="net-line" />
+            <line x1="30" y1="60" x2="75" y2="75" className="net-line" />
+            <line x1="120" y1="60" x2="75" y2="75" className="net-line" />
+            <line x1="75" y1="20" x2="75" y2="75" className="net-line" />
+            <line x1="75" y1="75" x2="75" y2="130" className="net-line" />
+          </svg>
         </div>
       </div>
 
@@ -357,6 +396,39 @@ export default function LandingPage() {
           overflow: hidden;
           padding: 24px;
           transition: background-color 0.3s ease;
+          
+          /* Visual variables (Dark Space theme default) */
+          --grad-opacity: 0.18;
+          --line-opacity: 0.04;
+          --node-bg: #ffffff;
+          --ring-border: rgba(255, 255, 255, 0.05);
+          --net-line-color: var(--accent-secondary);
+          --core-bg-1: #ffffff;
+          --core-bg-2: var(--accent-secondary);
+          --core-shadow-1: var(--accent-secondary);
+          --core-shadow-2: var(--accent-primary);
+        }
+        
+        :global([data-theme="light"]) .landing-container {
+          --grad-opacity: 0.55;
+          --line-opacity: 0.22;
+          --node-bg: #dc2626; /* Sun-like vibrant red nodes */
+          --ring-border: rgba(220, 38, 38, 0.18);
+          --net-line-color: #dc2626;
+          --core-bg-1: #ffedd5; /* Warm light-orange core inner */
+          --core-bg-2: #ea580c; /* Warm orange core outer */
+          --core-shadow-1: rgba(234, 88, 12, 0.6);
+          --core-shadow-2: rgba(220, 38, 38, 0.4);
+          --accent-primary: #dc2626; /* Rose override */
+          --accent-secondary: #f97316; /* Sun-like orange override */
+        }
+        
+        :global([data-theme="light"]) .orb-purple {
+          background: radial-gradient(circle, rgba(239, 68, 68, 0.25) 0%, transparent 70%);
+        }
+        
+        :global([data-theme="light"]) .orb-cyan {
+          background: radial-gradient(circle, rgba(249, 115, 22, 0.25) 0%, transparent 70%);
         }
         
         /* Floating Neon Glow Backdrop */
@@ -443,17 +515,13 @@ export default function LandingPage() {
           letter-spacing: -0.03em;
         }
         .gradient-text {
-          background: linear-gradient(135deg, #6366f1 0%, #06b6d4 100%);
+          background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
         }
         
         /* 3D Neural Construct Visual in Background */
         .construct-container {
-          --grad-opacity: 0.18;
-          --line-opacity: 0.04;
-          --node-bg: #ffffff;
-          --ring-border: rgba(255, 255, 255, 0.05);
           position: absolute;
           top: 50%;
           left: 30%;
@@ -478,13 +546,6 @@ export default function LandingPage() {
             opacity: 0.4;
           }
         }
-        :global([data-theme="light"]) .construct-container {
-          --grad-opacity: 0.45;
-          --line-opacity: 0.12;
-          --node-bg: var(--accent-primary);
-          --ring-border: rgba(99, 102, 241, 0.18);
-          opacity: 0.55;
-        }
         .construct-3d {
           width: 480px;
           height: 480px;
@@ -505,9 +566,9 @@ export default function LandingPage() {
           transform: translate(-50%, -50%);
           width: 40px;
           height: 40px;
-          background: radial-gradient(circle, #ffffff 0%, var(--accent-secondary) 50%, transparent 100%);
+          background: radial-gradient(circle, var(--core-bg-1) 0%, var(--core-bg-2) 50%, transparent 100%);
           border-radius: 50%;
-          box-shadow: 0 0 30px var(--accent-secondary), 0 0 60px var(--accent-primary);
+          box-shadow: 0 0 30px var(--core-shadow-1), 0 0 60px var(--core-shadow-2);
           animation: pulseCore 3s ease-in-out infinite alternate;
           z-index: 5;
         }
@@ -572,27 +633,48 @@ export default function LandingPage() {
           z-index: 2;
           opacity: 0.35;
           transition: all 0.4s ease;
-          --node-bg: #ffffff;
-          --ring-border: rgba(255, 255, 255, 0.05);
         }
-        :global([data-theme="light"]) .sub-construct {
-          opacity: 0.45;
-          --node-bg: var(--accent-secondary);
-          --ring-border: rgba(6, 182, 212, 0.2);
+        .sub-construct-top-left {
+          top: 10%;
+          left: 4%;
+          width: 150px;
+          height: 150px;
+          perspective: 450px;
         }
-        .sub-construct-1 {
-          top: 12%;
+        .sub-construct-top-right {
+          top: 10%;
           right: 8%;
           width: 130px;
           height: 130px;
           perspective: 450px;
         }
+        .sub-construct-bottom-left {
+          bottom: 12%;
+          left: 4%;
+          width: 150px;
+          height: 150px;
+          perspective: 500px;
+        }
+        .sub-construct-bottom-right {
+          bottom: 10%;
+          right: 8%;
+          width: 180px;
+          height: 180px;
+          perspective: 600px;
+        }
         @media (max-width: 968px) {
-          .sub-construct-1 {
-            top: 5%;
-            right: 5%;
+          .sub-construct-top-left,
+          .sub-construct-bottom-left,
+          .sub-construct-bottom-right {
+            display: none;
+          }
+          .sub-construct-top-right {
+            top: 4%;
+            right: 4%;
           }
         }
+        
+        /* 3D Shapes Inner Animations */
         .cube-3d {
           width: 80px;
           height: 80px;
@@ -608,7 +690,7 @@ export default function LandingPage() {
           background: rgba(99, 102, 241, 0.015);
         }
         :global([data-theme="light"]) .cube-face {
-          background: rgba(6, 182, 212, 0.04);
+          background: rgba(220, 38, 38, 0.03);
         }
         .face-front  { transform: translateZ(40px); }
         .face-back   { transform: rotateY(180deg) translateZ(40px); }
@@ -617,18 +699,6 @@ export default function LandingPage() {
         .face-top    { transform: rotateX(90deg) translateZ(40px); }
         .face-bottom { transform: rotateX(-90deg) translateZ(40px); }
         
-        .sub-construct-2 {
-          bottom: 12%;
-          left: 4%;
-          width: 160px;
-          height: 160px;
-          perspective: 500px;
-        }
-        @media (max-width: 968px) {
-          .sub-construct-2 {
-            display: none;
-          }
-        }
         .double-ring-3d {
           width: 100px;
           height: 100px;
@@ -656,6 +726,61 @@ export default function LandingPage() {
         }
         .node-a1 { top: 0; left: 50%; transform: translate(-50%, -50%); }
         .node-b1 { bottom: 0; left: 50%; transform: translate(-50%, 50%); }
+        
+        /* Triple Ring Visual */
+        .triple-ring-3d {
+          width: 100px;
+          height: 100px;
+          position: relative;
+          transform-style: preserve-3d;
+          animation: spinTripleRing 22s linear infinite;
+        }
+        .ring-x { transform: rotateX(60deg) rotateY(30deg); }
+        .ring-y { transform: rotateX(-60deg) rotateY(-30deg); }
+        .ring-z { transform: rotateY(90deg) rotateZ(45deg); }
+        .node-x1 { top: 0; left: 50%; transform: translate(-50%, -50%); }
+        .node-y1 { bottom: 0; left: 50%; transform: translate(-50%, 50%); }
+        .node-z1 { top: 50%; right: 0; transform: translate(50%, -50%); }
+        
+        /* 3D Neural Net Visual */
+        .neural-net-3d {
+          width: 150px;
+          height: 150px;
+          position: relative;
+          transform-style: preserve-3d;
+          animation: spinNeural 20s linear infinite;
+        }
+        .net-node {
+          position: absolute;
+          width: 6px;
+          height: 6px;
+          background-color: var(--node-bg);
+          border-radius: 50%;
+          box-shadow: 0 0 8px var(--node-bg), 0 0 16px var(--accent-secondary);
+          transform-style: preserve-3d;
+        }
+        .node-n1 { top: 20px; left: 75px; transform: translate(-50%, -50%) translateZ(40px); }
+        .node-n2 { top: 60px; left: 30px; transform: translate(-50%, -50%) translateZ(20px); }
+        .node-n3 { top: 60px; left: 120px; transform: translate(-50%, -50%) translateZ(-20px); }
+        .node-n4 { top: 130px; left: 75px; transform: translate(-50%, -50%) translateZ(-40px); }
+        .node-n5 { top: 75px; left: 75px; transform: translate(-50%, -50%) translateZ(10px); }
+        .node-n6 { top: 40px; left: 50px; transform: translate(-50%, -50%) translateZ(-30px); }
+        .node-n7 { top: 90px; left: 100px; transform: translate(-50%, -50%) translateZ(30px); }
+        .node-n8 { top: 100px; left: 45px; transform: translate(-50%, -50%) translateZ(-10px); }
+        
+        .net-svg {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          pointer-events: none;
+        }
+        .net-line {
+          stroke: var(--net-line-color);
+          stroke-opacity: var(--line-opacity);
+          stroke-width: 1;
+        }
         
         @keyframes rotateConstruct {
           0% { transform: rotateY(0deg) rotateX(0deg); }
@@ -690,6 +815,14 @@ export default function LandingPage() {
         @keyframes spinDoubleRing {
           0% { transform: rotateY(0deg) rotateX(0deg); }
           100% { transform: rotateY(-360deg) rotateX(360deg); }
+        }
+        @keyframes spinTripleRing {
+          0% { transform: rotateY(0deg) rotateX(0deg); }
+          100% { transform: rotateY(360deg) rotateX(-360deg); }
+        }
+        @keyframes spinNeural {
+          0% { transform: rotateY(0deg) rotateZ(0deg); }
+          100% { transform: rotateY(360deg) rotateZ(360deg); }
         }
 
         .features-grid {
