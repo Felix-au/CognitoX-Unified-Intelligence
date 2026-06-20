@@ -31,20 +31,28 @@ export async function POST(req: NextRequest) {
       },
       body: JSON.stringify({
         from: "CognitoX Workspace <contact@felix-au.me>",
-        to: "drivecloudetc@gmail.com",
+        to: "felixaugum@gmail.com",
         reply_to: email,
-        subject: `CognitoX: New Message from ${name}`,
+        subject: `CognitoX: New Inquiry from ${name}`,
         html: `
-          <div style="font-family: sans-serif; padding: 20px; color: #111;">
-            <h2>New Contact Form Submission</h2>
-            <p><strong>Name:</strong> ${name}</p>
-            <p><strong>Email:</strong> ${email}</p>
-            <p><strong>Message:</strong></p>
-            <blockquote style="border-left: 4px solid #6366f1; padding-left: 15px; margin-left: 0; font-style: italic;">
-              ${message.replace(/\n/g, "<br/>")}
-            </blockquote>
-            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
-            <p style="font-size: 12px; color: #888;">Sent from CognitoX Workspace sandbox environment.</p>
+          <div style="font-family: sans-serif; padding: 24px; color: #1e293b; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff;">
+            <div style="border-bottom: 2px solid #6366f1; padding-bottom: 12px; margin-bottom: 20px;">
+              <h2 style="color: #0f172a; margin: 0; font-size: 20px;">New Contact Form Submission</h2>
+              <p style="color: #64748b; margin: 4px 0 0 0; font-size: 13px;">CognitoX Workspace Landing Page Inquiry</p>
+            </div>
+            
+            <div style="margin-bottom: 24px; line-height: 1.5; font-size: 14px;">
+              <p style="margin: 0 0 8px 0;"><strong style="color: #475569;">Sender Name:</strong> ${name}</p>
+              <p style="margin: 0 0 16px 0;"><strong style="color: #475569;">Sender Email:</strong> <a href="mailto:${email}" style="color: #6366f1; text-decoration: none;">${email}</a></p>
+              
+              <div style="background-color: #f8fafc; border-left: 4px solid #6366f1; padding: 16px; border-radius: 0 8px 8px 0;">
+                <p style="margin: 0 0 8px 0; font-weight: bold; color: #334155; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Message Details:</p>
+                <p style="margin: 0; font-style: italic; color: #475569; white-space: pre-line;">"${message}"</p>
+              </div>
+            </div>
+            
+            <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
+            <p style="font-size: 11px; color: #94a3b8; text-align: center; margin: 0;">This email was securely routed from the CognitoX Workspace contact form. Click "Reply" to respond directly to the sender.</p>
           </div>
         `,
       }),

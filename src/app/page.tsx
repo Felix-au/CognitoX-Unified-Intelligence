@@ -86,8 +86,9 @@ export default function LandingPage() {
 
   const faqCategories = [
     { id: "General", label: "General Info" },
-    { id: "API", label: "API Compatibility" },
-    { id: "Security", label: "Security & Encryption" }
+    { id: "Chats", label: "Chat Features" },
+    { id: "Tools", label: "Workspace Tools" },
+    { id: "Security", label: "Security & Privacy" }
   ];
 
   const faqData = [
@@ -97,39 +98,99 @@ export default function LandingPage() {
       tags: ["General"]
     },
     {
-      question: "How does Notes OCR protect my data?",
-      answer: "Unlike typical cloud scanners, CognitoX extracts text from document scans directly on your browser using a local Canvas drawing engine and Sobel/Canny image shaders. Your raw files are processed sandboxed client-side before any prompt execution.",
-      tags: ["Security"]
-    },
-    {
-      question: "Why use CognitoX instead of ChatGPT in browser?",
-      answer: "CognitoX unifies disparate cognitive workloads (transcribing, OCR extracting, code compiling, image editing, and chatting) into a single workspace, backed by a persistent MongoDB session cache so you don't lose context.",
+      question: "How do I get started with CognitoX?",
+      answer: "Simply create an account using your email address or sign in instantly with Google. Once verified, you will be redirected to the main dashboard where all cognitive workspace tools are ready to use.",
       tags: ["General"]
     },
     {
-      question: "Are my diagram studio files saved?",
-      answer: "Yes. All note summaries, YouTube analysis mock tests, and compiled diagrams are securely written to your custom MongoDB Atlas cluster collections via a high-performance Prisma client.",
+      question: "Is there a free trial or usage limits?",
+      answer: "CognitoX offers complete access to all features in our standard workspace tier. Standard cognitive requests are processed securely with persistent session caching.",
+      tags: ["General"]
+    },
+    {
+      question: "Is CognitoX mobile responsive?",
+      answer: "Yes. The entire interface, from the landing page slide deck to the complex multi-panel chatbot workspaces, is designed to scale dynamically for smartphones, tablets, and desktops.",
+      tags: ["General"]
+    },
+    {
+      question: "How do I switch between dark and light themes?",
+      answer: "Click the sun/moon button in the top-right corner of the workspace screen to toggle instantly between the premium Pitch-Black theme and the high-contrast light theme.",
+      tags: ["General"]
+    },
+    {
+      question: "Can I rename or edit my chatbot conversations?",
+      answer: "Yes. In the sidebar panel, hover over any active conversation and click the edit (pencil) icon to rename it in real-time.",
+      tags: ["Chats"]
+    },
+    {
+      question: "How do I archive chats I no longer need?",
+      answer: "Hover over any conversation in the sidebar and click the archive (box) icon. You can toggle between viewing active and archived chats using the tabs at the top of the history tray.",
+      tags: ["Chats"]
+    },
+    {
+      question: "Does CognitoX share my chat history with external model providers?",
+      answer: "No. All prompt histories and document contexts are stored privately in your personal database. We do not use user histories to train public AI models.",
+      tags: ["Chats"]
+    },
+    {
+      question: "Can I permanently delete individual chats?",
+      answer: "Yes. You can permanently delete individual conversation histories from your dashboard sidebar with a single click, completely removing them from your cache.",
+      tags: ["Chats"]
+    },
+    {
+      question: "How do I start a new chat session?",
+      answer: "Click the '+' or 'New Session' button at the top of the sidebar. This will initialize a clean chat context where you can query the AI or activate custom workspace tools.",
+      tags: ["Chats"]
+    },
+    {
+      question: "What tools are available in the CognitoX workspace?",
+      answer: "CognitoX integrates a rich set of cognitive sandboxes: a Markdown Notes panel with local OCR, a YouTube transcript analyzer, an interactive Mermaid.js Diagram Studio, and an Image Filter panel.",
+      tags: ["Tools"]
+    },
+    {
+      question: "How does the YouTube Analyzer work?",
+      answer: "Paste any public YouTube video URL into the video tool to retrieve its transcripts. You can generate outlines, extract summaries, and compile interactive preparation tests in seconds.",
+      tags: ["Tools"]
+    },
+    {
+      question: "Can I render and view diagrams inside the studio?",
+      answer: "Yes. The Diagram Studio compiles code descriptions into visual, interactive Mermaid.js flowcharts, mindmaps, and user journey outlines rendered directly in the workspace.",
+      tags: ["Tools"]
+    },
+    {
+      question: "What happens if my Mermaid diagram code has a syntax error?",
+      answer: "Our real-time compiler detects mermaid rendering exceptions, displays a clear line-by-line syntax alert banner under the editor, and points out the exact line of code causing the issue.",
+      tags: ["Tools"]
+    },
+    {
+      question: "Can I download text extracted by the Notes OCR tool?",
+      answer: "Yes. Once notes are extracted or summarized, you can copy them with a single click, save them to your notebook session, or export them to markdown files.",
+      tags: ["Tools"]
+    },
+    {
+      question: "How does the Notes OCR protect my data privacy?",
+      answer: "Unlike typical cloud-based scanners, CognitoX extracts text from document scans directly on your browser using a local Canvas drawing engine and image shaders. No document files are uploaded to third-party services.",
       tags: ["Security"]
     },
     {
-      question: "Is the API proxy gateway compatible with standard OpenAI and Gemini SDKs?",
-      answer: "Yes, CognitoX's proxy gateway implements standard OpenAI-compliant API schemas, allowing seamless drop-in integration with official OpenAI, Gemini, and LangChain client SDKs.",
-      tags: ["API"]
+      question: "Are my note summaries and diagram drafts saved?",
+      answer: "Yes. All note summaries, chat sessions, mindmaps, and mock tests are safely written to your custom MongoDB Atlas cluster collections via our high-performance client for persistence.",
+      tags: ["Security"]
     },
     {
-      question: "What models are supported by the gateway?",
-      answer: "The gateway currently supports Gemini 1.5 Pro, Gemini 1.5 Flash, Claude 3.5 Sonnet, GPT-4o, and Llama 3.1 models, intelligently routing queries based on fallback configurations.",
-      tags: ["API", "General"]
+      question: "Is my login credentials and authentication secure?",
+      answer: "CognitoX integrates Firebase Authentication and Next-Auth. All session tokens are handled securely, and password rules require email verification on signup to prevent unauthorized access.",
+      tags: ["Security"]
     },
     {
-      question: "Does the proxy gateway support streaming completions?",
-      answer: "Absolutely. Standard Server-Sent Events (SSE) protocol is fully supported, streaming tokens chunk-by-chunk with minimal network buffering for real-time typewriter output.",
-      tags: ["API"]
+      question: "Is my session data encrypted in transit?",
+      answer: "Yes, all communications between the CognitoX frontend and backend API endpoints are encrypted in transit using industry-standard TLS 1.3 encryption protocols.",
+      tags: ["Security"]
     },
     {
-      question: "Do I need to change my code to use OmniKey AI?",
-      answer: "No, you only need to change the baseURL and developer API key headers in your client initialization code to point to our proxy gateway endpoint.",
-      tags: ["API"]
+      question: "Can I request a full wipe of my saved history?",
+      answer: "Yes. You can permanently delete individual conversation histories, clear your session cache, or delete your account credentials directly from the account settings tab.",
+      tags: ["Security"]
     }
   ];
 
