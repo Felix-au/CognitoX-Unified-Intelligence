@@ -153,6 +153,61 @@ export default function LandingPage() {
       <div className="landing-glow-orb orb-purple"></div>
       <div className="landing-glow-orb orb-cyan"></div>
 
+      {/* Large Rotating Background 3D Neural Construct Core */}
+      <div className="construct-container">
+        <div className="construct-3d">
+          <div className="construct-core"></div>
+          <div className="construct-ring ring-1">
+            <div className="node node-1"></div>
+            <div className="node node-2"></div>
+          </div>
+          <div className="construct-ring ring-2">
+            <div className="node node-3"></div>
+            <div className="node node-4"></div>
+          </div>
+          <div className="construct-ring ring-3">
+            <div className="node node-5"></div>
+          </div>
+          <svg className="construct-svg" viewBox="0 0 200 200">
+            <defs>
+              <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="var(--accent-primary)" stopOpacity="var(--grad-opacity)" />
+                <stop offset="100%" stopColor="var(--accent-secondary)" stopOpacity="var(--grad-opacity)" />
+              </linearGradient>
+            </defs>
+            <circle cx="100" cy="100" r="90" stroke="url(#grad1)" strokeWidth="1" fill="none" strokeDasharray="5,5" className="svg-ring-1" />
+            <circle cx="100" cy="100" r="65" stroke="url(#grad1)" strokeWidth="1.5" fill="none" className="svg-ring-2" />
+            <circle cx="100" cy="100" r="40" stroke="url(#grad1)" strokeWidth="0.5" fill="none" strokeDasharray="3,3" className="svg-ring-3" />
+            <line x1="100" y1="20" x2="100" y2="180" stroke="var(--accent-primary)" strokeOpacity="var(--line-opacity)" strokeWidth="1" />
+            <line x1="20" y1="100" x2="180" y2="100" stroke="var(--accent-primary)" strokeOpacity="var(--line-opacity)" strokeWidth="1" />
+          </svg>
+        </div>
+      </div>
+
+      {/* Background 3D Construct 2: Rotating Wireframe Cube */}
+      <div className="sub-construct sub-construct-1">
+        <div className="cube-3d">
+          <div className="cube-face face-front"></div>
+          <div className="cube-face face-back"></div>
+          <div className="cube-face face-left"></div>
+          <div className="cube-face face-right"></div>
+          <div className="cube-face face-top"></div>
+          <div className="cube-face face-bottom"></div>
+        </div>
+      </div>
+
+      {/* Background 3D Construct 3: Rotating Double Ring */}
+      <div className="sub-construct sub-construct-2">
+        <div className="double-ring-3d">
+          <div className="sub-ring ring-a">
+            <div className="sub-node node-a1"></div>
+          </div>
+          <div className="sub-ring ring-b">
+            <div className="sub-node node-b1"></div>
+          </div>
+        </div>
+      </div>
+
       <button 
         type="button" 
         onClick={toggleTheme} 
@@ -171,40 +226,6 @@ export default function LandingPage() {
               Unified Intelligence across <br />
               <span className="gradient-text">Web, Media, Notes &amp; Visuals</span>
             </h1>
-          </div>
-
-          {/* Interactive 3D-like Rotating Neural Construct */}
-          <div className="construct-container">
-            <div className="construct-3d">
-              {/* Central glowing core */}
-              <div className="construct-core"></div>
-              {/* Orbiting rings */}
-              <div className="construct-ring ring-1">
-                <div className="node node-1"></div>
-                <div className="node node-2"></div>
-              </div>
-              <div className="construct-ring ring-2">
-                <div className="node node-3"></div>
-                <div className="node node-4"></div>
-              </div>
-              <div className="construct-ring ring-3">
-                <div className="node node-5"></div>
-              </div>
-              {/* Connecting lines via dynamic SVG */}
-              <svg className="construct-svg" viewBox="0 0 200 200">
-                <defs>
-                  <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="var(--accent-primary)" stopOpacity="0.25" />
-                    <stop offset="100%" stopColor="var(--accent-secondary)" stopOpacity="0.25" />
-                  </linearGradient>
-                </defs>
-                <circle cx="100" cy="100" r="80" stroke="url(#grad1)" strokeWidth="1" fill="none" strokeDasharray="5,5" className="svg-ring-1" />
-                <circle cx="100" cy="100" r="55" stroke="url(#grad1)" strokeWidth="1.5" fill="none" className="svg-ring-2" />
-                <circle cx="100" cy="100" r="30" stroke="url(#grad1)" strokeWidth="0.5" fill="none" strokeDasharray="3,3" className="svg-ring-3" />
-                <line x1="100" y1="20" x2="100" y2="180" stroke="rgba(255, 255, 255, 0.05)" strokeWidth="1" />
-                <line x1="20" y1="100" x2="180" y2="100" stroke="rgba(255, 255, 255, 0.05)" strokeWidth="1" />
-              </svg>
-            </div>
           </div>
 
           <div className="features-grid">
@@ -427,29 +448,63 @@ export default function LandingPage() {
           -webkit-text-fill-color: transparent;
         }
         
-        /* 3D Neural Construct Visual */
+        /* 3D Neural Construct Visual in Background */
         .construct-container {
+          --grad-opacity: 0.18;
+          --line-opacity: 0.04;
+          --node-bg: #ffffff;
+          --ring-border: rgba(255, 255, 255, 0.05);
+          position: absolute;
+          top: 50%;
+          left: 30%;
+          transform: translate(-50%, -50%);
+          width: 580px;
+          height: 580px;
+          perspective: 1200px;
+          z-index: 2;
+          pointer-events: none;
           display: flex;
           align-items: center;
           justify-content: center;
-          height: 240px;
-          margin: 15px 0;
-          perspective: 800px;
-          position: relative;
+          opacity: 0.65;
+          transition: all 0.4s ease;
+        }
+        @media (max-width: 968px) {
+          .construct-container {
+            top: 40%;
+            left: 50%;
+            width: 480px;
+            height: 480px;
+            opacity: 0.4;
+          }
+        }
+        :global([data-theme="light"]) .construct-container {
+          --grad-opacity: 0.45;
+          --line-opacity: 0.12;
+          --node-bg: var(--accent-primary);
+          --ring-border: rgba(99, 102, 241, 0.18);
+          opacity: 0.55;
         }
         .construct-3d {
-          width: 200px;
-          height: 200px;
+          width: 480px;
+          height: 480px;
           position: relative;
           transform-style: preserve-3d;
           animation: rotateConstruct 25s linear infinite;
         }
+        @media (max-width: 968px) {
+          .construct-3d {
+            width: 380px;
+            height: 380px;
+          }
+        }
         .construct-core {
           position: absolute;
-          top: 85px;
-          left: 85px;
-          width: 30px;
-          height: 30px;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 40px;
+          height: 40px;
           background: radial-gradient(circle, #ffffff 0%, var(--accent-secondary) 50%, transparent 100%);
           border-radius: 50%;
           box-shadow: 0 0 30px var(--accent-secondary), 0 0 60px var(--accent-primary);
@@ -462,7 +517,7 @@ export default function LandingPage() {
           left: 0;
           width: 100%;
           height: 100%;
-          border: 1.5px solid rgba(255, 255, 255, 0.08);
+          border: 1.5px solid var(--ring-border);
           border-radius: 50%;
           transform-style: preserve-3d;
         }
@@ -482,9 +537,9 @@ export default function LandingPage() {
           position: absolute;
           width: 8px;
           height: 8px;
-          background-color: #fff;
+          background-color: var(--node-bg);
           border-radius: 50%;
-          box-shadow: 0 0 10px #fff, 0 0 20px var(--accent-secondary);
+          box-shadow: 0 0 10px var(--node-bg), 0 0 20px var(--accent-secondary);
         }
         .node-1 { top: 0; left: 50%; transform: translate(-50%, -50%); }
         .node-2 { bottom: 0; left: 50%; transform: translate(-50%, 50%); }
@@ -509,6 +564,98 @@ export default function LandingPage() {
           animation: rotateSVG2 15s linear infinite reverse;
           transform-origin: center;
         }
+
+        /* Secondary Background 3D Constructs */
+        .sub-construct {
+          position: absolute;
+          pointer-events: none;
+          z-index: 2;
+          opacity: 0.35;
+          transition: all 0.4s ease;
+          --node-bg: #ffffff;
+          --ring-border: rgba(255, 255, 255, 0.05);
+        }
+        :global([data-theme="light"]) .sub-construct {
+          opacity: 0.45;
+          --node-bg: var(--accent-secondary);
+          --ring-border: rgba(6, 182, 212, 0.2);
+        }
+        .sub-construct-1 {
+          top: 12%;
+          right: 8%;
+          width: 130px;
+          height: 130px;
+          perspective: 450px;
+        }
+        @media (max-width: 968px) {
+          .sub-construct-1 {
+            top: 5%;
+            right: 5%;
+          }
+        }
+        .cube-3d {
+          width: 80px;
+          height: 80px;
+          position: relative;
+          transform-style: preserve-3d;
+          animation: spinCube 15s linear infinite;
+        }
+        .cube-face {
+          position: absolute;
+          width: 80px;
+          height: 80px;
+          border: 1px solid var(--ring-border);
+          background: rgba(99, 102, 241, 0.015);
+        }
+        :global([data-theme="light"]) .cube-face {
+          background: rgba(6, 182, 212, 0.04);
+        }
+        .face-front  { transform: translateZ(40px); }
+        .face-back   { transform: rotateY(180deg) translateZ(40px); }
+        .face-left   { transform: rotateY(-90deg) translateZ(40px); }
+        .face-right  { transform: rotateY(90deg) translateZ(40px); }
+        .face-top    { transform: rotateX(90deg) translateZ(40px); }
+        .face-bottom { transform: rotateX(-90deg) translateZ(40px); }
+        
+        .sub-construct-2 {
+          bottom: 12%;
+          left: 4%;
+          width: 160px;
+          height: 160px;
+          perspective: 500px;
+        }
+        @media (max-width: 968px) {
+          .sub-construct-2 {
+            display: none;
+          }
+        }
+        .double-ring-3d {
+          width: 100px;
+          height: 100px;
+          position: relative;
+          transform-style: preserve-3d;
+          animation: spinDoubleRing 18s linear infinite;
+        }
+        .sub-ring {
+          position: absolute;
+          width: 100px;
+          height: 100px;
+          border: 1.5px solid var(--ring-border);
+          border-radius: 50%;
+          transform-style: preserve-3d;
+        }
+        .ring-a { transform: rotateX(60deg) rotateY(30deg); }
+        .ring-b { transform: rotateX(-60deg) rotateY(-30deg); }
+        .sub-node {
+          position: absolute;
+          width: 6px;
+          height: 6px;
+          background-color: var(--node-bg);
+          border-radius: 50%;
+          box-shadow: 0 0 8px var(--node-bg), 0 0 16px var(--accent-secondary);
+        }
+        .node-a1 { top: 0; left: 50%; transform: translate(-50%, -50%); }
+        .node-b1 { bottom: 0; left: 50%; transform: translate(-50%, 50%); }
         
         @keyframes rotateConstruct {
           0% { transform: rotateY(0deg) rotateX(0deg); }
@@ -535,6 +682,14 @@ export default function LandingPage() {
         }
         @keyframes rotateSVG2 {
           to { transform: rotate(360deg); }
+        }
+        @keyframes spinCube {
+          0% { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg); }
+          100% { transform: rotateX(360deg) rotateY(360deg) rotateZ(360deg); }
+        }
+        @keyframes spinDoubleRing {
+          0% { transform: rotateY(0deg) rotateX(0deg); }
+          100% { transform: rotateY(-360deg) rotateX(360deg); }
         }
 
         .features-grid {
