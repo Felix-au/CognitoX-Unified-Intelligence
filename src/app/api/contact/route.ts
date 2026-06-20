@@ -31,7 +31,8 @@ export async function POST(req: NextRequest) {
       },
       body: JSON.stringify({
         from: "CognitoX Workspace <contact@felix-au.me>",
-        to: "felixaugum@gmail.com",
+        to: "drivecloudetc@gmail.com",
+        reply_to: email,
         subject: `CognitoX: New Message from ${name}`,
         html: `
           <div style="font-family: sans-serif; padding: 20px; color: #111;">
@@ -70,7 +71,7 @@ export async function POST(req: NextRequest) {
           <div style="font-family: sans-serif; padding: 20px; color: #111; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px;">
             <h2 style="color: #6366f1;">Thank you for contacting us!</h2>
             <p>Hello ${name},</p>
-            <p>This is a confirmation copy to let you know that your message has been received. Felix AU will review your request and get back to you as soon as possible.</p>
+            <p>This is a confirmation copy to let you know that your message has been received. I (Felix Au) will review your request and get back to you as soon as possible.</p>
             <p>Here is a summary of the details you submitted:</p>
             <div style="background-color: #f8fafc; padding: 15px; border-radius: 6px; margin: 15px 0;">
               <p style="margin: 0 0 10px 0;"><strong>Your Message:</strong></p>
