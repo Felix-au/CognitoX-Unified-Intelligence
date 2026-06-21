@@ -81,19 +81,29 @@ export default function RootLayout({
             document.documentElement.classList.remove('no-transitions');
           });
         ` }} />
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "SoftwareApplication",
-          "name": "CognitoX",
-          "operatingSystem": "All",
-          "applicationCategory": "BusinessApplication",
-          "description": "CognitoX is a unified intelligence workspace and cognitive AI chatbot that integrates notes OCR transcription, YouTube transcripts, Mermaid diagram studio, and client-side image editing.",
-          "offers": {
-            "@type": "Offer",
-            "price": "0",
-            "priceCurrency": "USD"
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify([
+          {
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            "name": "CognitoX",
+            "operatingSystem": "All",
+            "applicationCategory": "BusinessApplication",
+            "description": "CognitoX is a unified intelligence workspace and cognitive AI chatbot that integrates notes OCR transcription, YouTube transcripts, Mermaid diagram studio, and client-side image editing.",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            }
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "CognitoX",
+            "url": "https://cognitox.vercel.app",
+            "logo": "https://cognitox.vercel.app/logo.png",
+            "description": "CognitoX provides a unified cognitive AI chatbot workspace with OCR, diagram compiling, media transcription, and image filters."
           }
-        }) }} />
+        ]) }} />
       </head>
       <body className={`${outfit.variable} ${plusJakartaSans.variable}`}>
         <NextAuthProvider>
