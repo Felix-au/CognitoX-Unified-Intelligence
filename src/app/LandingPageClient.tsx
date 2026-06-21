@@ -2011,18 +2011,20 @@ export default function LandingPage() {
           align-items: center;
           justify-content: space-between;
           padding: 0 32px;
-          background: rgba(10, 10, 10, 0.45);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          border-top: 1px solid rgba(255, 255, 255, 0.05);
+          background: rgba(10, 10, 10, 0.25);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border-top: 1.5px solid rgba(6, 182, 212, 0.45);
+          box-shadow: 0 -4px 20px rgba(6, 182, 212, 0.35);
           z-index: 90;
           font-size: 0.78rem;
           color: var(--text-secondary);
           box-sizing: border-box;
         }
         :global([data-theme="light"]) .landing-footer {
-          background: rgba(255, 255, 255, 0.45);
-          border-top: 1px solid rgba(0, 0, 0, 0.05);
+          background: rgba(255, 255, 255, 0.25);
+          border-top: 1.5px solid rgba(6, 182, 212, 0.45);
+          box-shadow: 0 -4px 20px rgba(6, 182, 212, 0.25);
         }
         .footer-left {
           flex: 1;
