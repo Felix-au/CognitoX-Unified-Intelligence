@@ -3,6 +3,7 @@ import NextAuthProvider from "@/providers/NextAuthProvider";
 import { ToastProvider } from "@/providers/ToastProvider";
 import { Outfit, Plus_Jakarta_Sans } from "next/font/google";
 import StyledJsxRegistry from "./registry";
+import PageLoader from "@/components/PageLoader";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -109,7 +110,9 @@ export default function RootLayout({
         <NextAuthProvider>
           <ToastProvider>
             <StyledJsxRegistry>
-              {children}
+              <PageLoader>
+                {children}
+              </PageLoader>
             </StyledJsxRegistry>
           </ToastProvider>
         </NextAuthProvider>
