@@ -265,7 +265,21 @@ export default function LandingPage() {
     window.addEventListener("mousemove", onMove);
     window.addEventListener("mouseleave", onLeave);
 
-    const tick = () => {
+    let lastTime = performance.now();
+    const fps = 30;
+    const interval = 1000 / fps;
+
+    const tick = (timestamp?: number) => {
+      animId = requestAnimationFrame(tick);
+
+      const now = timestamp || performance.now();
+      const elapsed = now - lastTime;
+
+      if (elapsed < interval) return;
+
+      // Adjust lastTime to prevent drifting
+      lastTime = now - (elapsed % interval);
+
       const isDark = themeRef.current === "dark";
       const mx = mouseRef.current.x;
       const my = mouseRef.current.y;
@@ -380,8 +394,6 @@ export default function LandingPage() {
         ctx.fill();
         ctx.shadowBlur = 0;
       }
-
-      animId = requestAnimationFrame(tick);
     };
 
     tick();

@@ -49,7 +49,7 @@ export default function PageLoader({ children }: PageLoaderProps) {
           right: 0,
           bottom: 0,
           zIndex: 99999,
-          backgroundColor: "#000000",
+          backgroundColor: "var(--bg-color)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
