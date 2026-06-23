@@ -1781,9 +1781,16 @@ export default function LandingPage() {
           overflow: hidden;
         }
         @media (max-width: 968px) {
+          .landing-container {
+            scroll-snap-type: none;
+          }
           .landing-section {
             padding: 80px 16px 64px 16px;
             overflow-y: auto;
+            align-items: flex-start;
+            height: auto;
+            min-height: 100vh;
+            scroll-snap-align: none;
           }
         }
 
