@@ -1119,10 +1119,11 @@ export default function LandingPage() {
           object-fit: contain;
           flex-shrink: 0;
         }
-        @media (max-width: 640px) {
+        @media (max-width: 968px) {
           .landing-brand-header {
             flex-direction: column;
-            align-items: flex-start;
+            align-items: center;
+            text-align: center;
             gap: 16px;
           }
         }
