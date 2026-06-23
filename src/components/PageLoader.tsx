@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 
 interface PageLoaderProps {
@@ -9,17 +8,19 @@ interface PageLoaderProps {
 }
 
 export default function PageLoader({ children }: PageLoaderProps) {
-  const [loading, setLoading] = useState(true);
+  const [visible, setVisible] = useState(true);
+  const [faded, setFaded] = useState(false);
 
   useEffect(() => {
     // Disable scrolling on body while loader is active
     document.body.style.overflow = "hidden";
 
-    // Set loading to false once the client has mounted and hydrated
-    setLoading(false);
+    // Trigger the fade-out transition after mounting
+    setFaded(true);
 
-    // Re-enable scrolling after the loader starts fading out
+    // Completely unmount the loader after the transition finishes (350ms)
     const timer = setTimeout(() => {
+      setVisible(false);
       document.body.style.overflow = "";
     }, 350);
 
@@ -29,6 +30,8 @@ export default function PageLoader({ children }: PageLoaderProps) {
     };
   }, []);
 
+  if (!visible) return <>{children}</>;
+
   return (
     <>
       {/* 
@@ -37,55 +40,53 @@ export default function PageLoader({ children }: PageLoaderProps) {
       */}
       {children}
 
-      <AnimatePresence>
-        {loading && (
-          <motion.div
-            key="page-loader-overlay"
-            initial={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.35, ease: "easeInOut" }}
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              zIndex: 99999,
-              backgroundColor: "#000000",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              pointerEvents: "all",
-            }}
-          >
-            {/* Center Logo with Breathing/Pulse loop */}
-            <motion.div
-              animate={{ 
-                opacity: [0.35, 1, 0.35],
-                scale: [0.92, 1.08, 0.92],
-                filter: [
-                  "drop-shadow(0 0 10px rgba(6, 182, 212, 0.25))",
-                  "drop-shadow(0 0 30px rgba(6, 182, 212, 0.75))",
-                  "drop-shadow(0 0 10px rgba(6, 182, 212, 0.25))"
-                ]
-              }}
-              transition={{
-                duration: 2.4,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            >
-              <Image
-                src="/logo.png"
-                alt="CognitoX Logo"
-                width={80}
-                height={80}
-                priority
-              />
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div
+        className="page-loader-overlay"
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 99999,
+          backgroundColor: "#000000",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          pointerEvents: "all",
+          opacity: faded ? 0 : 1,
+          transition: "opacity 0.35s ease-in-out",
+        }}
+      >
+        {/* Center Logo with breathing scale & outline shadow glow */}
+        <div className="pulse-glow-logo">
+          <Image
+            src="/logo.png"
+            alt="CognitoX Logo"
+            width={80}
+            height={80}
+            priority
+          />
+        </div>
+
+        <style>{`
+          @keyframes pulseGlow {
+            0%, 100% {
+              opacity: 0.35;
+              transform: scale(0.92);
+              filter: drop-shadow(0 0 10px rgba(6, 182, 212, 0.25));
+            }
+            50% {
+              opacity: 1;
+              transform: scale(1.08);
+              filter: drop-shadow(0 0 30px rgba(6, 182, 212, 0.75));
+            }
+          }
+          .pulse-glow-logo {
+            animation: pulseGlow 2.4s ease-in-out infinite;
+          }
+        `}</style>
+      </div>
     </>
   );
 }
