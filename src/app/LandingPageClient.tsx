@@ -39,6 +39,17 @@ export default function LandingPage() {
   const mouseRef = useRef({ x: -9999, y: -9999 });
   const themeRef = useRef<"light" | "dark">("dark");
 
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsDesktop(window.innerWidth >= 968);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!contactName || !contactEmail || !contactMessage) {
@@ -258,7 +269,13 @@ export default function LandingPage() {
       canvas.width = W;
       canvas.height = H;
     };
-    const onMove = (e: MouseEvent) => { mouseRef.current = { x: e.clientX, y: e.clientY }; };
+    const onMove = (e: MouseEvent) => {
+      if (window.innerWidth >= 968) {
+        mouseRef.current = { x: e.clientX, y: e.clientY };
+      } else {
+        mouseRef.current = { x: -9999, y: -9999 };
+      }
+    };
     const onLeave = () => { mouseRef.current = { x: -9999, y: -9999 }; };
 
     window.addEventListener("resize", onResize);
@@ -534,51 +551,55 @@ export default function LandingPage() {
       <div className="landing-glow-orb orb-cyan"></div>
 
       {/* Large Rotating Background 3D Neural Construct Core */}
-      <div className="construct-container">
-        <div className="construct-3d">
-          <div className="construct-core"></div>
-          <div className="construct-ring ring-1">
-            <div className="node node-1"></div>
-            <div className="node node-2"></div>
+      {isDesktop && (
+        <div className="construct-container">
+          <div className="construct-3d">
+            <div className="construct-core"></div>
+            <div className="construct-ring ring-1">
+              <div className="node node-1"></div>
+              <div className="node node-2"></div>
+            </div>
+            <div className="construct-ring ring-2">
+              <div className="node node-3"></div>
+              <div className="node node-4"></div>
+            </div>
+            <div className="construct-ring ring-3">
+              <div className="node node-5"></div>
+            </div>
+            <svg className="construct-svg" viewBox="0 0 200 200">
+              <defs>
+                <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="var(--accent-primary)" stopOpacity="var(--grad-opacity)" />
+                  <stop offset="100%" stopColor="var(--accent-secondary)" stopOpacity="var(--grad-opacity)" />
+                </linearGradient>
+              </defs>
+              <circle cx="100" cy="100" r="90" stroke="url(#grad1)" strokeWidth="1" fill="none" strokeDasharray="5,5" className="svg-ring-1" />
+              <circle cx="100" cy="100" r="65" stroke="url(#grad1)" strokeWidth="1.5" fill="none" className="svg-ring-2" />
+              <circle cx="100" cy="100" r="40" stroke="url(#grad1)" strokeWidth="0.5" fill="none" strokeDasharray="3,3" className="svg-ring-3" />
+              <line x1="100" y1="20" x2="100" y2="180" stroke="var(--accent-primary)" strokeOpacity="var(--line-opacity)" strokeWidth="1" />
+              <line x1="20" y1="100" x2="180" y2="100" stroke="var(--accent-primary)" strokeOpacity="var(--line-opacity)" strokeWidth="1" />
+            </svg>
           </div>
-          <div className="construct-ring ring-2">
-            <div className="node node-3"></div>
-            <div className="node node-4"></div>
-          </div>
-          <div className="construct-ring ring-3">
-            <div className="node node-5"></div>
-          </div>
-          <svg className="construct-svg" viewBox="0 0 200 200">
-            <defs>
-              <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="var(--accent-primary)" stopOpacity="var(--grad-opacity)" />
-                <stop offset="100%" stopColor="var(--accent-secondary)" stopOpacity="var(--grad-opacity)" />
-              </linearGradient>
-            </defs>
-            <circle cx="100" cy="100" r="90" stroke="url(#grad1)" strokeWidth="1" fill="none" strokeDasharray="5,5" className="svg-ring-1" />
-            <circle cx="100" cy="100" r="65" stroke="url(#grad1)" strokeWidth="1.5" fill="none" className="svg-ring-2" />
-            <circle cx="100" cy="100" r="40" stroke="url(#grad1)" strokeWidth="0.5" fill="none" strokeDasharray="3,3" className="svg-ring-3" />
-            <line x1="100" y1="20" x2="100" y2="180" stroke="var(--accent-primary)" strokeOpacity="var(--line-opacity)" strokeWidth="1" />
-            <line x1="20" y1="100" x2="180" y2="100" stroke="var(--accent-primary)" strokeOpacity="var(--line-opacity)" strokeWidth="1" />
-          </svg>
         </div>
-      </div>
+      )}
 
       {/* Top-Left: Rotating Triple Ring with Core */}
-      <div className="sub-construct sub-construct-top-left">
-        <div className="double-ring-3d">
-          <div className="sub-core"></div>
-          <div className="sub-ring ring-a">
-            <div className="sub-node node-a1"></div>
-          </div>
-          <div className="sub-ring ring-b">
-            <div className="sub-node node-b1"></div>
-          </div>
-          <div className="sub-ring ring-c">
-            <div className="sub-node node-c1"></div>
+      {isDesktop && (
+        <div className="sub-construct sub-construct-top-left">
+          <div className="double-ring-3d">
+            <div className="sub-core"></div>
+            <div className="sub-ring ring-a">
+              <div className="sub-node node-a1"></div>
+            </div>
+            <div className="sub-ring ring-b">
+              <div className="sub-node node-b1"></div>
+            </div>
+            <div className="sub-ring ring-c">
+              <div className="sub-node node-c1"></div>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Top-Right: Rotating Wireframe Cube */}
       <div className="sub-construct sub-construct-top-right">
@@ -593,79 +614,27 @@ export default function LandingPage() {
       </div>
 
       {/* Bottom-Left: Four Intersecting Rings with Core */}
-      <div className="sub-construct sub-construct-bottom-left">
-        <div className="triple-ring-3d">
-          <div className="sub-core"></div>
-          <div className="sub-ring ring-x">
-            <div className="sub-node node-x1"></div>
-          </div>
-          <div className="sub-ring ring-y">
-            <div className="sub-node node-y1"></div>
-          </div>
-          <div className="sub-ring ring-z">
-            <div className="sub-node node-z1"></div>
-          </div>
-          <div className="sub-ring ring-w">
-            <div className="sub-node node-w1"></div>
+      {isDesktop && (
+        <div className="sub-construct sub-construct-bottom-left">
+          <div className="triple-ring-3d">
+            <div className="sub-core"></div>
+            <div className="sub-ring ring-x">
+              <div className="sub-node node-x1"></div>
+            </div>
+            <div className="sub-ring ring-y">
+              <div className="sub-node node-y1"></div>
+            </div>
+            <div className="sub-ring ring-z">
+              <div className="sub-node node-z1"></div>
+            </div>
+            <div className="sub-ring ring-w">
+              <div className="sub-node node-w1"></div>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Bottom-Right: 3D Rotating DNA Double Helix */}
-      <div className="sub-construct sub-construct-bottom-right">
-        <div className="helix-3d">
-          <div className="helix-rung rung-1">
-            <div className="helix-node node-l"></div>
-            <div className="helix-bar"></div>
-            <div className="helix-node node-r"></div>
-          </div>
-          <div className="helix-rung rung-2">
-            <div className="helix-node node-l"></div>
-            <div className="helix-bar"></div>
-            <div className="helix-node node-r"></div>
-          </div>
-          <div className="helix-rung rung-3">
-            <div className="helix-node node-l"></div>
-            <div className="helix-bar"></div>
-            <div className="helix-node node-r"></div>
-          </div>
-          <div className="helix-rung rung-4">
-            <div className="helix-node node-l"></div>
-            <div className="helix-bar"></div>
-            <div className="helix-node node-r"></div>
-          </div>
-          <div className="helix-rung rung-5">
-            <div className="helix-node node-l"></div>
-            <div className="helix-bar"></div>
-            <div className="helix-node node-r"></div>
-          </div>
-          <div className="helix-rung rung-6">
-            <div className="helix-node node-l"></div>
-            <div className="helix-bar"></div>
-            <div className="helix-node node-r"></div>
-          </div>
-          <div className="helix-rung rung-7">
-            <div className="helix-node node-l"></div>
-            <div className="helix-bar"></div>
-            <div className="helix-node node-r"></div>
-          </div>
-          <div className="helix-rung rung-8">
-            <div className="helix-node node-l"></div>
-            <div className="helix-bar"></div>
-            <div className="helix-node node-r"></div>
-          </div>
-          <div className="helix-rung rung-9">
-            <div className="helix-node node-l"></div>
-            <div className="helix-bar"></div>
-            <div className="helix-node node-r"></div>
-          </div>
-          <div className="helix-rung rung-10">
-            <div className="helix-node node-l"></div>
-            <div className="helix-bar"></div>
-            <div className="helix-node node-r"></div>
-          </div>
-        </div>
-      </div>
+
 
       <button
         type="button"
@@ -1001,7 +970,6 @@ export default function LandingPage() {
           --node-bg: rgba(6, 182, 212, 0.85);
           --ring-border: rgba(6, 182, 212, 0.24);
           --net-line-color: var(--accent-secondary);
-          --helix-bar-color: rgba(6, 182, 212, 0.7);
           --core-bg-1: #cffafe;
           --core-bg-2: var(--accent-secondary);
           --core-shadow-1: var(--accent-secondary);
@@ -1024,7 +992,6 @@ export default function LandingPage() {
           --node-bg: rgba(6, 182, 212, 0.85);
           --ring-border: rgba(6, 182, 212, 0.24);
           --net-line-color: rgba(6, 182, 212, 0.6);
-          --helix-bar-color: rgba(6, 182, 212, 0.7);
           --core-bg-1: #cffafe;
           --core-bg-2: #06b6d4;
           --core-shadow-1: rgba(6, 182, 212, 0.7);
@@ -1042,8 +1009,7 @@ export default function LandingPage() {
         }
 
         :global([data-theme="light"]) .node,
-        :global([data-theme="light"]) .sub-node,
-        :global([data-theme="light"]) .helix-node {
+        :global([data-theme="light"]) .sub-node {
           /* Same cyan as dark mode — strong pulse */
           background: radial-gradient(circle at 35% 35%, #cffafe, rgba(6,182,212,0.9) 75%) !important;
           animation: strongNodeGlow 1.8s ease-in-out infinite alternate !important;
@@ -1288,17 +1254,9 @@ export default function LandingPage() {
           height: 150px;
           perspective: 500px;
         }
-        .sub-construct-bottom-right {
-          bottom: 2%;
-          right: 2%;
-          width: 220px;
-          height: 220px;
-          perspective: 660px;
-        }
         @media (max-width: 968px) {
           .sub-construct-top-left,
-          .sub-construct-bottom-left,
-          .sub-construct-bottom-right {
+          .sub-construct-bottom-left {
             display: none;
           }
           .sub-construct-top-right {
@@ -1397,57 +1355,7 @@ export default function LandingPage() {
         .node-z1 { top: 50%; right: 0; transform: translate(50%, -50%); }
         .node-w1 { top: 50%; left: 0; transform: translate(-50%, -50%); }
         
-        /* 3D Helix Visual — 10% bigger */
-        .helix-3d {
-          width: 132px;
-          height: 198px;
-          position: relative;
-          transform-style: preserve-3d;
-          animation: spinHelix 12s cubic-bezier(0.25, 0, 0.25, 1) infinite;
-        }
-        .helix-rung {
-          position: absolute;
-          width: 100%;
-          height: 18px;
-          transform-style: preserve-3d;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        .helix-node {
-          position: absolute;
-          width: 10px;
-          height: 10px;
-          background: radial-gradient(circle at 35% 35%, #cffafe, rgba(6,182,212,0.9) 75%);
-          border-radius: 50%;
-          animation: strongNodeGlow 1.6s ease-in-out infinite alternate;
-        }
-        .node-l {
-          left: 17px;
-        }
-        .node-r {
-          right: 17px;
-        }
-        .helix-bar {
-          position: absolute;
-          left: 22px;
-          right: 22px;
-          height: 2px;
-          background: var(--helix-bar-color);
-          border-radius: 1px;
-        }
-        
-        /* Translate and rotate each rung to form the helix (10% bigger) */
-        .rung-1  { transform: translateY(0px)   rotateY(0deg); }
-        .rung-2  { transform: translateY(20px)  rotateY(36deg); }
-        .rung-3  { transform: translateY(40px)  rotateY(72deg); }
-        .rung-4  { transform: translateY(59px)  rotateY(108deg); }
-        .rung-5  { transform: translateY(79px)  rotateY(144deg); }
-        .rung-6  { transform: translateY(99px)  rotateY(180deg); }
-        .rung-7  { transform: translateY(119px) rotateY(216deg); }
-        .rung-8  { transform: translateY(139px) rotateY(252deg); }
-        .rung-9  { transform: translateY(158px) rotateY(288deg); }
-        .rung-10 { transform: translateY(178px) rotateY(324deg); }
+
         
         @keyframes rotateConstruct {
           0% { transform: rotateY(0deg) rotateX(0deg); }
@@ -1487,10 +1395,7 @@ export default function LandingPage() {
           0% { transform: rotateY(0deg) rotateX(0deg); }
           100% { transform: rotateY(360deg) rotateX(-360deg); }
         }
-        @keyframes spinHelix {
-          0% { transform: rotateY(0deg) rotateX(15deg); }
-          100% { transform: rotateY(360deg) rotateX(15deg); }
-        }
+
         /* ── Glow Pulse Keyframes for Node Spheres ──────────────────── */
         @keyframes nodeGlow {
           0%   { box-shadow: 0 0 8px var(--node-bg), 0 0 16px var(--accent-secondary); }
