@@ -583,23 +583,7 @@ export default function LandingPage() {
         </div>
       )}
 
-      {/* Top-Left: Rotating Triple Ring with Core */}
-      {isDesktop && (
-        <div className="sub-construct sub-construct-top-left">
-          <div className="double-ring-3d">
-            <div className="sub-core"></div>
-            <div className="sub-ring ring-a">
-              <div className="sub-node node-a1"></div>
-            </div>
-            <div className="sub-ring ring-b">
-              <div className="sub-node node-b1"></div>
-            </div>
-            <div className="sub-ring ring-c">
-              <div className="sub-node node-c1"></div>
-            </div>
-          </div>
-        </div>
-      )}
+
 
       {/* Top-Right: Rotating Wireframe Cube */}
       <div className="sub-construct sub-construct-top-right">
@@ -613,26 +597,7 @@ export default function LandingPage() {
         </div>
       </div>
 
-      {/* Bottom-Left: Four Intersecting Rings with Core */}
-      {isDesktop && (
-        <div className="sub-construct sub-construct-bottom-left">
-          <div className="triple-ring-3d">
-            <div className="sub-core"></div>
-            <div className="sub-ring ring-x">
-              <div className="sub-node node-x1"></div>
-            </div>
-            <div className="sub-ring ring-y">
-              <div className="sub-node node-y1"></div>
-            </div>
-            <div className="sub-ring ring-z">
-              <div className="sub-node node-z1"></div>
-            </div>
-            <div className="sub-ring ring-w">
-              <div className="sub-node node-w1"></div>
-            </div>
-          </div>
-        </div>
-      )}
+
 
 
 
@@ -1167,6 +1132,7 @@ export default function LandingPage() {
           /* Off-center highlight → true 3D sphere illusion */
           background: radial-gradient(circle at 30% 25%, var(--core-bg-1) 0%, var(--core-bg-2) 42%, #0e7490 78%, transparent 100%);
           border-radius: 50%;
+          box-shadow: 0 0 35px rgba(6,182,212,0.8), 0 0 75px rgba(6,182,212,0.4);
           animation: pulseCore 3s ease-in-out infinite alternate;
           z-index: 5;
         }
@@ -1198,6 +1164,7 @@ export default function LandingPage() {
           height: 10px;
           background: radial-gradient(circle at 35% 35%, #cffafe, rgba(6,182,212,0.9) 75%);
           border-radius: 50%;
+          box-shadow: 0 0 18px var(--node-bg), 0 0 34px var(--accent-secondary);
           animation: strongNodeGlow 1.8s ease-in-out infinite alternate;
         }
         .node-1 { top: 0; left: 50%; transform: translate(-50%, -50%); }
@@ -1232,33 +1199,18 @@ export default function LandingPage() {
           opacity: 0.35;
           transition: all 0.4s ease;
         }
-        .sub-construct-top-left {
-          top: 10%;
-          left: 4%;
-          width: 150px;
-          height: 150px;
-          perspective: 450px;
-        }
+
         .sub-construct-top-right {
           top: 10%;
           right: 8%;
           width: 130px;
           height: 130px;
           perspective: 450px;
+          filter: drop-shadow(0 0 12px rgba(6, 182, 212, 0.75)) drop-shadow(0 0 28px rgba(6, 182, 212, 0.45));
           animation: cubeGlowContainer 9s ease-in-out infinite;
         }
-        .sub-construct-bottom-left {
-          bottom: 12%;
-          left: 4%;
-          width: 150px;
-          height: 150px;
-          perspective: 500px;
-        }
+
         @media (max-width: 968px) {
-          .sub-construct-top-left,
-          .sub-construct-bottom-left {
-            display: none;
-          }
           .sub-construct-top-right {
             top: 4%;
             right: 4%;
@@ -1277,7 +1229,7 @@ export default function LandingPage() {
           position: absolute;
           width: 80px;
           height: 80px;
-          border: 1px solid rgba(6, 182, 212, 0.22);
+          border: 1px solid rgba(6, 182, 212, 0.6);
           background: rgba(6, 182, 212, 0);
           animation: cubeFaceGlow 9s ease-in-out infinite;
         }
@@ -1288,72 +1240,7 @@ export default function LandingPage() {
         .face-top    { transform: rotateX(90deg) translateZ(40px); }
         .face-bottom { transform: rotateX(-90deg) translateZ(40px); }
         
-        .double-ring-3d {
-          width: 100px;
-          height: 100px;
-          position: relative;
-          transform-style: preserve-3d;
-          animation: spinDoubleRing 18s linear infinite;
-        }
-        .sub-core {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 18px;
-          height: 18px;
-          /* 3D sphere: off-center highlight + dark shadow side */
-          background: radial-gradient(circle at 30% 25%, #e0f7fa 0%, #06b6d4 42%, #0e7490 78%, transparent 100%);
-          border-radius: 50%;
-          animation: pulseSubCore 3s ease-in-out infinite alternate;
-          z-index: 4;
-        }
-        :global([data-theme="light"]) .sub-core {
-          background: radial-gradient(circle at 30% 25%, #cffafe 0%, #06b6d4 42%, #0e7490 78%, transparent 100%);
-        }
-        @keyframes pulseSubCore {
-          0%   { transform: translate(-50%,-50%) scale(0.85); opacity: 0.85; box-shadow: 0 0 10px rgba(6,182,212,0.65), 0 0 22px rgba(6,182,212,0.35); }
-          100% { transform: translate(-50%,-50%) scale(1.45); opacity: 1;    box-shadow: 0 0 26px rgba(6,182,212,1),    0 0 52px rgba(6,182,212,0.65), 0 0 78px rgba(6,182,212,0.3); }
-        }
-        .sub-ring {
-          position: absolute;
-          width: 100px;
-          height: 100px;
-          border: 1.5px solid var(--ring-border);
-          border-radius: 50%;
-          transform-style: preserve-3d;
-        }
-        .ring-a { transform: rotateX(60deg) rotateY(30deg); }
-        .ring-b { transform: rotateX(-60deg) rotateY(-30deg); }
-        .ring-c { transform: rotateX(30deg) rotateY(70deg); }
-        .sub-node {
-          position: absolute;
-          width: 8px;
-          height: 8px;
-          background: radial-gradient(circle at 35% 35%, #cffafe, rgba(6,182,212,0.9) 75%);
-          border-radius: 50%;
-          animation: strongNodeGlow 2.2s ease-in-out infinite alternate;
-        }
-        .node-a1 { top: 0; left: 50%; transform: translate(-50%, -50%); }
-        .node-b1 { bottom: 0; left: 50%; transform: translate(-50%, 50%); }
-        .node-c1 { top: 50%; right: 0; transform: translate(50%, -50%); }
-        
-        /* Triple/Quadruple Ring Visual */
-        .triple-ring-3d {
-          width: 100px;
-          height: 100px;
-          position: relative;
-          transform-style: preserve-3d;
-          animation: spinTripleRing 22s linear infinite;
-        }
-        .ring-x { transform: rotateX(60deg) rotateY(30deg); }
-        .ring-y { transform: rotateX(-60deg) rotateY(-30deg); }
-        .ring-z { transform: rotateY(90deg) rotateZ(45deg); }
-        .ring-w { transform: rotateX(-45deg) rotateY(45deg); }
-        .node-x1 { top: 0; left: 50%; transform: translate(-50%, -50%); }
-        .node-y1 { bottom: 0; left: 50%; transform: translate(-50%, 50%); }
-        .node-z1 { top: 50%; right: 0; transform: translate(50%, -50%); }
-        .node-w1 { top: 50%; left: 0; transform: translate(-50%, -50%); }
+
         
 
         
@@ -1362,8 +1249,8 @@ export default function LandingPage() {
           100% { transform: rotateY(360deg) rotateX(360deg); }
         }
         @keyframes pulseCore {
-          0%   { transform: scale(0.85); opacity: 0.85; box-shadow: 0 0 22px rgba(6,182,212,0.7),  0 0 50px rgba(6,182,212,0.4); }
-          100% { transform: scale(1.3);  opacity: 1;    box-shadow: 0 0 55px rgba(6,182,212,1),   0 0 110px rgba(6,182,212,0.65), 0 0 155px rgba(6,182,212,0.25); }
+          0%   { transform: scale(0.85); opacity: 0.75; }
+          100% { transform: scale(1.3);  opacity: 1;    }
         }
         @keyframes spinRing1 {
           0% { transform: rotateX(70deg) rotateY(20deg) rotateZ(0deg); }
@@ -1387,70 +1274,63 @@ export default function LandingPage() {
           0% { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg); }
           100% { transform: rotateX(360deg) rotateY(360deg) rotateZ(360deg); }
         }
-        @keyframes spinDoubleRing {
-          0% { transform: rotateY(0deg) rotateX(0deg); }
-          100% { transform: rotateY(-360deg) rotateX(360deg); }
-        }
-        @keyframes spinTripleRing {
-          0% { transform: rotateY(0deg) rotateX(0deg); }
-          100% { transform: rotateY(360deg) rotateX(-360deg); }
-        }
+
 
         /* ── Glow Pulse Keyframes for Node Spheres ──────────────────── */
         @keyframes nodeGlow {
-          0%   { box-shadow: 0 0 8px var(--node-bg), 0 0 16px var(--accent-secondary); }
-          100% { box-shadow: 0 0 18px var(--node-bg), 0 0 34px var(--accent-secondary), 0 0 50px rgba(6,182,212,0.22); }
+          0%   { opacity: 0.6; }
+          100% { opacity: 1.0; }
         }
         @keyframes crimsonGlow {
-          0%   { box-shadow: 0 0 8px rgba(153,27,27,0.6), 0 0 16px rgba(220,38,38,0.3); }
-          100% { box-shadow: 0 0 16px rgba(153,27,27,0.9), 0 0 30px rgba(220,38,38,0.55), 0 0 44px rgba(153,27,27,0.2); }
+          0%   { opacity: 0.6; }
+          100% { opacity: 1.0; }
         }
         /* ── Strong Pulse for Helix & Orbit Nodes ─────────────────── */
         @keyframes strongNodeGlow {
-          0%   { box-shadow: 0 0 12px var(--node-bg), 0 0 26px var(--accent-secondary), 0 0 42px rgba(6,182,212,0.4); transform: scale(1); }
-          100% { box-shadow: 0 0 28px var(--node-bg), 0 0 58px var(--accent-secondary), 0 0 88px rgba(6,182,212,0.7), 0 0 120px rgba(6,182,212,0.3); transform: scale(1.25); }
+          0%   { transform: scale(1); opacity: 0.65; }
+          100% { transform: scale(1.25); opacity: 1.0; }
         }
         /* ── Cube Glow/Outline Animation Cycles ───────────────────── */
         @keyframes cubeGlowContainer {
           /* --- 1. Flicker Phase (0s to 1s -> 0% to 11.11%) --- */
-          0% { opacity: 0.55; filter: brightness(1.0) drop-shadow(none); }
-          1.85% { opacity: 1.0; filter: brightness(2.6) drop-shadow(0 0 12px rgba(6, 182, 212, 0.95)) drop-shadow(0 0 28px rgba(6, 182, 212, 0.65)); }
-          3.7% { opacity: 0.15; filter: brightness(0.4) drop-shadow(none); }
-          5.56% { opacity: 1.0; filter: brightness(2.6) drop-shadow(0 0 12px rgba(6, 182, 212, 0.95)) drop-shadow(0 0 28px rgba(6, 182, 212, 0.65)); }
-          7.41% { opacity: 0.1; filter: brightness(0.3) drop-shadow(none); }
-          9.26% { opacity: 1.0; filter: brightness(2.6) drop-shadow(0 0 12px rgba(6, 182, 212, 0.95)) drop-shadow(0 0 28px rgba(6, 182, 212, 0.65)); }
-          11.11% { opacity: 0.55; filter: brightness(1.0) drop-shadow(none); }
+          0% { opacity: 0.55; }
+          1.85% { opacity: 1.0; }
+          3.7% { opacity: 0.15; }
+          5.56% { opacity: 1.0; }
+          7.41% { opacity: 0.1; }
+          9.26% { opacity: 1.0; }
+          11.11% { opacity: 0.55; }
           
           /* --- 2. Outline Only Phase (1s to 2s -> 11.11% to 22.22%) --- */
-          22.22% { opacity: 0.55; filter: brightness(1.0) drop-shadow(none); }
+          22.22% { opacity: 0.55; }
           
           /* --- 3. Glow State Phase (2s to 4s -> 22.22% to 44.44%) --- */
-          24% { opacity: 1.0; filter: brightness(2.6) drop-shadow(0 0 14px rgba(6, 182, 212, 0.95)) drop-shadow(0 0 30px rgba(6, 182, 212, 0.7)) drop-shadow(0 0 50px rgba(6, 182, 212, 0.4)); }
-          42% { opacity: 1.0; filter: brightness(2.6) drop-shadow(0 0 14px rgba(6, 182, 212, 0.95)) drop-shadow(0 0 30px rgba(6, 182, 212, 0.7)) drop-shadow(0 0 50px rgba(6, 182, 212, 0.4)); }
-          44.44% { opacity: 0.55; filter: brightness(1.0) drop-shadow(none); }
+          24% { opacity: 1.0; }
+          42% { opacity: 1.0; }
+          44.44% { opacity: 0.55; }
           
           /* --- 4. Soothing Glow State Phase (4s to 9s -> 44.44% to 100%) --- */
-          66.67% { opacity: 1.0; filter: brightness(2.2) drop-shadow(0 0 14px rgba(6, 182, 212, 0.95)) drop-shadow(0 0 30px rgba(6, 182, 212, 0.7)); }
-          100% { opacity: 0.55; filter: brightness(1.0) drop-shadow(none); }
+          66.67% { opacity: 1.0; }
+          100% { opacity: 0.55; }
         }
 
         @keyframes cubeFaceGlow {
-          0% { background: rgba(6, 182, 212, 0); border-color: rgba(6, 182, 212, 0.22); }
-          1.85% { background: rgba(6, 182, 212, 0.18); border-color: rgba(6, 182, 212, 0.95); }
-          3.7% { background: rgba(6, 182, 212, 0); border-color: rgba(6, 182, 212, 0.22); }
-          5.56% { background: rgba(6, 182, 212, 0.18); border-color: rgba(6, 182, 212, 0.95); }
-          7.41% { background: rgba(6, 182, 212, 0); border-color: rgba(6, 182, 212, 0.22); }
-          9.26% { background: rgba(6, 182, 212, 0.18); border-color: rgba(6, 182, 212, 0.95); }
-          11.11% { background: rgba(6, 182, 212, 0); border-color: rgba(6, 182, 212, 0.22); }
+          0% { background: rgba(6, 182, 212, 0); }
+          1.85% { background: rgba(6, 182, 212, 0.18); }
+          3.7% { background: rgba(6, 182, 212, 0); }
+          5.56% { background: rgba(6, 182, 212, 0.18); }
+          7.41% { background: rgba(6, 182, 212, 0); }
+          9.26% { background: rgba(6, 182, 212, 0.18); }
+          11.11% { background: rgba(6, 182, 212, 0); }
           
-          22.22% { background: rgba(6, 182, 212, 0); border-color: rgba(6, 182, 212, 0.22); }
+          22.22% { background: rgba(6, 182, 212, 0); }
           
-          24% { background: rgba(6, 182, 212, 0.18); border-color: rgba(6, 182, 212, 0.95); }
-          42% { background: rgba(6, 182, 212, 0.18); border-color: rgba(6, 182, 212, 0.95); }
-          44.44% { background: rgba(6, 182, 212, 0); border-color: rgba(6, 182, 212, 0.22); }
+          24% { background: rgba(6, 182, 212, 0.18); }
+          42% { background: rgba(6, 182, 212, 0.18); }
+          44.44% { background: rgba(6, 182, 212, 0); }
           
-          66.67% { background: rgba(6, 182, 212, 0.18); border-color: rgba(6, 182, 212, 0.95); }
-          100% { background: rgba(6, 182, 212, 0); border-color: rgba(6, 182, 212, 0.22); }
+          66.67% { background: rgba(6, 182, 212, 0.18); }
+          100% { background: rgba(6, 182, 212, 0); }
         }
 
         .features-grid {
