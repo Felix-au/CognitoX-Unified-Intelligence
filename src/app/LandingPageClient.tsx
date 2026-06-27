@@ -1867,6 +1867,18 @@ export default function LandingPage() {
           .landing-footer {
             padding: 0 16px;
             font-size: 0.72rem;
+            justify-content: center;
+          }
+          .footer-left {
+            display: none;
+          }
+          .footer-mid {
+            flex: initial;
+            text-align: center;
+          }
+          .footer-right {
+            position: absolute;
+            right: 16px;
           }
           .github-text {
             display: none;
